@@ -451,9 +451,15 @@ export const PDFCanvas = ({
       }
 
       // Delete key - delete selected field
+      // Only if not typing in an input/textarea
       if (e.key === 'Delete' && selectedFieldId) {
-        e.preventDefault();
-        deleteFieldWithUndo(selectedFieldId);
+        const target = e.target as HTMLElement;
+        const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+
+        if (!isTyping) {
+          e.preventDefault();
+          deleteFieldWithUndo(selectedFieldId);
+        }
       }
 
       // Escape key - deselect field or cancel dragging
