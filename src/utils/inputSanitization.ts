@@ -13,18 +13,19 @@
 /**
  * Sanitize user-provided text input (labels, default values, etc.)
  *
- * Removes dangerous Unicode control characters and escapes HTML entities
- * while preserving legitimate Hebrew characters.
+ * Removes dangerous Unicode control characters while preserving legitimate Hebrew characters.
+ * NOTE: Does NOT escape HTML - React handles that automatically.
+ * Double-escaping causes issues like &amp;quot; instead of "
  *
  * @param input - Raw user input
  * @returns Sanitized string safe for rendering
  *
  * @example
- * sanitizeUserInput('<script>alert("XSS")</script>')
- * // Returns: '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;'
- *
  * sanitizeUserInput('שלום\u202Eעולם')
  * // Returns: 'שלוםעולם' (RTL override removed)
+ *
+ * sanitizeUserInput('שם "מיוחד"')
+ * // Returns: 'שם "מיוחד"' (quotes preserved - React will escape when rendering)
  */
 export function sanitizeUserInput(input: string | undefined | null): string {
   if (!input) return '';
@@ -34,19 +35,7 @@ export function sanitizeUserInput(input: string | undefined | null): string {
   const dangerousUnicodePattern = /[\u202A-\u202E\u2066-\u2069]/g;
   let cleaned = input.replace(dangerousUnicodePattern, '');
 
-  // Step 2: Escape HTML entities to prevent XSS
-  const htmlEscapeMap: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;', // Prevent closing tags
-  };
-
-  cleaned = cleaned.replace(/[&<>"'/]/g, (char) => htmlEscapeMap[char]);
-
-  // Step 3: Limit length to prevent DoS attacks
+  // Step 2: Limit length to prevent DoS attacks
   const MAX_INPUT_LENGTH = 500;
   if (cleaned.length > MAX_INPUT_LENGTH) {
     cleaned = cleaned.substring(0, MAX_INPUT_LENGTH);
