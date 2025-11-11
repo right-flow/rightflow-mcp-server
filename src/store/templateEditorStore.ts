@@ -155,6 +155,15 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
   addFieldWithUndo: (fieldData) => {
     const state = get();
 
+    // Auto-generate field name if not provided or empty
+    let fieldName = fieldData.name;
+    if (!fieldName || fieldName === '') {
+      // Count fields of this type to generate next number
+      const fieldsOfType = state.fields.filter(f => f.type === fieldData.type);
+      const nextNumber = fieldsOfType.length + 1;
+      fieldName = `${fieldData.type}_${nextNumber}`;
+    }
+
     // Inherit sectionName from last updated field if not provided
     let sectionName = fieldData.sectionName;
     if (!sectionName && state.lastUpdatedFieldId) {
@@ -166,6 +175,7 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
 
     const newField: FieldDefinition = {
       ...fieldData,
+      name: fieldName,
       sectionName,
       id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
