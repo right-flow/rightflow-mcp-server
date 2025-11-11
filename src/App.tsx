@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { TopToolbar } from '@/components/layout/TopToolbar';
+import { ToolsBar } from '@/components/layout/ToolsBar';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageThumbnailSidebar } from '@/components/layout/PageThumbnailSidebar';
 import { PDFViewer } from '@/components/pdf/PDFViewer';
@@ -343,10 +344,8 @@ function App() {
         currentPage={currentPage}
         totalPages={totalPages}
         zoomLevel={zoomLevel}
-        activeTool={activeTool}
         onPageChange={setCurrentPage}
         onZoomChange={setZoomLevel}
-        onToolChange={setActiveTool}
         onUpload={handleUpload}
         onSave={handleSave}
         onSettings={() => setIsSettingsOpen(true)}
@@ -359,6 +358,9 @@ function App() {
         onLoadFields={handleLoadFields}
         hasFields={fields.length > 0}
       />
+
+      {/* Tools Bar - Field Creation Tools */}
+      {pdfFile && <ToolsBar activeTool={activeTool} onToolChange={setActiveTool} />}
 
       {/* Settings Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

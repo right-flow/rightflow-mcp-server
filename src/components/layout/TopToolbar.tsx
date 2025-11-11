@@ -1,16 +1,13 @@
-import { Upload, Save, ChevronRight, ChevronLeft, Type, CheckSquare, ZoomIn, ZoomOut, Undo, Redo, Circle, ChevronDown, Settings, Download, FolderOpen } from 'lucide-react';
+import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ToolMode } from '@/types/fields';
 
 interface TopToolbarProps {
   currentPage: number;
   totalPages: number;
   zoomLevel: number;
-  activeTool: ToolMode;
   onPageChange: (page: number) => void;
   onZoomChange: (zoom: number) => void;
-  onToolChange: (tool: ToolMode) => void;
   onUpload: () => void;
   onSave: () => void;
   onSettings: () => void;
@@ -28,10 +25,8 @@ export const TopToolbar = ({
   currentPage,
   totalPages,
   zoomLevel,
-  activeTool,
   onPageChange,
   onZoomChange,
-  onToolChange,
   onUpload,
   onSave,
   onSettings,
@@ -65,11 +60,11 @@ export const TopToolbar = ({
   };
 
   return (
-    <div className="w-full h-14 bg-toolbar-bg border-b border-border flex items-center px-4 gap-4" dir="ltr">
-      {/* File operations - left side */}
+    <div className="w-full h-14 bg-toolbar-bg border-b border-border flex items-center px-4 gap-3 shadow-sm" dir="rtl">
+      {/* File operations - right side (RTL) */}
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onUpload}>
-          <Upload className="w-4 h-4 mr-2" />
+        <Button variant="outline" size="sm" onClick={onUpload} className="gap-2">
+          <Upload className="w-4 h-4" />
           העלה PDF
         </Button>
         <Button
@@ -77,12 +72,13 @@ export const TopToolbar = ({
           size="sm"
           onClick={onSave}
           disabled={!hasDocument}
+          className="gap-2"
         >
-          <Save className="w-4 h-4 mr-2" />
-          שמור PDF מלא
+          <Save className="w-4 h-4" />
+          שמור PDF
         </Button>
-        <Button variant="outline" size="sm" onClick={onSettings}>
-          <Settings className="w-4 h-4 mr-2" />
+        <Button variant="outline" size="sm" onClick={onSettings} className="gap-2">
+          <Settings className="w-4 h-4" />
           הגדרות
         </Button>
       </div>
@@ -99,8 +95,9 @@ export const TopToolbar = ({
               onClick={onSaveFields}
               disabled={!hasFields}
               title="שמור שדות כתבנית"
+              className="gap-2"
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4" />
               שמור שדות
             </Button>
             <Button
@@ -108,88 +105,16 @@ export const TopToolbar = ({
               size="sm"
               onClick={onLoadFields}
               title="טען שדות מתבנית"
+              className="gap-2"
             >
-              <FolderOpen className="w-4 h-4 mr-2" />
+              <FolderOpen className="w-4 h-4" />
               טען שדות
             </Button>
           </div>
-        </>
-      )}
-
-      {hasDocument && (
-        <>
-          <Separator orientation="vertical" className="h-8" />
-
-          {/* Navigation - center */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              title="עמוד קודם"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-            <span className="text-sm min-w-[100px] text-center">
-              עמוד {currentPage} מתוך {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              title="עמוד הבא"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-          </div>
 
           <Separator orientation="vertical" className="h-8" />
 
-          {/* Field tools - center/right */}
-          <div className="flex gap-2">
-            <Button
-              variant={activeTool === 'text-field' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onToolChange('text-field')}
-              title="הוסף שדה טקסט"
-            >
-              <Type className="w-4 h-4 mr-2" />
-              שדה טקסט
-            </Button>
-            <Button
-              variant={activeTool === 'checkbox-field' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onToolChange('checkbox-field')}
-              title="הוסף תיבת סימון"
-            >
-              <CheckSquare className="w-4 h-4 mr-2" />
-              תיבת סימון
-            </Button>
-            <Button
-              variant={activeTool === 'radio-field' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onToolChange('radio-field')}
-              title="הוסף כפתור רדיו"
-            >
-              <Circle className="w-4 h-4 mr-2" />
-              כפתור רדיו
-            </Button>
-            <Button
-              variant={activeTool === 'dropdown-field' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onToolChange('dropdown-field')}
-              title="הוסף רשימה נפתחת"
-            >
-              <ChevronDown className="w-4 h-4 mr-2" />
-              רשימה נפתחת
-            </Button>
-          </div>
-
-          <Separator orientation="vertical" className="h-8" />
-
-          {/* Undo/Redo - center */}
+          {/* Undo/Redo */}
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -211,9 +136,36 @@ export const TopToolbar = ({
             </Button>
           </div>
 
-          <div className="flex-1" /> {/* Spacer */}
+          <div className="flex-1" /> {/* Spacer to push remaining items to left */}
 
-          {/* Zoom controls - right side */}
+          {/* Navigation - center-left */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              title="עמוד הבא"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm min-w-[100px] text-center font-medium">
+              עמוד {currentPage} מתוך {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              title="עמוד קודם"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <Separator orientation="vertical" className="h-8" />
+
+          {/* Zoom controls - left side */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -224,7 +176,7 @@ export const TopToolbar = ({
             >
               <ZoomOut className="w-4 h-4" />
             </Button>
-            <span className="text-sm min-w-12 text-center">{zoomLevel}%</span>
+            <span className="text-sm min-w-12 text-center font-medium">{zoomLevel}%</span>
             <Button
               variant="ghost"
               size="icon"
