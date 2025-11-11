@@ -1,7 +1,7 @@
 {
   "name": "rightflow-hebrew-pdf-filler",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Hebrew PDF form creation and filling with native RTL support",
   "author": "RightFlow Contributors",
   "license": "MIT",
