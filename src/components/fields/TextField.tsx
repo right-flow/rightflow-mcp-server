@@ -129,7 +129,7 @@ export const TextField = ({
         }}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
-        minWidth={50 * scale}
+        minWidth={25 * scale}
         minHeight={20 * scale}
         bounds="parent"
         className={cn(

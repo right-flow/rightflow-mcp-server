@@ -37,6 +37,25 @@ export const RadioField = ({
 }: RadioFieldProps) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
+  const options = field.options || ['אפשרות 1'];
+  const spacing = field.spacing || 30;
+  const orientation = field.orientation || 'vertical';
+
+  // Calculate container dimensions based on orientation
+  const containerWidth =
+    orientation === 'horizontal'
+      ? options.length * field.width + (options.length - 1) * spacing
+      : field.width;
+  const containerHeight =
+    orientation === 'vertical'
+      ? options.length * field.height + (options.length - 1) * spacing
+      : field.height;
+
+  // Convert PDF size to viewport size - calculate first, needed by handleDragStop
+  const pointsToPixelsScale = canvasWidth / pageDimensions.width;
+  const viewportWidth = containerWidth * pointsToPixelsScale;
+  const viewportHeight = containerHeight * pointsToPixelsScale;
+
   const handleDragStop = (_e: any, d: { x: number; y: number }) => {
     // d.x, d.y is the TOP-LEFT corner in viewport
     // We need to convert to BOTTOM-LEFT for PDF
@@ -64,25 +83,6 @@ export const RadioField = ({
     setContextMenu({ x: e.clientX, y: e.clientY });
     onSelect(field.id);
   };
-
-  const options = field.options || ['אפשרות 1'];
-  const spacing = field.spacing || 30;
-  const orientation = field.orientation || 'vertical';
-
-  // Calculate container dimensions based on orientation
-  const containerWidth =
-    orientation === 'horizontal'
-      ? options.length * field.width + (options.length - 1) * spacing
-      : field.width;
-  const containerHeight =
-    orientation === 'vertical'
-      ? options.length * field.height + (options.length - 1) * spacing
-      : field.height;
-
-  // Convert PDF size to viewport size
-  const pointsToPixelsScale = canvasWidth / pageDimensions.width;
-  const viewportWidth = containerWidth * pointsToPixelsScale;
-  const viewportHeight = containerHeight * pointsToPixelsScale;
 
   // Convert PDF coordinates to viewport coordinates for rendering
   // field.y is the BOTTOM of the field in PDF, but Rnd needs TOP-LEFT
