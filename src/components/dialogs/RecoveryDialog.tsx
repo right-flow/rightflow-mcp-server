@@ -19,7 +19,7 @@ export const RecoveryDialog: React.FC<RecoveryDialogProps> = ({
   onDiscard,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" dir="rtl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" dir="rtl">
       <div className="bg-background border border-border rounded-lg shadow-lg max-w-md w-full p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
