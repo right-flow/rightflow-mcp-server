@@ -135,7 +135,7 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
       typeof field.y !== 'number' ||
       typeof field.width !== 'number' ||
       typeof field.height !== 'number' ||
-      !field.name
+      typeof field.name !== 'string'
     ) {
       console.warn(`Invalid field skipped:`, field);
       return false;
