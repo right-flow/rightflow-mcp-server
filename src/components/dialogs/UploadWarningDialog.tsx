@@ -35,7 +35,7 @@ export const UploadWarningDialog: React.FC<UploadWarningDialogProps> = ({
         <div className="flex flex-col gap-3">
           <button
             onClick={onNewDocument}
-            className="w-full bg-destructive text-destructive-foreground font-medium py-3 px-4 rounded-md hover:bg-destructive/90 transition-colors text-right"
+            className="w-full bg-green-500 text-white font-medium py-3 px-4 rounded-md hover:bg-green-600 transition-colors text-right"
           >
             <div className="flex flex-col">
               <span className="font-semibold">מסמך חדש</span>

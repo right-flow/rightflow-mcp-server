@@ -138,6 +138,7 @@ function App() {
   const processFileUpload = async (file: File, keepFields: boolean) => {
     if (!keepFields) {
       // Clear existing fields for new document
+      loadFields([]); // Actually clear the fields
       setPdfFile(file);
       setCurrentPage(1);
       setThumbnails([]);
