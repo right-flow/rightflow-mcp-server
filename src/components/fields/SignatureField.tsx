@@ -48,9 +48,13 @@ export const SignatureField = ({
       canvasWidth,
     );
 
+    // Calculate viewport height inside the function
+    const pointsToPixelsScale = canvasWidth / pageDimensions.width;
+    const viewportHeightLocal = field.height * pointsToPixelsScale;
+
     // field.y should be the BOTTOM - subtract height from top
     const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeight * pixelsToPointsScale;
+    const pdfHeight = viewportHeightLocal * pixelsToPointsScale;
     const pdfBottomY = pdfTopCoords.y - pdfHeight;
 
     onUpdate(field.id, {

@@ -295,7 +295,7 @@ export const PDFCanvas = ({
 
   const handleCanvasMouseMove = useCallback(
     (event: React.MouseEvent) => {
-      if (!isDragging || (activeTool !== 'text-field' && activeTool !== 'dropdown-field') || !containerRef.current) return;
+      if (!isDragging || (activeTool !== 'text-field' && activeTool !== 'dropdown-field' && activeTool !== 'signature-field') || !containerRef.current) return;
 
       // Track current mouse position for drag preview
       const viewportCoords = getCanvasRelativeCoords(event, containerRef.current);

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { X, Upload, Pen, Eraser } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,31 @@ interface SignatureModalProps {
   onClose: () => void;
   onSave: (signatureImage: string, timestamp: string) => void;
   currentSignature?: string;
+}
+
+/**
+ * Validate that a data URL is a safe image format and not malicious content
+ * Prevents XSS attacks via data URLs
+ */
+function isValidImageDataURL(dataUrl: string): boolean {
+  // Must start with valid image mime type
+  const validPrefixes = [
+    'data:image/png;base64,',
+    'data:image/jpeg;base64,',
+    'data:image/jpg;base64,',
+  ];
+
+  if (!validPrefixes.some(prefix => dataUrl.startsWith(prefix))) {
+    return false;
+  }
+
+  // Verify base64 format (only valid base64 characters)
+  const base64Part = dataUrl.split(',')[1];
+  if (!base64Part || !/^[A-Za-z0-9+/=]+$/.test(base64Part)) {
+    return false;
+  }
+
+  return true;
 }
 
 export const SignatureModal = ({
@@ -45,9 +70,10 @@ export const SignatureModal = ({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('גודל הקובץ חורג מ-5MB');
+    // Validate file size (max 2MB to prevent memory issues)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    if (file.size > MAX_FILE_SIZE) {
+      alert('גודל הקובץ חורג מ-2MB. נא לכווץ את התמונה או לבחור קובץ קטן יותר.');
       return;
     }
 
@@ -79,6 +105,12 @@ export const SignatureModal = ({
     }
 
     if (signatureData) {
+      // Validate signature data to prevent XSS attacks
+      if (!isValidImageDataURL(signatureData)) {
+        alert('פורמט תמונה לא תקין או מסוכן. נא להשתמש רק ב-PNG או JPG');
+        return;
+      }
+
       const timestamp = new Date().toISOString();
       onSave(signatureData, timestamp);
       onClose();
@@ -86,13 +118,32 @@ export const SignatureModal = ({
   };
 
   const handleClose = () => {
-    // Reset state
-    setUploadedImage(currentSignature || null);
-    if (signatureRef.current) {
+    // Clear canvas explicitly
+    if (signatureRef.current && !signatureRef.current.isEmpty()) {
       signatureRef.current.clear();
+    }
+    // Reset uploaded image
+    setUploadedImage(currentSignature || null);
+    // Reset to draw tab
+    setActiveTab('draw');
+    // Clear file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
     onClose();
   };
+
+  // Reset state when modal opens to prevent race conditions
+  useEffect(() => {
+    if (isOpen) {
+      // Clear canvas when opening
+      if (signatureRef.current) {
+        signatureRef.current.clear();
+      }
+      setUploadedImage(currentSignature || null);
+      setActiveTab('draw');
+    }
+  }, [isOpen, currentSignature]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -182,7 +233,7 @@ export const SignatureModal = ({
                   <Upload className="w-12 h-12 text-muted-foreground mb-4" />
                   <p className="text-sm font-medium mb-1">לחץ להעלאת תמונה</p>
                   <p className="text-xs text-muted-foreground">
-                    PNG, JPG עד 5MB
+                    PNG, JPG עד 2MB
                   </p>
                 </>
               )}

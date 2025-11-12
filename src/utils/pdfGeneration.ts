@@ -418,16 +418,29 @@ async function createSignatureField(
 
     console.log(`✓ Created signature field: ${field.name} at (${field.x}, ${field.y}) with image`);
   } catch (error) {
-    console.error(`Failed to embed signature image for ${field.name}:`, error);
-    // Fallback: draw empty rectangle
+    const errorMsg = `נכשל הוספת חתימה לשדה "${field.name}": ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`;
+    console.error(errorMsg, error);
+
+    // Draw warning indicator instead of empty rectangle
     page.drawRectangle({
       x: field.x,
       y: field.y,
       width: field.width,
       height: field.height,
-      borderColor: rgb(0.7, 0.7, 0.7),
-      borderWidth: 1,
+      borderColor: rgb(1, 0, 0), // Red border to indicate error
+      borderWidth: 2,
     });
+
+    // Add error text
+    page.drawText('⚠ שגיאה', {
+      x: field.x + 5,
+      y: field.y + field.height / 2,
+      size: 10,
+      color: rgb(1, 0, 0),
+    });
+
+    // Return error for caller to handle
+    throw new Error(errorMsg);
   }
 }
 
@@ -516,7 +529,12 @@ export async function generateFillablePDF(
         } else if (field.type === 'dropdown') {
           createDropdownField(pdfDoc, page, field, hebrewFont);
         } else if (field.type === 'signature') {
-          await createSignatureField(pdfDoc, page, field);
+          try {
+            await createSignatureField(pdfDoc, page, field);
+          } catch (error) {
+            // Log error but continue processing other fields
+            console.warn(`⚠ Signature field "${field.name}" failed to embed, shown as error in PDF`);
+          }
         }
       }
     }
