@@ -58,22 +58,23 @@ export const RadioField = ({
 
   const handleDragStop = (_e: any, d: { x: number; y: number }) => {
     // d.x, d.y is the TOP-LEFT corner in viewport
-    // We need to convert to BOTTOM-LEFT for PDF
-    // Calculate viewport bottom: top + height
-    const viewportBottomY = d.y + viewportHeight;
-
-    // Convert BOTTOM-LEFT viewport position to PDF coordinates
-    const pdfCoords = viewportToPDFCoords(
+    // Convert TOP-LEFT to PDF coordinates
+    const pdfTopCoords = viewportToPDFCoords(
       d.x,
-      viewportBottomY, // bottom of field
+      d.y, // top of field
       pageDimensions,
-      scale * 100, // Convert scale back to percentage
+      scale * 100,
       canvasWidth,
     );
 
+    // field.y should be the BOTTOM - subtract height from top
+    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
+    const pdfHeight = viewportHeight * pixelsToPointsScale;
+    const pdfBottomY = pdfTopCoords.y - pdfHeight;
+
     onUpdate(field.id, {
-      x: pdfCoords.x,
-      y: pdfCoords.y, // This is now the bottom-left
+      x: pdfTopCoords.x,
+      y: pdfBottomY, // Bottom edge in PDF coordinates
     });
   };
 

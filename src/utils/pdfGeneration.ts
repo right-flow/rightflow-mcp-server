@@ -71,8 +71,9 @@ function createTextField(
     y: field.y, // field.y is already the bottom edge - correct for pdf-lib
     width: field.width,
     height: field.height,
-    borderColor: rgb(0.5, 0.5, 0.5),
-    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7), // Light gray border
+    borderWidth: 0.5, // Thin border
+    // No backgroundColor - transparent by default
   });
 
   // Set default value if provided
@@ -237,8 +238,9 @@ function createDropdownField(
     y: field.y,
     width: field.width,
     height: field.height,
-    borderColor: rgb(0.5, 0.5, 0.5),
-    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7), // Light gray border
+    borderWidth: 0.5, // Thin border
+    // No backgroundColor - transparent by default
   });
 
   // Apply Hebrew font for RTL text
