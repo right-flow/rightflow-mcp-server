@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Type, CheckSquare, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FieldDefinition } from '@/types/fields';
@@ -22,6 +23,24 @@ export const FieldListSidebar = ({
   onFieldDelete,
   onPageNavigate,
 }: FieldListSidebarProps) => {
+  const [lastIndex, setLastIndex] = useState<number>(0);
+
+  // Read LastIndex from localStorage and update when fields change
+  useEffect(() => {
+    const storedLastIndex = localStorage.getItem('rightflow_last_field_index');
+    setLastIndex(parseInt(storedLastIndex || '0', 10));
+
+    // Listen for storage changes (in case other tabs update it)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'rightflow_last_field_index' && e.newValue) {
+        setLastIndex(parseInt(e.newValue, 10));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [fields]); // Re-read when fields change
+
   const handleFieldClick = (field: FieldDefinition) => {
     // Navigate to field's page if not already there
     if (field.pageNumber !== currentPage) {
@@ -52,7 +71,13 @@ export const FieldListSidebar = ({
   return (
     <div className="w-64 h-full bg-sidebar-bg border-r border-border overflow-y-auto p-4" dir="rtl">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-1">רשימת שדות</h3>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-lg font-semibold">רשימת שדות</h3>
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 rounded text-xs font-mono">
+            <span className="text-muted-foreground">מונה:</span>
+            <span className="font-semibold text-primary">{lastIndex}</span>
+          </div>
+        </div>
         <p className="text-xs text-muted-foreground">
           {fields.length} {fields.length === 1 ? 'שדה' : 'שדות'}
         </p>

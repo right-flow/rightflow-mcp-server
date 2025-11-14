@@ -142,6 +142,24 @@ export const FieldPropertiesPanel = ({
           </p>
         </div>
 
+        {/* Field Index (Read-only) */}
+        {field.index !== undefined && (
+          <div className="space-y-2">
+            <Label htmlFor="field-index">מספר סידורי</Label>
+            <Input
+              id="field-index"
+              value={field.index}
+              readOnly
+              disabled
+              dir="ltr"
+              className="text-left bg-muted"
+            />
+            <p className="text-xs text-muted-foreground">
+              סדר יצירת השדה (לא ניתן לעריכה)
+            </p>
+          </div>
+        )}
+
         {/* Section Name */}
         <div className="space-y-2">
           <Label htmlFor="field-section">שם מקטע</Label>

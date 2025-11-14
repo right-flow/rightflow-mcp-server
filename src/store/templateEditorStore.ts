@@ -8,6 +8,40 @@ import {
 } from '@/utils/undoManager';
 import { RecoveryData } from '@/utils/crashRecovery';
 
+// LocalStorage key for tracking field creation index
+const LAST_INDEX_KEY = 'rightflow_last_field_index';
+
+/**
+ * Get the next field index and increment the counter in localStorage
+ */
+const getNextFieldIndex = (): number => {
+  const currentIndex = parseInt(localStorage.getItem(LAST_INDEX_KEY) || '0', 10);
+  const nextIndex = currentIndex + 1;
+  localStorage.setItem(LAST_INDEX_KEY, nextIndex.toString());
+  return nextIndex;
+};
+
+/**
+ * Decrement the LastIndex counter (used when deleting the most recently created field)
+ */
+const decrementLastIndex = (): void => {
+  const currentIndex = parseInt(localStorage.getItem(LAST_INDEX_KEY) || '0', 10);
+  if (currentIndex > 0) {
+    localStorage.setItem(LAST_INDEX_KEY, (currentIndex - 1).toString());
+  }
+};
+
+/**
+ * Initialize LastIndex based on the highest index in existing fields
+ * Called when loading templates or crash recovery
+ */
+const initializeLastIndex = (fields: FieldDefinition[]): void => {
+  const maxIndex = fields.reduce((max, field) => {
+    return field.index !== undefined && field.index > max ? field.index : max;
+  }, 0);
+  localStorage.setItem(LAST_INDEX_KEY, maxIndex.toString());
+};
+
 interface PageDimensions {
   width: number;
   height: number;
@@ -173,10 +207,14 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
       }
     }
 
+    // Get next creation order index
+    const fieldIndex = getNextFieldIndex();
+
     const newField: FieldDefinition = {
       ...fieldData,
       name: fieldName,
       sectionName,
+      index: fieldIndex,
       id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
 
@@ -256,11 +294,19 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
       return;
     }
 
+    // Check if this field has the highest index
+    const maxIndex = state.fields.reduce((max, f) => {
+      return f.index !== undefined && f.index > max ? f.index : max;
+    }, 0);
+    const isLastCreatedField = field.index === maxIndex;
+
     const action = createDeleteFieldAction({
       field: { ...field }, // Clone to avoid reference issues
       addField: (fieldToRestore) => {
+        // When undoing deletion, assign new index (as per user requirement)
+        const restoredField = { ...fieldToRestore, index: getNextFieldIndex() };
         set((prevState) => ({
-          fields: [...prevState.fields, fieldToRestore],
+          fields: [...prevState.fields, restoredField],
         }));
       },
       deleteField: (fieldId) => {
@@ -268,6 +314,10 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
           fields: prevState.fields.filter((f) => f.id !== fieldId),
           selectedFieldId: prevState.selectedFieldId === fieldId ? null : prevState.selectedFieldId,
         }));
+        // Decrement LastIndex only if deleting the most recently created field
+        if (isLastCreatedField) {
+          decrementLastIndex();
+        }
       },
     });
 
@@ -347,6 +397,9 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
 
   // Load fields from template (replace all fields)
   loadFields: (fields) => {
+    // Initialize LastIndex based on loaded fields
+    initializeLastIndex(fields);
+
     set({
       fields,
       selectedFieldId: null,
@@ -405,6 +458,9 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
 
   // Crash Recovery
   restoreFromRecovery: (recoveryData) => {
+    // Initialize LastIndex based on recovered fields
+    initializeLastIndex(recoveryData.fields);
+
     set({
       currentPage: recoveryData.currentPage,
       zoomLevel: recoveryData.zoomLevel,

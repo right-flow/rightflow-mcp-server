@@ -23,6 +23,7 @@ export interface FieldDefinition {
   required: boolean;
   defaultValue?: string;
   sectionName?: string; // Section name for grouping fields
+  index?: number; // Creation order index for HTML form generation
 
   // Hebrew-specific
   direction: 'ltr' | 'rtl';
