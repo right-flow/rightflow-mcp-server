@@ -11,7 +11,7 @@
  * Hebrew text must be manually reversed before being set in fields.
  */
 
-import { PDFDocument, PDFFont, rgb, PDFName, PDFNumber, PDFBool } from 'pdf-lib';
+import { PDFDocument, PDFFont, rgb, PDFName, PDFNumber, PDFBool, PDFString } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { FieldDefinition } from '@/types/fields';
 import { validateFieldName, validateFieldNameUniqueness } from '@/utils/inputSanitization';
@@ -50,6 +50,41 @@ function wrapWithRTLMarkers(text: string): string {
   const PDF = '\u202C'; // Pop Directional Format
 
   return RLE + text + PDF;
+}
+
+/**
+ * Add RightFlow custom metadata to AcroForm field
+ *
+ * Stores field metadata (category, index, required) as custom PDF dictionary entries.
+ * These properties are preserved in the generated PDF and can be read by PDF tools.
+ *
+ * Custom property naming convention:
+ * - RFCategory: Field category/section name (PDFName)
+ * - RFIndex: Field creation order index (PDFNumber)
+ * - RFRequired: Required field flag (PDFBool)
+ *
+ * @param fieldDict - PDF field dictionary to add properties to
+ * @param field - Field definition with metadata
+ */
+function addCustomFieldMetadata(fieldDict: any, field: FieldDefinition): void {
+  try {
+    // Add category (section name)
+    if (field.sectionName) {
+      fieldDict.set(PDFName.of('RFCategory'), PDFString.of(field.sectionName));
+    }
+
+    // Add creation order index
+    if (field.index !== undefined) {
+      fieldDict.set(PDFName.of('RFIndex'), PDFNumber.of(field.index));
+    }
+
+    // Add required flag (redundant with AcroForm's Ff flag, but explicit for RightFlow)
+    fieldDict.set(PDFName.of('RFRequired'), field.required ? PDFBool.True : PDFBool.False);
+
+    console.log(`   ✓ Custom metadata added: category=${field.sectionName || 'none'}, index=${field.index}, required=${field.required}`);
+  } catch (error) {
+    console.warn('Could not add custom metadata to field:', error);
+  }
 }
 
 /**
@@ -150,6 +185,9 @@ function createTextField(
       }
     });
 
+    // Add custom properties for RightFlow metadata
+    addCustomFieldMetadata(fieldDict, field);
+
     console.log(`   ✓ RTL quadding configured for field: ${field.name}`);
   } catch (error) {
     console.warn('Could not configure RTL for text field:', error);
@@ -218,6 +256,15 @@ function createCheckboxField(
     console.warn(`Could not apply checkbox style: ${error}`);
   }
 
+  // Add custom properties for RightFlow metadata
+  try {
+    const acroField = checkbox.acroField;
+    const fieldDict = acroField.dict;
+    addCustomFieldMetadata(fieldDict, field);
+  } catch (error) {
+    console.warn('Could not add custom properties to checkbox:', error);
+  }
+
   console.log(`✓ Created checkbox: ${field.name} (style: ${checkboxStyle}) at (${field.x}, ${field.y})`);
 }
 
@@ -269,6 +316,15 @@ function createRadioField(
   // Set as required if needed
   if (field.required) {
     radioGroup.enableRequired();
+  }
+
+  // Add custom properties for RightFlow metadata
+  try {
+    const acroField = radioGroup.acroField;
+    const fieldDict = acroField.dict;
+    addCustomFieldMetadata(fieldDict, field);
+  } catch (error) {
+    console.warn('Could not add custom properties to radio group:', error);
   }
 
   console.log(
@@ -340,6 +396,9 @@ function createDropdownField(
         widgetDict.delete(mkKey);
       }
     });
+
+    // Add custom properties for RightFlow metadata
+    addCustomFieldMetadata(fieldDict, field);
 
     console.log(`   ✓ RTL quadding configured for dropdown: ${field.name}`);
   } catch (error) {
