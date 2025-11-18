@@ -7,6 +7,7 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useSettingsStore } from '@/store/settingsStore';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { previewFilename } from '@/utils/filenameGenerator';
 import { cn } from '@/utils/cn';
 
 interface SettingsModalProps {
@@ -14,7 +15,7 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'text' | 'checkbox' | 'radio' | 'dropdown';
+type SettingsTab = 'text' | 'checkbox' | 'radio' | 'dropdown' | 'naming';
 
 export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('text');
@@ -24,6 +25,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
     updateCheckboxFieldSettings,
     updateRadioFieldSettings,
     updateDropdownFieldSettings,
+    updateNamingSettings,
     resetSettings,
   } = useSettingsStore();
 
@@ -89,6 +91,17 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
             onClick={() => setActiveTab('dropdown')}
           >
             רשימה נפתחת
+          </button>
+          <button
+            className={cn(
+              'flex-1 px-4 py-3 text-sm font-medium transition-colors',
+              activeTab === 'naming'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-muted'
+            )}
+            onClick={() => setActiveTab('naming')}
+          >
+            הגדרת שמות
           </button>
         </div>
 
@@ -272,6 +285,190 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                     updateDropdownFieldSettings({ direction: checked ? 'rtl' : 'ltr' })
                   }
                 />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'naming' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">הגדרת שמות קבצים</h3>
+
+              {/* Insurance Company */}
+              <div className="space-y-2">
+                <Label htmlFor="insurance-company">חברת הביטוח</Label>
+                <Input
+                  id="insurance-company"
+                  type="text"
+                  value={settings.naming.insuranceCompany}
+                  onChange={(e) => {
+                    const sanitized = sanitizeUserInput(e.target.value);
+                    updateNamingSettings({ insuranceCompany: sanitized });
+                  }}
+                  placeholder="לדוגמא: כלל ביטוח"
+                  dir="rtl"
+                />
+              </div>
+
+              {/* Insurance Branch */}
+              <div className="space-y-2">
+                <Label htmlFor="insurance-branch">ענף הביטוח</Label>
+                <Select
+                  id="insurance-branch"
+                  value={settings.naming.insuranceBranch}
+                  onChange={(e) =>
+                    updateNamingSettings({
+                      insuranceBranch: e.target.value as
+                        | 'ביטוח אלמנטרי'
+                        | 'ביטוח חיים'
+                        | 'ביטוח בריאות'
+                        | 'פנסיה'
+                        | 'קופות גמל',
+                    })
+                  }
+                >
+                  <option value="ביטוח אלמנטרי">ביטוח אלמנטרי</option>
+                  <option value="ביטוח חיים">ביטוח חיים</option>
+                  <option value="ביטוח בריאות">ביטוח בריאות</option>
+                  <option value="פנסיה">פנסיה</option>
+                  <option value="קופות גמל">קופות גמל</option>
+                </Select>
+              </div>
+
+              {/* Form Name */}
+              <div className="space-y-2">
+                <Label htmlFor="form-name">שם הטופס</Label>
+                <Input
+                  id="form-name"
+                  type="text"
+                  value={settings.naming.formName}
+                  onChange={(e) => {
+                    const sanitized = sanitizeUserInput(e.target.value);
+                    updateNamingSettings({ formName: sanitized });
+                  }}
+                  placeholder="לדוגמא: טופס תביעה"
+                  dir="rtl"
+                />
+              </div>
+
+              {/* Filename Template Builder */}
+              <div className="space-y-3">
+                <Label>תבנית שם קובץ</Label>
+                <p className="text-xs text-muted-foreground">
+                  בנה את שם הקובץ מפרמטרים ומפרידים
+                </p>
+
+                {/* Inline Template Builder */}
+                <div className="flex flex-wrap items-center gap-1 p-2 bg-muted rounded-md min-h-[40px]">
+                  {settings.naming.filenameTemplate.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">
+                      התבנית ריקה - לחץ &quot;הוסף פרמטר&quot; או &quot;הוסף מפריד&quot; להתחיל
+                    </p>
+                  ) : (
+                    settings.naming.filenameTemplate.map((segment, index) => (
+                      <div key={index} className="flex items-center gap-1">
+                        {segment.type === 'parameter' ? (
+                          <div className="flex items-center gap-1 bg-primary/10 border border-primary/20 rounded px-2 py-1">
+                            <Select
+                              value={segment.value}
+                              onChange={(e) => {
+                                const newTemplate = [...settings.naming.filenameTemplate];
+                                newTemplate[index] = { type: 'parameter', value: e.target.value };
+                                updateNamingSettings({ filenameTemplate: newTemplate });
+                              }}
+                              className="text-xs h-6 w-[140px] px-1 py-0"
+                              aria-label={`פרמטר ${index + 1} - בחר סוג פרמטר`}
+                            >
+                              <option value="insuranceCompany">חברת הביטוח</option>
+                              <option value="insuranceBranch">ענף הביטוח</option>
+                              <option value="formName">שם הטופס</option>
+                            </Select>
+                            <button
+                              onClick={() => {
+                                const newTemplate = settings.naming.filenameTemplate.filter(
+                                  (_, i) => i !== index
+                                );
+                                updateNamingSettings({ filenameTemplate: newTemplate });
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label={`מחק פרמטר ${index + 1}`}
+                              title="מחק פרמטר"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-secondary border border-border rounded px-2 py-1">
+                            <Input
+                              type="text"
+                              value={segment.value}
+                              onChange={(e) => {
+                                const sanitized = sanitizeUserInput(e.target.value);
+                                const newTemplate = [...settings.naming.filenameTemplate];
+                                newTemplate[index] = { type: 'separator', value: sanitized };
+                                updateNamingSettings({ filenameTemplate: newTemplate });
+                              }}
+                              placeholder="_"
+                              dir="ltr"
+                              className="text-xs text-left h-6 w-[50px] px-1 py-0"
+                              aria-label={`מפריד ${index + 1}`}
+                            />
+                            <button
+                              onClick={() => {
+                                const newTemplate = settings.naming.filenameTemplate.filter(
+                                  (_, i) => i !== index
+                                );
+                                updateNamingSettings({ filenameTemplate: newTemplate });
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                              aria-label={`מחק מפריד ${index + 1}`}
+                              title="מחק מפריד"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newTemplate = [
+                        ...settings.naming.filenameTemplate,
+                        { type: 'parameter' as const, value: 'insuranceCompany' },
+                      ];
+                      updateNamingSettings({ filenameTemplate: newTemplate });
+                    }}
+                  >
+                    הוסף פרמטר
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newTemplate = [
+                        ...settings.naming.filenameTemplate,
+                        { type: 'separator' as const, value: '_' },
+                      ];
+                      updateNamingSettings({ filenameTemplate: newTemplate });
+                    }}
+                  >
+                    הוסף מפריד
+                  </Button>
+                </div>
+
+                {/* Preview */}
+                <div className="p-3 bg-muted rounded-md">
+                  <Label className="text-xs text-muted-foreground">תצוגה מקדימה:</Label>
+                  <p className="text-sm font-mono mt-1 break-all" dir="ltr">
+                    {previewFilename(settings.naming)}
+                  </p>
+                </div>
               </div>
             </div>
           )}

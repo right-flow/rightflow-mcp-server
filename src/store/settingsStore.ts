@@ -8,6 +8,7 @@ interface SettingsState {
   updateCheckboxFieldSettings: (settings: Partial<AppSettings['checkboxField']>) => void;
   updateRadioFieldSettings: (settings: Partial<AppSettings['radioField']>) => void;
   updateDropdownFieldSettings: (settings: Partial<AppSettings['dropdownField']>) => void;
+  updateNamingSettings: (settings: Partial<AppSettings['naming']>) => void;
   resetSettings: () => void;
 }
 
@@ -78,6 +79,17 @@ export const useSettingsStore = create<SettingsState>()(
             ...state.settings,
             dropdownField: {
               ...state.settings.dropdownField,
+              ...newSettings,
+            },
+          },
+        })),
+
+      updateNamingSettings: (newSettings) =>
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            naming: {
+              ...state.settings.naming,
               ...newSettings,
             },
           },

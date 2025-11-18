@@ -265,6 +265,7 @@ function App() {
       const { generateFillablePDF, downloadPDF, validateFieldsForPDF, ensureFieldNames } = await import(
         '@/utils/pdfGeneration'
       );
+      const { generateFilename } = await import('@/utils/filenameGenerator');
 
       // Auto-generate missing field names
       const fieldsWithNames = ensureFieldNames(fields);
@@ -295,8 +296,11 @@ function App() {
         checkboxStyle: settings.checkboxField.style,
       });
 
+      // Generate filename from naming settings template
+      const fallbackName = pdfFile.name.replace('.pdf', '_fillable');
+      const filename = generateFilename(settings.naming, fallbackName);
+
       // Download PDF and JSON metadata as zip file
-      const filename = pdfFile.name.replace('.pdf', '_fillable');
       await downloadPDF(pdfBytes, filename, fieldsWithNames);
 
       alert('✅ קובץ ZIP (PDF + JSON) הורד בהצלחה! בדוק את תיקיית ההורדות.');
