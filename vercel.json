@@ -40,10 +40,15 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ],
+  "functions": {
+    "api/extract-fields.ts": {
+      "maxDuration": 30
+    }
+  },
   "env": {
     "VITE_APP_NAME": "Hebrew PDF Filler Studio",
     "VITE_APP_LOCALE": "he-IL"

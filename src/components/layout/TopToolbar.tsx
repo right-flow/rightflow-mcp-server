@@ -1,4 +1,4 @@
-import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen } from 'lucide-react';
+import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -18,6 +18,8 @@ interface TopToolbarProps {
   canRedo?: boolean;
   onSaveFields?: () => void;
   onLoadFields?: () => void;
+  onExtractFields?: () => void;
+  isExtractingFields?: boolean;
   hasFields?: boolean;
 }
 
@@ -37,6 +39,8 @@ export const TopToolbar = ({
   canRedo = false,
   onSaveFields,
   onLoadFields,
+  onExtractFields,
+  isExtractingFields = false,
   hasFields = false,
 }: TopToolbarProps) => {
   const handlePreviousPage = () => {
@@ -109,6 +113,17 @@ export const TopToolbar = ({
             >
               <FolderOpen className="w-4 h-4" />
               טען שדות
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExtractFields}
+              disabled={!hasDocument || isExtractingFields}
+              title={isExtractingFields ? 'מזהה שדות...' : 'זיהוי שדות באמצעות AI'}
+              className="gap-2"
+            >
+              <Sparkles className={`w-4 h-4 ${isExtractingFields ? 'animate-spin' : ''}`} />
+              {isExtractingFields ? 'מזהה...' : 'זיהוי אוטומטי'}
             </Button>
           </div>
 

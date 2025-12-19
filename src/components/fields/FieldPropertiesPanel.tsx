@@ -86,6 +86,7 @@ export const FieldPropertiesPanel = ({
       className={cn(
         'fixed right-4 top-20 w-80 bg-background border border-border rounded-lg shadow-lg p-4 z-[2000]',
         'animate-in slide-in-from-right duration-200',
+        'max-h-[80vh] overflow-y-auto'
       )}
       dir="rtl"
     >
@@ -218,15 +219,19 @@ export const FieldPropertiesPanel = ({
               <Input
                 id="radio-spacing"
                 type="number"
-                min="10"
+                min="0"
                 max="100"
-                value={field.spacing || 30}
-                onChange={(e) => onUpdate({ spacing: parseInt(e.target.value) || 30 })}
+                step="0.1"
+                value={field.spacing !== undefined ? field.spacing : 1}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  onUpdate({ spacing: isNaN(val) ? 0 : val });
+                }}
                 dir="ltr"
                 className="text-left"
               />
               <p className="text-xs text-muted-foreground">
-                המרחק בין כל כפתור לשכנו (10-100 נקודות)
+                המרחק בין כל כפתור לשכנו (0-100 נקודות)
               </p>
             </div>
 
@@ -365,6 +370,21 @@ export const FieldPropertiesPanel = ({
             id="field-required"
             checked={field.required}
             onCheckedChange={handleRequiredToggle}
+          />
+        </div>
+
+        {/* Auto-fill Toggle */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="field-autofill">מילוי אוטומטי</Label>
+            <p className="text-xs text-muted-foreground">
+              האם להפעיל מילוי אוטומטי עבור שדה זה
+            </p>
+          </div>
+          <Switch
+            id="field-autofill"
+            checked={field.autoFill || false}
+            onCheckedChange={(checked) => onUpdate({ autoFill: checked })}
           />
         </div>
 

@@ -165,6 +165,7 @@ export const PDFCanvas = ({
           height: defaultHeight,
           name: '',
           required: false,
+          autoFill: false,
           direction: settings.textField.direction,
           font: settings.textField.font,
           fontSize: settings.textField.fontSize,
@@ -202,6 +203,7 @@ export const PDFCanvas = ({
           height: defaultHeight,
           name: '',
           required: false,
+          autoFill: false,
           direction: settings.dropdownField.direction,
           font: settings.dropdownField.font,
           options: ['אפשרות 1', 'אפשרות 2', 'אפשרות 3'],
@@ -234,6 +236,7 @@ export const PDFCanvas = ({
           height: 20,
           name: '',
           required: false,
+          autoFill: false,
           direction: 'rtl',
         };
 
@@ -267,6 +270,7 @@ export const PDFCanvas = ({
           height: 20,
           name: '',
           required: false,
+          autoFill: false,
           direction: 'rtl',
           radioGroup: '', // Empty group name, user should set meaningful name
           options: defaultOptions,
@@ -378,6 +382,7 @@ export const PDFCanvas = ({
           height: pdfHeight,
           name: '',
           required: false,
+          autoFill: false,
           direction: settings.dropdownField.direction,
           font: settings.dropdownField.font,
           options: ['אפשרות 1', 'אפשרות 2', 'אפשרות 3'],

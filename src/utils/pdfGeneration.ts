@@ -63,6 +63,7 @@ function wrapWithRTLMarkers(text: string): string {
  * - RFCategory: Field category/section name (PDFString)
  * - RFIndex: Field creation order index (PDFNumber)
  * - RFRequired: Required field flag (PDFBool)
+ * - RFAutoFill: Auto-fill field flag (PDFBool)
  * - RFPageNumber: Page number (PDFNumber)
  * - RFLabel: Field label for display (PDFString)
  * - RFType: Field type (text, checkbox, etc.) (PDFString)
@@ -85,6 +86,11 @@ function addCustomFieldMetadata(fieldDict: any, field: FieldDefinition): void {
     // Add required flag (redundant with AcroForm's Ff flag, but explicit for RightFlow)
     fieldDict.set(PDFName.of('RFRequired'), field.required ? PDFBool.True : PDFBool.False);
 
+    // Add autoFill flag
+    if (field.autoFill !== undefined) {
+      fieldDict.set(PDFName.of('RFAutoFill'), field.autoFill ? PDFBool.True : PDFBool.False);
+    }
+
     // Add page number
     fieldDict.set(PDFName.of('RFPageNumber'), PDFNumber.of(field.pageNumber));
 
@@ -96,7 +102,7 @@ function addCustomFieldMetadata(fieldDict: any, field: FieldDefinition): void {
     // Add field type
     fieldDict.set(PDFName.of('RFType'), PDFString.of(field.type));
 
-    console.log(`   ✓ Custom metadata added: type=${field.type}, page=${field.pageNumber}, category=${field.sectionName || 'none'}, label=${field.label || 'none'}, index=${field.index}, required=${field.required}`);
+    console.log(`   ✓ Custom metadata added: type=${field.type}, page=${field.pageNumber}, category=${field.sectionName || 'none'}, label=${field.label || 'none'}, index=${field.index}, required=${field.required}, autoFill=${field.autoFill || false}`);
   } catch (error) {
     console.warn('Could not add custom metadata to field:', error);
   }
@@ -677,6 +683,7 @@ export async function downloadPDF(pdfBytes: Uint8Array, filename: string, fields
     sectionName: field.sectionName,
     index: field.index,
     required: field.required,
+    autoFill: field.autoFill,
     x: field.x,
     y: field.y,
     width: field.width,

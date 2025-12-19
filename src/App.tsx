@@ -27,6 +27,7 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showUploadWarning, setShowUploadWarning] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [isExtractingFields, setIsExtractingFields] = useState(false);
 
   // Zustand stores
   const {
@@ -378,6 +379,74 @@ function App() {
     event.target.value = '';
   };
 
+  const handleExtractFields = async () => {
+    if (!pdfFile) {
+      alert('אין PDF לניתוח. אנא טען קובץ PDF תחילה.');
+      return;
+    }
+
+    if (isExtractingFields) {
+      return; // Prevent multiple simultaneous extractions
+    }
+
+    setIsExtractingFields(true);
+
+    try {
+      // Import AI field extraction utility
+      const { extractFieldsWithAI } = await import('@/utils/aiFieldExtraction');
+
+      // Extract fields using Gemini AI
+      const extractedFields = await extractFieldsWithAI(pdfFile, (status) => {
+        console.log(`AI Extraction: ${status}`);
+      });
+
+      if (extractedFields.length === 0) {
+        alert('לא נמצאו שדות ב-PDF.\n\nיתכן שה-PDF אינו מכיל טפסים או שה-AI לא הצליח לזהות שדות.');
+        return;
+      }
+
+      // Ask user if they want to replace or merge fields (if existing fields present)
+      if (fields.length > 0) {
+        const replace = confirm(
+          `AI זיהה ${extractedFields.length} שדות.\n\n` +
+            `האם להחליף את השדות הקיימים (${fields.length})?\n\n` +
+            `לחץ "אישור" להחלפה או "ביטול" למיזוג`,
+        );
+
+        if (replace) {
+          // Replace all fields
+          loadFields(extractedFields);
+          alert(`✅ ${extractedFields.length} שדות זוהו והחליפו את השדות הקיימים!`);
+        } else {
+          // Merge fields (add to existing)
+          loadFields([...fields, ...extractedFields]);
+          alert(
+            `✅ ${extractedFields.length} שדות זוהו ונוספו!\n` +
+              `סה"כ שדות כעת: ${fields.length + extractedFields.length}`,
+          );
+        }
+      } else {
+        // No existing fields - just populate
+        loadFields(extractedFields);
+        alert(
+          `✅ ${extractedFields.length} שדות זוהו בהצלחה באמצעות AI!\n\n` +
+            `ניתן לערוך אותם או להוסיף שדות נוספים.`,
+        );
+      }
+
+      console.log(`✓ AI extracted ${extractedFields.length} fields from PDF`);
+    } catch (error) {
+      console.error('Error extracting fields with AI:', error);
+      alert(
+        'שגיאה בזיהוי שדות באמצעות AI.\n\n' +
+          `שגיאה: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}\n\n` +
+          'ודא שהגדרת את GEMINI_API_KEY ב-Vercel.',
+      );
+    } finally {
+      setIsExtractingFields(false);
+    }
+  };
+
   return (
     <div className="w-screen h-screen flex flex-col" dir="rtl">
       {/* Recovery Dialog */}
@@ -431,6 +500,8 @@ function App() {
         canRedo={canRedo()}
         onSaveFields={handleSaveFields}
         onLoadFields={handleLoadFields}
+        onExtractFields={handleExtractFields}
+        isExtractingFields={isExtractingFields}
         hasFields={fields.length > 0}
       />
 

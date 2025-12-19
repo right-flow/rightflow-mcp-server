@@ -135,7 +135,7 @@ export function previewFilename(namingSettings: NamingSettings): string {
     }
   });
 
-  let preview = parts.join('');
+  const preview = parts.join('');
 
   // Show length warning if approaching limit
   if (preview.length > MAX_FILENAME_LENGTH) {

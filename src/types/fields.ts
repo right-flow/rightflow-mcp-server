@@ -22,6 +22,7 @@ export interface FieldDefinition {
   label?: string;
   required: boolean;
   defaultValue?: string;
+  autoFill?: boolean; // Whether the field should be auto-filled
   sectionName?: string; // Section name for grouping fields
   index?: number; // Creation order index for HTML form generation
 
