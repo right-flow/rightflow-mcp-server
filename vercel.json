@@ -46,7 +46,7 @@
   ],
   "functions": {
     "api/extract-fields.ts": {
-      "maxDuration": 600
+      "maxDuration": 300
     }
   },
   "env": {
