@@ -147,14 +147,16 @@ export const TextField = ({
         }}
         onContextMenu={handleContextMenu}
       >
-        {/* Field label */}
+        {/* Field label - single line, no wrap, truncated to field width */}
         <div
-          className="absolute top-0 right-0 text-[10px] px-1 py-0.5"
+          className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap overflow-hidden text-ellipsis"
           style={{
             color: 'hsl(var(--field-text))',
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
+            maxWidth: '100%',
           }}
           dir="rtl"
+          title={sanitizeUserInput(field.label || field.name) || 'שדה טקסט'}
         >
           {sanitizeUserInput(field.label || field.name) || 'שדה טקסט'}
         </div>

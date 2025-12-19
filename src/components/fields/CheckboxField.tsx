@@ -116,7 +116,7 @@ export const CheckboxField = ({
       {/* Checkbox icon */}
       <div className="w-4 h-4 border-2 rounded-sm pointer-events-none" style={{ borderColor: 'hsl(var(--field-checkbox))' }} />
 
-      {/* Field label (if exists) */}
+      {/* Field label (if exists) - truncated to 5 chars + ... */}
       {field.label && (
         <div
           className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
@@ -126,8 +126,12 @@ export const CheckboxField = ({
             transform: 'translateX(100%)',
           }}
           dir="rtl"
+          title={sanitizeUserInput(field.label)}
         >
-          {sanitizeUserInput(field.label)}
+          {(() => {
+            const label = sanitizeUserInput(field.label);
+            return label.length > 5 ? label.slice(0, 5) + '...' : label;
+          })()}
         </div>
       )}
 
