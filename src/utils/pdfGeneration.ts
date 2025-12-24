@@ -354,6 +354,67 @@ function createRadioField(
 }
 
 /**
+ * Create AcroForm radio button group from multiple field definitions
+ * This handles the case where each radio button is defined as a separate field
+ *
+ * @param pdfDoc - PDF document
+ * @param pages - All PDF pages
+ * @param groupFields - All field definitions belonging to the same radio group
+ */
+function createRadioGroupFromFields(
+  pdfDoc: PDFDocument,
+  pages: any[],
+  groupFields: FieldDefinition[],
+): void {
+  if (groupFields.length === 0) return;
+
+  const form = pdfDoc.getForm();
+  const firstField = groupFields[0];
+  const groupName = firstField.radioGroup || firstField.name;
+
+  console.log(`📻 Creating radio group "${groupName}" with ${groupFields.length} buttons`);
+
+  // Create radio group
+  const radioGroup = form.createRadioGroup(groupName);
+
+  // Add each field as a radio button option
+  groupFields.forEach((field, index) => {
+    const pageIndex = field.pageNumber - 1;
+    const page = pages[pageIndex];
+
+    // Use field name as option value (or index if no name)
+    const optionValue = field.name || `option_${index + 1}`;
+
+    radioGroup.addOptionToPage(optionValue, page, {
+      x: field.x,
+      y: field.y + field.height, // Y is the TOP edge
+      width: field.width,
+      height: field.height,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
+    });
+
+    console.log(`   ✓ Added radio button "${optionValue}" at (${field.x.toFixed(2)}, ${field.y.toFixed(2)}) on page ${field.pageNumber}`);
+  });
+
+  // Set as required if any field in the group is marked required
+  if (groupFields.some(f => f.required)) {
+    radioGroup.enableRequired();
+  }
+
+  // Add custom properties from the first field
+  try {
+    const acroField = radioGroup.acroField;
+    const fieldDict = acroField.dict;
+    addCustomFieldMetadata(fieldDict, firstField);
+  } catch (error) {
+    console.warn('Could not add custom properties to radio group:', error);
+  }
+
+  console.log(`✅ Created radio group "${groupName}" with ${groupFields.length} buttons`);
+}
+
+/**
  * Create AcroForm dropdown in PDF
  *
  * @param pdfDoc - PDF document
@@ -592,6 +653,21 @@ export async function generateFillablePDF(
       fieldsByPage[field.pageNumber].push(field);
     });
 
+    // Group radio fields by their radio group name to prevent duplicates
+    const radioGroupsMap = new Map<string, FieldDefinition[]>();
+    const createdRadioGroups = new Set<string>();
+
+    // First pass: collect all radio fields by group
+    fields.forEach(field => {
+      if (field.type === 'radio') {
+        const groupName = field.radioGroup || field.name;
+        if (!radioGroupsMap.has(groupName)) {
+          radioGroupsMap.set(groupName, []);
+        }
+        radioGroupsMap.get(groupName)!.push(field);
+      }
+    });
+
     // Create fields on each page
     for (const [pageNum, pageFields] of Object.entries(fieldsByPage)) {
       const pageIndex = parseInt(pageNum) - 1; // Convert to 0-based index
@@ -616,7 +692,19 @@ export async function generateFillablePDF(
         } else if (field.type === 'checkbox') {
           createCheckboxField(pdfDoc, page, field, options?.checkboxStyle);
         } else if (field.type === 'radio') {
-          createRadioField(pdfDoc, page, field);
+          const groupName = field.radioGroup || field.name;
+          // Skip if this radio group was already created
+          if (createdRadioGroups.has(groupName)) {
+            console.log(`   ⏭ Skipping radio field "${field.name}" - group "${groupName}" already created`);
+            continue;
+          }
+
+          // Get all fields in this radio group
+          const groupFields = radioGroupsMap.get(groupName) || [field];
+
+          // Create radio group with all its buttons
+          createRadioGroupFromFields(pdfDoc, pdfDoc.getPages(), groupFields);
+          createdRadioGroups.add(groupName);
         } else if (field.type === 'dropdown') {
           createDropdownField(pdfDoc, page, field, hebrewFont);
         } else if (field.type === 'signature') {
