@@ -75,3 +75,18 @@ export interface ViewportCoords {
   x: number; // Pixels from left edge
   y: number; // Pixels from TOP edge (Canvas origin)
 }
+export interface GuidanceText {
+  id: string;
+  content: string;
+  pageNumber: number;
+  x: number; // PDF coordinates
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface PageMetadata {
+  pageNumber: number;
+  sections: Array<{ name: string; y: number; height: number }>;
+  guidanceTexts: GuidanceText[];
+}

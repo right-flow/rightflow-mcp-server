@@ -136,7 +136,7 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
       hasWidth: typeof field.width === 'number',
       hasHeight: typeof field.height === 'number',
       hasName: typeof field.name === 'string',
-      validType: ['text', 'checkbox', 'radio', 'dropdown'].includes(field.type),
+      validType: ['text', 'checkbox', 'radio', 'dropdown', 'signature'].includes(field.type),
     };
 
     const isValid = Object.values(validations).every((v) => v === true);

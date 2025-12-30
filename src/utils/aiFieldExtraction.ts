@@ -1,5 +1,7 @@
-import { FieldDefinition } from '@/types/fields';
+import { FieldDefinition, PageMetadata, GuidanceText } from '@/types/fields';
 import { PDFDocument } from 'pdf-lib';
+import { detectRadioGroups } from './fieldGrouping';
+import { reindexFields } from './fieldSorting';
 
 interface GeminiFieldResponse {
   type: 'text' | 'checkbox' | 'radio' | 'dropdown' | 'signature';
@@ -12,11 +14,26 @@ interface GeminiFieldResponse {
   name: string;
   required: boolean;
   direction: 'ltr' | 'rtl';
+  options?: string[];
+  sectionName?: string;
+  radioGroup?: string;
+  orientation?: 'horizontal' | 'vertical';
+}
+
+interface GeminiGuidanceResponse {
+  id: string;
+  content: string;
+  pageNumber: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 interface PageExtractionResult {
   pageNumber: number;
   fields: GeminiFieldResponse[];
+  guidanceTexts: GeminiGuidanceResponse[];
   error?: string;
 }
 
@@ -99,15 +116,38 @@ async function processPageWithAI(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      let errorMessage = `Failed to process page ${pageNumber}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        // If JSON parsing fails, try to get text
+        try {
+          const text = await response.text();
+          errorMessage = text || `HTTP ${response.status}: ${response.statusText}`;
+        } catch {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+      }
+      console.error(`[API Error] Page ${pageNumber}:`, errorMessage);
       return {
         pageNumber,
         fields: [],
-        error: error.error || `Failed to process page ${pageNumber}`,
+        guidanceTexts: [],
+        error: errorMessage,
       };
     }
 
-    const { fields } = await response.json();
+    const { fields, guidanceTexts } = await response.json();
+
+    // Log radio fields received from API for debugging
+    const radioFromApi = fields.filter((f: GeminiFieldResponse) => f.type === 'radio');
+    if (radioFromApi.length > 0) {
+      console.log(`[API Response] Page ${pageNumber}: ${radioFromApi.length} radio fields received:`);
+      radioFromApi.forEach((f: GeminiFieldResponse, i: number) => {
+        console.log(`  Radio ${i + 1}: name="${f.name}", label="${f.label}", options=${JSON.stringify(f.options)}`);
+      });
+    }
 
     // Update page numbers to match actual page in original document
     const fieldsWithCorrectPage = fields.map((f: GeminiFieldResponse) => ({
@@ -115,14 +155,21 @@ async function processPageWithAI(
       pageNumber: pageNumber,
     }));
 
+    const guidanceWithCorrectPage = (guidanceTexts || []).map((g: GeminiGuidanceResponse) => ({
+      ...g,
+      pageNumber: pageNumber,
+    }));
+
     return {
       pageNumber,
       fields: fieldsWithCorrectPage,
+      guidanceTexts: guidanceWithCorrectPage,
     };
   } catch (error) {
     return {
       pageNumber,
       fields: [],
+      guidanceTexts: [],
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
@@ -178,7 +225,7 @@ async function processPagesInBatches(
 export async function extractFieldsWithAI(
   pdfFile: File,
   onProgress?: (status: string) => void,
-): Promise<FieldDefinition[]> {
+): Promise<{ fields: FieldDefinition[], metadata: PageMetadata[] }> {
   onProgress?.('טוען מסמך PDF...');
 
   // Load PDF document
@@ -193,6 +240,7 @@ export async function extractFieldsWithAI(
   const BATCH_SIZE = 3; // Process up to 3 pages in parallel
 
   let allFields: GeminiFieldResponse[] = [];
+  let allGuidance: GeminiGuidanceResponse[] = [];
 
   if (pageCount <= PAGE_THRESHOLD) {
     // Small document - process entire PDF at once
@@ -213,8 +261,9 @@ export async function extractFieldsWithAI(
       throw new Error(error.error || 'AI extraction failed');
     }
 
-    const { fields } = await response.json();
+    const { fields, guidanceTexts } = await response.json();
     allFields = fields;
+    allGuidance = guidanceTexts || [];
   } else {
     // Large document - process page by page
     onProgress?.(`מסמך גדול (${pageCount} עמודים) - מפצל לעמודים בודדים...`);
@@ -235,6 +284,7 @@ export async function extractFieldsWithAI(
         console.warn(`[Page ${result.pageNumber}] Error:`, result.error);
       } else {
         allFields.push(...result.fields);
+        allGuidance.push(...result.guidanceTexts);
       }
     }
 
@@ -252,6 +302,15 @@ export async function extractFieldsWithAI(
 
   onProgress?.(`עיבוד ${allFields.length} שדות שזוהו...`);
 
+  // Log radio fields before conversion for debugging
+  const radioFieldsBeforeConvert = allFields.filter(f => f.type === 'radio');
+  if (radioFieldsBeforeConvert.length > 0) {
+    console.log(`[Pre-Convert] ${radioFieldsBeforeConvert.length} radio fields before FieldDefinition conversion:`);
+    radioFieldsBeforeConvert.forEach((f, i) => {
+      console.log(`  Radio ${i + 1}: name="${f.name}", label="${f.label}", options=${JSON.stringify(f.options)}, radioGroup="${f.radioGroup}"`);
+    });
+  }
+
   // Convert to FieldDefinition[]
   const fields: FieldDefinition[] = allFields.map(
     (gf: GeminiFieldResponse, index: number) => ({
@@ -266,7 +325,7 @@ export async function extractFieldsWithAI(
       label: gf.label,
       required: gf.required,
       direction: gf.direction,
-      sectionName: 'כללי',
+      sectionName: gf.sectionName || 'כללי',
       autoFill: false,
       index: index,
       ...(gf.type === 'text' && {
@@ -277,16 +336,58 @@ export async function extractFieldsWithAI(
         options: ['אפשרות 1', 'אפשרות 2', 'אפשרות 3'],
       }),
       ...(gf.type === 'radio' && {
-        options: ['אפשרות 1', 'אפשרות 2'],
-        radioGroup: gf.name || `radio_group_${index + 1}`,
-        spacing: 25,
-        orientation: 'vertical' as const,
+        // Use API options if available, otherwise use label as single option for later merging
+        options: gf.options && gf.options.length > 0
+          ? gf.options
+          : (gf.label ? [gf.label] : ['אפשרות']),
+        radioGroup: gf.radioGroup || `radio_group_${index + 1}`,
+        spacing: 1,
+        orientation: gf.orientation || 'vertical',
       }),
     }),
   );
 
-  onProgress?.(`הושלם! זוהו ${fields.length} שדות מ-${pageCount} עמודים`);
-  return fields;
+  // Group fields by page to create metadata
+  const metadata: PageMetadata[] = [];
+  const guidanceByPage = new Map<number, GuidanceText[]>();
+
+  allGuidance.forEach(g => {
+    if (!guidanceByPage.has(g.pageNumber)) guidanceByPage.set(g.pageNumber, []);
+    guidanceByPage.get(g.pageNumber)!.push(g);
+  });
+
+  const pageNumbers = Array.from(new Set(fields.map(f => f.pageNumber)));
+  pageNumbers.forEach(pageNum => {
+    const pageFields = fields.filter(f => f.pageNumber === pageNum);
+    const sections = Array.from(new Set(pageFields.map(f => f.sectionName).filter(Boolean))) as string[];
+
+    metadata.push({
+      pageNumber: pageNum,
+      sections: sections.map(name => ({
+        name,
+        y: Math.min(...pageFields.filter(f => f.sectionName === name).map(f => f.y)),
+        height: 20 // Default height for section visualization
+      })),
+      guidanceTexts: guidanceByPage.get(pageNum) || []
+    });
+  });
+
+  // Apply post-processing
+  const processedFields = detectRadioGroups(fields);
+  const sortedFields = reindexFields(processedFields, 'rtl');
+
+  onProgress?.(`הושלם! זוהו ${sortedFields.length} שדות מ-${pageCount} עמודים`);
+  return { fields: sortedFields, metadata };
+}
+
+/**
+ * Enhanced version that returns both fields and metadata
+ */
+export async function extractFieldsWithMetadata(
+  pdfFile: File,
+  onProgress?: (status: string) => void,
+): Promise<{ fields: FieldDefinition[], metadata: PageMetadata[] }> {
+  return extractFieldsWithAI(pdfFile, onProgress);
 }
 
 /**
@@ -295,4 +396,114 @@ export async function extractFieldsWithAI(
 export function clearPageCache(): void {
   pageCache.clear();
   console.log('[Cache] Cleared page cache');
+}
+
+/**
+ * Reprocess a single page from PDF and return extracted fields
+ * Used to retry failed pages or update fields for a specific page
+ *
+ * @param pdfFile - The original PDF file
+ * @param pageNumber - The page number to reprocess (1-indexed)
+ * @param onProgress - Optional callback for progress updates
+ * @returns Array of extracted field definitions for that page
+ */
+export async function reprocessSinglePage(
+  pdfFile: File,
+  pageNumber: number,
+  onProgress?: (status: string) => void,
+): Promise<{ fields: FieldDefinition[], metadata: PageMetadata | null }> {
+  onProgress?.(`מעבד מחדש עמוד ${pageNumber}...`);
+
+  // Load PDF document
+  const arrayBuffer = await pdfFile.arrayBuffer();
+  const pdfDoc = await PDFDocument.load(arrayBuffer);
+  const totalPages = pdfDoc.getPageCount();
+
+  if (pageNumber < 1 || pageNumber > totalPages) {
+    throw new Error(`מספר עמוד לא תקין: ${pageNumber}. יש ${totalPages} עמודים במסמך.`);
+  }
+
+  // Clear cache for this specific page to force re-extraction
+  const cacheKey = getCacheKey(pdfFile.name, pageNumber);
+  pageCache.delete(cacheKey);
+  console.log(`[Reprocess] Cleared cache for page ${pageNumber}`);
+
+  // Extract and process the single page
+  const pageBase64 = await extractPageAsBase64(pdfDoc, pageNumber - 1, pdfFile.name);
+  const result = await processPageWithAI(pageBase64, pageNumber, totalPages);
+
+  if (result.error) {
+    throw new Error(`שגיאה בעיבוד עמוד ${pageNumber}: ${result.error}`);
+  }
+
+  onProgress?.(`עיבוד ${result.fields.length} שדות מעמוד ${pageNumber}...`);
+
+  // Convert to FieldDefinition[]
+  const fields: FieldDefinition[] = result.fields.map(
+    (gf: GeminiFieldResponse, index: number) => ({
+      id: crypto.randomUUID(),
+      type: gf.type,
+      pageNumber: gf.pageNumber,
+      x: gf.x,
+      y: gf.y,
+      width: gf.width,
+      height: gf.height,
+      name: gf.name || `field_p${pageNumber}_${index + 1}`,
+      label: gf.label,
+      required: gf.required,
+      direction: gf.direction,
+      sectionName: gf.sectionName || 'כללי',
+      autoFill: false,
+      index: index,
+      ...(gf.type === 'text' && {
+        font: 'NotoSansHebrew',
+        fontSize: 12,
+      }),
+      ...(gf.type === 'dropdown' && {
+        options: ['אפשרות 1', 'אפשרות 2', 'אפשרות 3'],
+      }),
+      ...(gf.type === 'radio' && {
+        // Use API options if available, otherwise use label as single option for later merging
+        options: gf.options && gf.options.length > 0
+          ? gf.options
+          : (gf.label ? [gf.label] : ['אפשרות']),
+        radioGroup: gf.radioGroup || `radio_group_p${pageNumber}_${index + 1}`,
+        spacing: 1,
+        orientation: gf.orientation || 'vertical',
+      }),
+    }),
+  );
+
+  // Create metadata for this page
+  let metadata: PageMetadata | null = null;
+  if (fields.length > 0) {
+    const sections = Array.from(new Set(fields.map(f => f.sectionName).filter(Boolean))) as string[];
+    const guidanceTexts: GuidanceText[] = result.guidanceTexts.map(g => ({
+      id: g.id,
+      content: g.content,
+      pageNumber: g.pageNumber,
+      x: g.x,
+      y: g.y,
+      width: g.width,
+      height: g.height,
+    }));
+
+    metadata = {
+      pageNumber,
+      sections: sections.map(name => ({
+        name,
+        y: Math.min(...fields.filter(f => f.sectionName === name).map(f => f.y)),
+        height: 20,
+      })),
+      guidanceTexts,
+    };
+  }
+
+  // Apply post-processing
+  const processedFields = detectRadioGroups(fields);
+
+  onProgress?.(`הושלם! זוהו ${processedFields.length} שדות מעמוד ${pageNumber}`);
+  console.log(`[Reprocess] Page ${pageNumber}: ${processedFields.length} fields extracted`);
+
+  return { fields: processedFields, metadata };
 }

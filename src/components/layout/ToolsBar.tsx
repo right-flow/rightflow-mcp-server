@@ -1,4 +1,4 @@
-import { Type, CheckSquare, Circle, ChevronDown, PenTool } from 'lucide-react';
+import { Type, CheckSquare, Circle, ChevronDown, PenTool, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToolMode } from '@/types/fields';
 
@@ -8,6 +8,8 @@ interface ToolsBarProps {
 }
 
 export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
+  const isFieldToolActive = activeTool !== 'select';
+
   return (
     <div className="w-full h-16 bg-gradient-to-b from-secondary to-background border-b border-border flex items-center justify-center px-4 gap-3" dir="rtl">
       <div className="text-sm font-medium text-muted-foreground ml-4">
@@ -68,6 +70,19 @@ export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
         <PenTool className="w-5 h-5" />
         שדה חתימה
       </Button>
+
+      {/* Release button - only visible when a field tool is active */}
+      {isFieldToolActive && (
+        <Button
+          variant="destructive"
+          size="icon"
+          onClick={() => onToolChange('select')}
+          title="שחרר מצב יצירת שדה (Esc)"
+          className="h-10 w-10"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      )}
 
       <Button
         variant="ghost"

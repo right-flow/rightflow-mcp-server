@@ -42,54 +42,70 @@ interface AIFieldResponse {
   name: string;
   required: boolean;
   direction: 'ltr' | 'rtl';
+  sectionName?: string;
+  radioGroup?: string;
+  orientation?: 'horizontal' | 'vertical';
+  options?: string[];    // Options for radio/dropdown fields
+}
+
+interface GuidanceTextResponse {
+  id: string;
+  content: string;
+  pageNumber: number;
+  xPercent: number;
+  yPercent: number;
+  widthPercent: number;
+  heightPercent: number;
+}
+
+interface AIResponseWrapper {
+  fields: AIFieldResponse[];
+  guidanceTexts?: GuidanceTextResponse[];
 }
 
 /**
  * Convert percentage-based coordinates to PDF points
- *
- * @param field - Field with percentage coordinates
- * @param pageWidth - Page width in points (default A4)
- * @param pageHeight - Page height in points (default A4)
- * @returns Field with coordinates in PDF points
  */
 function convertPercentToPoints(
   field: AIFieldResponse,
   pageWidth: number = PAGE_SIZES.A4.width,
   pageHeight: number = PAGE_SIZES.A4.height
-): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  type: string;
-  pageNumber: number;
-  label?: string;
-  name: string;
-  required: boolean;
-  direction: 'ltr' | 'rtl';
-} {
-  // Convert percentages to points
+) {
   const x = (field.xPercent / 100) * pageWidth;
   const width = (field.widthPercent / 100) * pageWidth;
   const height = (field.heightPercent / 100) * pageHeight;
 
-  // Convert Y from top-based percentage to PDF bottom-based coordinate
-  // yPercent=0 means top of page, yPercent=100 means bottom
-  // In PDF: y=pageHeight is top, y=0 is bottom
   const yFromTop = (field.yPercent / 100) * pageHeight;
-  const y = pageHeight - yFromTop - height; // Bottom edge of field in PDF coords
+  const y = pageHeight - yFromTop - height;
 
   return {
-    type: field.type,
+    ...field,
     x: Math.round(x * 100) / 100,
     y: Math.round(y * 100) / 100,
     width: Math.round(width * 100) / 100,
     height: Math.round(height * 100) / 100,
-    pageNumber: field.pageNumber,
-    label: field.label,
-    name: field.name,
-    required: field.required,
-    direction: field.direction,
+  };
+}
+
+function convertGuidanceToPoints(
+  text: GuidanceTextResponse,
+  pageWidth: number = PAGE_SIZES.A4.width,
+  pageHeight: number = PAGE_SIZES.A4.height
+) {
+  const x = (text.xPercent / 100) * pageWidth;
+  const width = (text.widthPercent / 100) * pageWidth;
+  const height = (text.heightPercent / 100) * pageHeight;
+  const yFromTop = (text.yPercent / 100) * pageHeight;
+  const y = pageHeight - yFromTop - height;
+
+  return {
+    id: text.id,
+    content: text.content,
+    pageNumber: text.pageNumber,
+    x: Math.round(x * 100) / 100,
+    y: Math.round(y * 100) / 100,
+    width: Math.round(width * 100) / 100,
+    height: Math.round(height * 100) / 100,
   };
 }
 
@@ -111,141 +127,161 @@ export default async function handler(
   }
 
   try {
-    // Validate API key is configured
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({
-        error: 'GEMINI_API_KEY environment variable is not configured',
-      });
+      return res.status(500).json({ error: 'GEMINI_API_KEY is not configured' });
     }
 
     const { pdfBase64, pageCount } = req.body;
-
     if (!pdfBase64) {
       return res.status(400).json({ error: 'Missing PDF data' });
     }
 
-    // Initialize Gemini AI with validated API key
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Use environment variable for model name with sensible fallback
-    const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-2.0-flash';
-
-    // Parse timeout with NaN validation (default: 60000ms = 60 seconds)
+    const modelName = process.env.GEMINI_CHAT_MODEL || 'gemini-1.5-pro';
     const parsedTimeout = parseInt(process.env.GEMINI_TIMEOUT || '60000', 10);
     const timeout = Number.isNaN(parsedTimeout) ? 60000 : parsedTimeout;
 
-    console.log(`[Gemini AI] Using model: ${modelName}, timeout: ${timeout}ms`);
+    console.log(`[Gemini AI] Using model: ${modelName}`);
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    // Improved prompt with percentage-based coordinates
-    const prompt = `You are a PDF form field detection expert. Analyze this PDF document THOROUGHLY and extract ALL fillable fields from EVERY page.
+    const prompt = `You are analyzing a Hebrew PDF form. Extract ALL fillable fields with PRECISE coordinates.
+Scan EVERY page (${pageCount ? `Total: ${pageCount}` : 'All'}). Use PERCENTAGE coordinates (0-100).
 
-CRITICAL INSTRUCTIONS:
-1. Scan EVERY page of the document (${pageCount ? `there are ${pageCount} pages` : 'scan all pages'})
-2. Find ALL fields - do not skip any fields, even small ones
-3. Use PERCENTAGE-based coordinates (0-100) for accuracy
-4. Be thorough - insurance/government forms typically have 20-50+ fields
+CRITICAL - COORDINATE PRECISION:
+- Measure coordinates EXACTLY where the fillable box/circle appears on the page.
+- xPercent: distance from LEFT edge of page (0=left, 100=right).
+- yPercent: distance from TOP edge of page (0=top, 100=bottom).
+- widthPercent/heightPercent: actual size of the fillable area.
+- For small checkboxes/radio buttons: typically 2-3% width, 1.5-2.5% height.
+- For text fields: measure the actual input box, not the label.
 
-COORDINATE SYSTEM (PERCENTAGE-BASED):
-- xPercent: Horizontal position from LEFT edge (0=left edge, 100=right edge)
-- yPercent: Vertical position from TOP edge (0=top of page, 100=bottom)
-- widthPercent: Field width as percentage of page width
-- heightPercent: Field height as percentage of page height
+RADIO BUTTONS - IMPORTANT RULES:
+1. Radio buttons are MUTUALLY EXCLUSIVE choices for ONE question.
+2. Look for visual indicators: circles (○), dots, or grouped options with a shared question/label.
+3. GENDER example: "ז" and "נ" next to circles = ONE radio group with 2 options.
+   - Return as SINGLE field with "options": ["ז", "נ"] NOT two separate fields.
+4. Each radio field should have:
+   - "type": "radio"
+   - "options": array of the ACTUAL Hebrew labels (e.g., ["ז", "נ"], NOT ["אפשרות 1", "אפשרות 2"])
+   - "radioGroup": unique identifier for the question (e.g., "gender", "marital_status")
+   - "label": the question text if visible (e.g., "מין")
+   - Position should be the FIRST option's location.
 
-FIELD TYPES TO DETECT:
-- "text": Any line, box, or underlined area for writing text (most common)
-- "checkbox": Small square boxes (typically 2-4% of page width)
-- "radio": Circular options in groups sharing the same question
-- "dropdown": Fields with arrow indicators or "בחר/Select" text
-- "signature": Large boxes marked "חתימה/Signature" (typically 15-25% width)
+CHECKBOX vs RADIO DECISION:
+- Use RADIO when: options are mutually exclusive (only one can be selected).
+- Use CHECKBOX when:
+  - Multiple selections allowed.
+  - Complex multi-row/column layouts where options span large areas.
+  - Independent yes/no choices.
+- When in doubt with complex layouts (4+ options scattered across rows), use CHECKBOX.
 
-WHAT TO LOOK FOR:
-- Blank lines (horizontal rules for writing)
-- Empty boxes/rectangles
-- Dotted or dashed lines
-- Underscored areas after labels
-- Form field indicators (boxes, circles, lines)
-- Areas marked with : or _ after Hebrew/English labels
+FIELD NAMING:
+- "name": descriptive English name based on field purpose (e.g., "first_name", "id_number", "gender").
+- "label": the Hebrew text label visible near the field.
 
-FOR HEBREW FORMS:
-- Read RIGHT to LEFT for field order
-- Labels usually appear to the RIGHT of fields
-- Look for fields after colons (:) or underscores
+SECTIONS:
+- Group fields by logical sections (e.g., "פרטים אישיים", "כתובת", "פרטי תעסוקה").
 
-RETURN FORMAT - JSON array only, no markdown:
-[
-  {
-    "type": "text",
-    "xPercent": 60,
-    "yPercent": 15,
-    "widthPercent": 25,
-    "heightPercent": 3,
-    "pageNumber": 1,
-    "label": "שם פרטי",
-    "name": "first_name",
-    "required": true,
-    "direction": "rtl"
-  }
-]
+GUIDANCE TEXT:
+- Return instruction blocks and notes in "guidanceTexts" array (NOT as fields).
 
-IMPORTANT:
-- Return ONLY the JSON array, no explanations
-- Include fields from ALL pages
-- Do not miss any fillable areas
-- Estimate reasonable field sizes (text fields: 15-30% width, 2-4% height)
-- Checkboxes are small (2-3% width/height)
-- Be precise with percentages based on visual position`;
+FIELD TYPES: "text", "checkbox", "radio", "dropdown", "signature".
+
+JSON OUTPUT FORMAT (ONLY):
+{
+  "fields": [
+    {
+      "type": "radio",
+      "xPercent": 85, "yPercent": 15, "widthPercent": 2, "heightPercent": 2,
+      "pageNumber": 1,
+      "label": "מין",
+      "name": "gender",
+      "options": ["ז", "נ"],
+      "radioGroup": "gender",
+      "orientation": "horizontal",
+      "sectionName": "פרטים אישיים",
+      "required": true,
+      "direction": "rtl"
+    },
+    {
+      "type": "text",
+      "xPercent": 60, "yPercent": 10, "widthPercent": 25, "heightPercent": 3,
+      "pageNumber": 1,
+      "label": "שם פרטי",
+      "name": "first_name",
+      "sectionName": "פרטים אישיים",
+      "required": true,
+      "direction": "rtl"
+    }
+  ],
+  "guidanceTexts": [
+    { "id": "g1", "content": "נא למלא בכתב יד ברור", "pageNumber": 1, "xPercent": 10, "yPercent": 5, "widthPercent": 80, "heightPercent": 2 }
+  ]
+}`;
 
     console.log('[Gemini AI] Sending request...');
 
-    // Call Gemini API with timeout protection
     const result = await withTimeout(
       model.generateContent([
         prompt,
-        {
-          inlineData: {
-            mimeType: 'application/pdf',
-            data: pdfBase64,
-          },
-        },
+        { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } },
       ]),
       timeout,
     );
 
     const responseText = result.response.text();
-    console.log('[Gemini AI] Response received, length:', responseText.length);
-
-    // Clean up the response - remove markdown code blocks if present
     let cleanedText = responseText.trim();
+
+    // Remove markdown code blocks
     if (cleanedText.startsWith('```json')) {
       cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     } else if (cleanedText.startsWith('```')) {
       cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
 
-    // Parse AI response
-    const aiFields: AIFieldResponse[] = JSON.parse(cleanedText);
-
-    // Validate that we got an array
-    if (!Array.isArray(aiFields)) {
-      throw new Error('Invalid response format: expected array');
+    // Try to extract JSON from response if it contains text before/after
+    if (!cleanedText.startsWith('{')) {
+      const jsonMatch = cleanedText.match(/\{[\s\S]*"fields"[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedText = jsonMatch[0];
+        console.log('[Gemini AI] Extracted JSON from mixed response');
+      } else {
+        console.error('[Gemini AI] Response was not JSON:', cleanedText.substring(0, 200));
+        throw new Error('AI returned text instead of JSON. The page may be empty or unreadable.');
+      }
     }
 
-    console.log(`[Gemini AI] Detected ${aiFields.length} fields`);
+    let aiResponse: AIResponseWrapper;
+    try {
+      aiResponse = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('[Gemini AI] JSON parse failed:', cleanedText.substring(0, 500));
+      throw new Error('Failed to parse AI response as JSON');
+    }
 
-    // Convert percentage coordinates to PDF points
-    const fields = aiFields.map(field => convertPercentToPoints(field));
+    if (!aiResponse.fields) {
+      throw new Error('Invalid response format: missing fields');
+    }
 
-    // Log summary by page
+    // Log radio fields with their options for debugging
+    const radioFields = aiResponse.fields.filter(f => f.type === 'radio');
+    if (radioFields.length > 0) {
+      console.log(`[Gemini AI] Found ${radioFields.length} radio fields:`);
+      radioFields.forEach((f, i) => {
+        console.log(`  Radio ${i + 1}: name="${f.name}", options=${JSON.stringify(f.options)}, radioGroup="${f.radioGroup}"`);
+      });
+    }
+
+    const fields = aiResponse.fields.map(f => convertPercentToPoints(f));
+    const guidanceTexts = (aiResponse.guidanceTexts || []).map(g => convertGuidanceToPoints(g));
+
     const pageStats: Record<number, number> = {};
-    fields.forEach(f => {
-      pageStats[f.pageNumber] = (pageStats[f.pageNumber] || 0) + 1;
-    });
-    console.log('[Gemini AI] Fields per page:', pageStats);
+    fields.forEach(f => { pageStats[f.pageNumber] = (pageStats[f.pageNumber] || 0) + 1; });
 
     return res.status(200).json({
       fields,
+      guidanceTexts,
       stats: {
         totalFields: fields.length,
         fieldsPerPage: pageStats,

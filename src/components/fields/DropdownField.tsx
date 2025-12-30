@@ -19,9 +19,12 @@ interface DropdownFieldProps {
   pageDimensions: PageDimensions;
   canvasWidth: number;
   onSelect: (id: string) => void;
+  onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onHover?: (id: string | null) => void;
+  isHovered?: boolean;
 }
 
 export const DropdownField = ({
@@ -31,11 +34,19 @@ export const DropdownField = ({
   pageDimensions,
   canvasWidth,
   onSelect,
+  onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onHover,
+  isHovered,
 }: DropdownFieldProps) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+
+  // Calculate dimensions first - needed by handleDragStop
+  const pointsToPixelsScale = canvasWidth / pageDimensions.width;
+  const viewportWidth = field.width * pointsToPixelsScale;
+  const viewportHeight = field.height * pointsToPixelsScale;
 
   const handleDragStop = (_e: any, d: { x: number; y: number }) => {
     // d.x, d.y is the TOP-LEFT corner in viewport
@@ -99,11 +110,6 @@ export const DropdownField = ({
     });
   };
 
-  // Convert PDF size to viewport size
-  const pointsToPixelsScale = canvasWidth / pageDimensions.width;
-  const viewportWidth = field.width * pointsToPixelsScale;
-  const viewportHeight = field.height * pointsToPixelsScale;
-
   // Convert PDF coordinates to viewport coordinates for rendering
   // field.y is the BOTTOM of the field in PDF, but Rnd needs TOP-LEFT
   // So we need to convert the TOP of the field: field.y + field.height
@@ -136,6 +142,7 @@ export const DropdownField = ({
         className={cn(
           'field-marker field-marker-dropdown',
           isSelected && 'field-marker-selected',
+          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group flex items-center',
         )}
         style={{
@@ -143,52 +150,58 @@ export const DropdownField = ({
         }}
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation();
-          onSelect(field.id);
+          if (e.ctrlKey || e.metaKey) {
+            onToggleSelection(field.id);
+          } else {
+            onSelect(field.id);
+          }
         }}
         onContextMenu={handleContextMenu}
+        onMouseEnter={() => onHover?.(field.id)}
+        onMouseLeave={() => onHover?.(null)}
       >
-      {/* Dropdown preview */}
-      <div className="w-full h-full flex items-center justify-between px-2 text-xs pointer-events-none" dir="rtl">
-        <span className="truncate">{field.options?.[0] || 'בחר אפשרות'}</span>
-        <ChevronDown className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--field-dropdown))' }} />
-      </div>
+        {/* Dropdown preview */}
+        <div className="w-full h-full flex items-center justify-between px-2 text-xs pointer-events-none" dir="rtl">
+          <span className="truncate">{field.options?.[0] || 'בחר אפשרות'}</span>
+          <ChevronDown className="w-3 h-3 flex-shrink-0" style={{ color: 'hsl(var(--field-dropdown))' }} />
+        </div>
 
-      {/* Field label */}
-      <div
-        className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
-        style={{
-          color: 'hsl(var(--field-dropdown))',
-          backgroundColor: 'transparent'
-        }}
-        dir="rtl"
-      >
-        {sanitizeUserInput(field.label || field.name) || 'רשימה נפתחת'}
-      </div>
+        {/* Field label */}
+        <div
+          className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
+          style={{
+            color: 'hsl(var(--field-dropdown))',
+            backgroundColor: 'transparent'
+          }}
+          dir="rtl"
+        >
+          {sanitizeUserInput(field.label || field.name) || 'רשימה נפתחת'}
+        </div>
 
-      {/* Delete button */}
-      <button
-        className="absolute top-0 left-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ transform: 'translate(-50%, -50%)' }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(field.id);
-        }}
-        title="מחק רשימה נפתחת"
-      >
-        <X className="w-3 h-3" />
-      </button>
-    </Rnd>
+        {/* Delete button */}
+        <button
+          className="absolute top-0 left-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ transform: 'translate(-50%, -50%)' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(field.id);
+          }}
+          title="מחק רשימה נפתחת"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </Rnd>
 
-    {/* Context Menu */}
-    {contextMenu && (
-      <FieldContextMenu
-        x={contextMenu.x}
-        y={contextMenu.y}
-        onDuplicate={() => onDuplicate(field.id)}
-        onDelete={() => onDelete(field.id)}
-        onClose={() => setContextMenu(null)}
-      />
-    )}
+      {/* Context Menu */}
+      {contextMenu && (
+        <FieldContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onDuplicate={() => onDuplicate(field.id)}
+          onDelete={() => onDelete(field.id)}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </>
   );
 };

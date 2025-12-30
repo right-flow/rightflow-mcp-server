@@ -56,7 +56,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Start API server
-const API_PORT = 3001;
+const API_PORT = 3002;
 app.listen(API_PORT, () => {
   console.log(`\n🚀 API Server running on http://localhost:${API_PORT}`);
   console.log(`📡 API endpoint: http://localhost:${API_PORT}/api/extract-fields\n`);

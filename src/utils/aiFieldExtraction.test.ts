@@ -157,6 +157,10 @@ interface GeminiFieldResponse {
   name: string;
   required: boolean;
   direction: 'ltr' | 'rtl';
+  sectionName?: string;
+  radioGroup?: string;
+  options?: string[];
+  orientation?: 'horizontal' | 'vertical';
 }
 
 /**
@@ -179,7 +183,7 @@ function convertGeminiFieldToDefinition(
     label: gf.label,
     required: gf.required,
     direction: gf.direction,
-    sectionName: 'כללי',
+    sectionName: gf.sectionName || 'כללי',
     autoFill: false,
     index: index,
     ...(gf.type === 'text' && {
@@ -190,10 +194,10 @@ function convertGeminiFieldToDefinition(
       options: ['אפשרות 1', 'אפשרות 2', 'אפשרות 3'],
     }),
     ...(gf.type === 'radio' && {
-      options: ['אפשרות 1', 'אפשרות 2'],
-      radioGroup: gf.name || `radio_group_${index + 1}`,
-      spacing: 25,
-      orientation: 'vertical' as const,
+      options: gf.options || ['אפשרות 1', 'אפשרות 2'],
+      radioGroup: gf.radioGroup || gf.name || `radio_group_${index + 1}`,
+      spacing: 1,
+      orientation: gf.orientation || 'vertical',
     }),
   };
 }
@@ -316,7 +320,7 @@ describe('convertGeminiFieldToDefinition', () => {
       expect(result.type).toBe('radio');
       expect(result.options).toEqual(['אפשרות 1', 'אפשרות 2']);
       expect(result.radioGroup).toBe('gender');
-      expect(result.spacing).toBe(25);
+      expect(result.spacing).toBe(1);
       expect(result.orientation).toBe('vertical');
     });
 
@@ -651,5 +655,43 @@ describe('field statistics', () => {
 
     const stats = calculateFieldsPerPage(fields);
     expect(stats).toEqual({ 1: 1, 5: 1, 10: 1 });
+  });
+});
+
+// ============================================
+// Metadata Aggregation Tests
+// ============================================
+
+describe('metadata aggregation', () => {
+  it('correctly extracts unique section names per page', () => {
+    const fields: any[] = [
+      { pageNumber: 1, sectionName: 'Section A', y: 100 },
+      { pageNumber: 1, sectionName: 'Section A', y: 110 },
+      { pageNumber: 1, sectionName: 'Section B', y: 200 },
+      { pageNumber: 2, sectionName: 'Section C', y: 300 },
+    ];
+
+    const pageNumbers = Array.from(new Set(fields.map(f => f.pageNumber)));
+    const metadataArr: any[] = [];
+
+    pageNumbers.forEach(pageNum => {
+      const pageFields = fields.filter(f => f.pageNumber === pageNum);
+      const sections = Array.from(new Set(pageFields.map(f => f.sectionName).filter(Boolean))) as string[];
+      metadataArr.push({
+        pageNumber: pageNum,
+        sections: sections.map(name => ({
+          name,
+          y: Math.min(...pageFields.filter(f => f.sectionName === name).map(f => f.y))
+        }))
+      });
+    });
+
+    expect(metadataArr.length).toBe(2);
+    expect(metadataArr[0].pageNumber).toBe(1);
+    expect(metadataArr[0].sections.length).toBe(2);
+    expect(metadataArr[0].sections[0].name).toBe('Section A');
+    expect(metadataArr[1].pageNumber).toBe(2);
+    expect(metadataArr[1].sections[0].name).toBe('Section C');
+    expect(metadataArr[1].sections[0].y).toBe(300);
   });
 });

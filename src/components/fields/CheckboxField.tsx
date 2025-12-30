@@ -19,9 +19,12 @@ interface CheckboxFieldProps {
   pageDimensions: PageDimensions;
   canvasWidth: number;
   onSelect: (id: string) => void;
+  onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onHover?: (id: string | null) => void;
+  isHovered?: boolean;
 }
 
 export const CheckboxField = ({
@@ -31,9 +34,12 @@ export const CheckboxField = ({
   pageDimensions,
   canvasWidth,
   onSelect,
+  onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onHover,
+  isHovered,
 }: CheckboxFieldProps) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
@@ -43,6 +49,12 @@ export const CheckboxField = ({
   const viewportHeight = field.height * pointsToPixelsScale;
 
   const handleDragStop = (_e: any, d: { x: number; y: number }) => {
+    // Validate position isn't negative or NaN
+    if (d.x < 0 || d.y < 0 || isNaN(d.x) || isNaN(d.y)) {
+      console.error('[CheckboxField] Invalid drag position detected:', d);
+      return;
+    }
+
     // d.x, d.y is the TOP-LEFT corner in viewport
     // Convert TOP-LEFT to PDF coordinates
     const pdfTopCoords = viewportToPDFCoords(
@@ -53,14 +65,24 @@ export const CheckboxField = ({
       canvasWidth,
     );
 
+    // Validate converted coordinates
+    if (isNaN(pdfTopCoords.x) || isNaN(pdfTopCoords.y)) {
+      console.error('[CheckboxField] Invalid PDF coordinates conversion:', { d, pdfTopCoords, scale, canvasWidth });
+      return;
+    }
+
     // field.y should be the BOTTOM - subtract height from top
     const pixelsToPointsScale = pageDimensions.width / canvasWidth;
     const pdfHeight = viewportHeight * pixelsToPointsScale;
     const pdfBottomY = pdfTopCoords.y - pdfHeight;
 
+    // Ensure coordinates are within valid bounds (clamp to page dimensions)
+    const clampedX = Math.max(0, Math.min(pdfTopCoords.x, pageDimensions.width - field.width));
+    const clampedY = Math.max(0, Math.min(pdfBottomY, pageDimensions.height - field.height));
+
     onUpdate(field.id, {
-      x: pdfTopCoords.x,
-      y: pdfBottomY, // Bottom edge in PDF coordinates
+      x: clampedX,
+      y: clampedY, // Bottom edge in PDF coordinates
     });
   };
 
@@ -92,8 +114,8 @@ export const CheckboxField = ({
           y: viewportTopCoords.y, // Use TOP-LEFT for Rnd positioning
         }}
         size={{
-          width: viewportWidth,
-          height: viewportHeight,
+          width: Math.max(viewportWidth, 24), // Minimum 24px for easier dragging
+          height: Math.max(viewportHeight, 24), // Minimum 24px for easier dragging
         }}
         onDragStop={handleDragStop}
         enableResizing={false} // Checkboxes have fixed size - no resize handles
@@ -101,6 +123,7 @@ export const CheckboxField = ({
         className={cn(
           'field-marker field-marker-checkbox',
           isSelected && 'field-marker-selected',
+          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group flex items-center justify-center',
         )}
         style={{
@@ -109,56 +132,62 @@ export const CheckboxField = ({
         }}
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation();
-          onSelect(field.id);
+          if (e.ctrlKey || e.metaKey) {
+            onToggleSelection(field.id);
+          } else {
+            onSelect(field.id);
+          }
         }}
         onContextMenu={handleContextMenu}
+        onMouseEnter={() => onHover?.(field.id)}
+        onMouseLeave={() => onHover?.(null)}
       >
-      {/* Checkbox icon */}
-      <div className="w-4 h-4 border-2 rounded-sm pointer-events-none" style={{ borderColor: 'hsl(var(--field-checkbox))' }} />
+        {/* Checkbox icon */}
+        <div className="w-4 h-4 border-2 rounded-sm pointer-events-none" style={{ borderColor: 'hsl(var(--field-checkbox))' }} />
 
-      {/* Field label (if exists) - truncated to 5 chars + ... */}
-      {field.label && (
-        <div
-          className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
-          style={{
-            color: 'hsl(var(--field-checkbox))',
-            backgroundColor: 'transparent',
-            transform: 'translateX(100%)',
+        {/* Field label (if exists) - truncated to 5 chars + ... */}
+        {field.label && (
+          <div
+            className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
+            style={{
+              color: 'hsl(var(--field-checkbox))',
+              backgroundColor: 'transparent',
+              transform: 'translateX(100%)',
+            }}
+            dir="rtl"
+            title={sanitizeUserInput(field.label)}
+          >
+            {(() => {
+              const label = sanitizeUserInput(field.label);
+              return label.length > 5 ? label.slice(0, 5) + '...' : label;
+            })()}
+          </div>
+        )}
+
+        {/* Delete button - small and offset to avoid interfering with drag */}
+        <button
+          className="absolute top-0 left-0 bg-destructive text-white rounded-full w-3.5 h-3.5 flex items-center justify-center hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ transform: 'translate(-80%, -80%)' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(field.id);
           }}
-          dir="rtl"
-          title={sanitizeUserInput(field.label)}
+          title="מחק תיבת סימון"
         >
-          {(() => {
-            const label = sanitizeUserInput(field.label);
-            return label.length > 5 ? label.slice(0, 5) + '...' : label;
-          })()}
-        </div>
+          <X className="w-2.5 h-2.5" />
+        </button>
+      </Rnd>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <FieldContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onDuplicate={() => onDuplicate(field.id)}
+          onDelete={() => onDelete(field.id)}
+          onClose={() => setContextMenu(null)}
+        />
       )}
-
-      {/* Delete button */}
-      <button
-        className="absolute top-0 left-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
-        style={{ transform: 'translate(-50%, -50%)' }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(field.id);
-        }}
-        title="מחק תיבת סימון"
-      >
-        <X className="w-3 h-3" />
-      </button>
-    </Rnd>
-
-    {/* Context Menu */}
-    {contextMenu && (
-      <FieldContextMenu
-        x={contextMenu.x}
-        y={contextMenu.y}
-        onDuplicate={() => onDuplicate(field.id)}
-        onDelete={() => onDelete(field.id)}
-        onClose={() => setContextMenu(null)}
-      />
-    )}
     </>
   );
 };

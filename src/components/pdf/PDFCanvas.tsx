@@ -4,6 +4,7 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { FieldOverlay } from '@/components/fields/FieldOverlay';
 import { FieldPropertiesPanel } from '@/components/fields/FieldPropertiesPanel';
+import { MultiSelectPropertiesPanel } from '@/components/fields/MultiSelectPropertiesPanel';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { getCanvasRelativeCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
@@ -38,6 +39,7 @@ export const PDFCanvas = ({
     activeTool,
     fields,
     selectedFieldId,
+    selectedFieldIds,
     isDragging,
     dragStartX,
     dragStartY,
@@ -49,15 +51,21 @@ export const PDFCanvas = ({
     updateFieldWithUndo,
     deleteFieldWithUndo,
     selectField,
+    toggleFieldSelection,
+    clearSelection,
+    updateMultipleFields,
     startDrag,
     updateDragPosition,
     endDrag,
+    hoveredFieldId,
+    setHoveredField,
     setCanvasWidth: setStoreCanvasWidth,
     getFieldsForPage,
     undo,
     redo,
     canUndo,
     canRedo,
+    pagesMetadata,
   } = useTemplateEditorStore();
 
   const { settings } = useSettingsStore();
@@ -231,9 +239,9 @@ export const PDFCanvas = ({
           type: 'checkbox',
           pageNumber,
           x: pdfCoords.x,
-          y: pdfCoords.y - 20, // Subtract height: pdfCoords.y is top, field.y is bottom
-          width: 20,
-          height: 20,
+          y: pdfCoords.y - 10, // Subtract height: pdfCoords.y is top, field.y is bottom
+          width: 10,
+          height: 10,
           name: '',
           required: false,
           autoFill: false,
@@ -265,16 +273,16 @@ export const PDFCanvas = ({
           type: 'radio',
           pageNumber,
           x: pdfCoords.x,
-          y: pdfCoords.y - 20, // Subtract height: pdfCoords.y is top, field.y is bottom
-          width: 20,
-          height: 20,
+          y: pdfCoords.y - 10, // Subtract height: pdfCoords.y is top, field.y is bottom
+          width: 10,
+          height: 10,
           name: '',
           required: false,
           autoFill: false,
           direction: 'rtl',
           radioGroup: '', // Empty group name, user should set meaningful name
           options: defaultOptions,
-          spacing: settings.radioField.spacing,
+          spacing: 1,
           orientation: settings.radioField.orientation,
         };
 
@@ -492,6 +500,8 @@ export const PDFCanvas = ({
         e.preventDefault();
         if (isDragging) {
           endDrag(); // Cancel drag on Escape
+        } else if (selectedFieldIds.length > 0) {
+          clearSelection(); // Clear multi-selection first
         } else {
           selectField(null);
         }
@@ -502,9 +512,11 @@ export const PDFCanvas = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
     selectedFieldId,
+    selectedFieldIds,
     isDragging,
     deleteFieldWithUndo,
     selectField,
+    clearSelection,
     endDrag,
     undo,
     redo,
@@ -547,8 +559,8 @@ export const PDFCanvas = ({
             activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field'
               ? 'crosshair'
               : activeTool === 'checkbox-field' || activeTool === 'radio-field'
-              ? 'copy' // Plus icon cursor for click-to-place
-              : 'default', // Arrow for select mode
+                ? 'copy' // Plus icon cursor for click-to-place
+                : 'default', // Arrow for select mode
         }}
       >
         <Document
@@ -569,21 +581,52 @@ export const PDFCanvas = ({
           />
         </Document>
 
+        {/* Page Metadata - Guidance Texts */}
+        {canvasWidth > 0 && currentPageDimensions && pagesMetadata[pageNumber]?.guidanceTexts.map((gt) => {
+          const pointsToPixelsScale = canvasWidth / currentPageDimensions.width;
+          const pdfTopY = gt.y + gt.height;
+          const viewportTopCoords = {
+            x: gt.x * pointsToPixelsScale,
+            y: (currentPageDimensions.height - pdfTopY) * pointsToPixelsScale
+          };
+
+          return (
+            <div
+              key={gt.id}
+              className="absolute border border-amber-300 bg-amber-100/20 pointer-events-none p-1 text-[10px] overflow-hidden text-amber-800 italic"
+              style={{
+                left: viewportTopCoords.x,
+                top: viewportTopCoords.y,
+                width: gt.width * pointsToPixelsScale,
+                height: gt.height * pointsToPixelsScale,
+                zIndex: 50,
+              }}
+              title={gt.content}
+            >
+              {gt.content}
+            </div>
+          );
+        })}
+
         {/* Field overlay */}
         {canvasWidth > 0 && currentPageDimensions && (
           <FieldOverlay
             fields={currentPageFields}
             selectedFieldId={selectedFieldId}
+            selectedFieldIds={selectedFieldIds}
             scale={scale}
             pageDimensions={currentPageDimensions}
             canvasWidth={canvasWidth}
             onFieldSelect={selectField}
+            onToggleFieldSelection={toggleFieldSelection}
             onFieldUpdate={updateField}
             onFieldDelete={deleteFieldWithUndo}
             onFieldDuplicate={(id) => {
               const { duplicateField } = useTemplateEditorStore.getState();
               duplicateField(id);
             }}
+            hoveredFieldId={hoveredFieldId}
+            onFieldHover={setHoveredField}
           />
         )}
 
@@ -606,8 +649,22 @@ export const PDFCanvas = ({
           )}
       </div>
 
-      {/* Field Properties Panel */}
-      {selectedFieldId && (() => {
+      {/* Multi-Select Properties Panel */}
+      {selectedFieldIds.length > 1 && (() => {
+        const selectedFields = fields.filter(f => selectedFieldIds.includes(f.id));
+        if (selectedFields.length === 0) return null;
+
+        return (
+          <MultiSelectPropertiesPanel
+            selectedFields={selectedFields}
+            onUpdateAll={(updates) => updateMultipleFields(selectedFieldIds, updates)}
+            onClose={clearSelection}
+          />
+        );
+      })()}
+
+      {/* Single Field Properties Panel */}
+      {selectedFieldIds.length <= 1 && selectedFieldId && (() => {
         const selectedField = fields.find(f => f.id === selectedFieldId);
         if (!selectedField) return null;
 
