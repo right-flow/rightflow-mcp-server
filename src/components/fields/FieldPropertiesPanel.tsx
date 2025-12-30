@@ -9,6 +9,7 @@ import { FieldDefinition } from '@/types/fields';
 import { cn } from '@/utils/cn';
 import { sanitizeUserInput, validateFieldName, sanitizeFontSize } from '@/utils/inputSanitization';
 import { SignatureModal } from './SignatureModal';
+import { useTranslation, useDirection } from '@/i18n';
 
 interface FieldPropertiesPanelProps {
   field: FieldDefinition;
@@ -21,6 +22,8 @@ export const FieldPropertiesPanel = ({
   onUpdate,
   onClose,
 }: FieldPropertiesPanelProps) => {
+  const t = useTranslation();
+  const direction = useDirection();
   const labelInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
@@ -60,8 +63,8 @@ export const FieldPropertiesPanel = ({
 
   const handleSectionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const sanitized = sanitizeUserInput(e.target.value);
-    // Default to 'כללי' if empty
-    onUpdate({ sectionName: sanitized || 'כללי' });
+    // Default to translated 'General' if empty
+    onUpdate({ sectionName: sanitized || t.general });
   };
 
   const handleRequiredToggle = (checked: boolean) => {
@@ -88,16 +91,16 @@ export const FieldPropertiesPanel = ({
         'animate-in slide-in-from-right duration-200',
         'max-h-[80vh] overflow-y-auto'
       )}
-      dir="rtl"
+      dir={direction}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">
-          {field.type === 'text' && 'מאפייני שדה טקסט'}
-          {field.type === 'checkbox' && 'מאפייני תיבת סימון'}
-          {field.type === 'radio' && 'מאפייני כפתור רדיו'}
-          {field.type === 'dropdown' && 'מאפייני רשימה נפתחת'}
-          {field.type === 'signature' && 'מאפייני שדה חתימה'}
+          {field.type === 'text' && t.textFieldProperties}
+          {field.type === 'checkbox' && t.checkboxProperties}
+          {field.type === 'radio' && t.radioProperties}
+          {field.type === 'dropdown' && t.dropdownProperties}
+          {field.type === 'signature' && t.signatureProperties}
         </h3>
         <Button
           variant="ghost"
@@ -113,7 +116,7 @@ export const FieldPropertiesPanel = ({
       <div className="space-y-4">
         {/* Field Name */}
         <div className="space-y-2">
-          <Label htmlFor="field-name">שם שדה (באנגלית)</Label>
+          <Label htmlFor="field-name">{t.fieldNameEnglish}</Label>
           <Input
             ref={nameInputRef}
             id="field-name"
@@ -124,30 +127,30 @@ export const FieldPropertiesPanel = ({
             className="text-left"
           />
           <p className="text-xs text-muted-foreground">
-            שם השדה (רק אותיות אנגליות, מספרים וקו תחתון)
+            {t.fieldNameHint}
           </p>
         </div>
 
         {/* Field Label */}
         <div className="space-y-2">
-          <Label htmlFor="field-label">תווית (כותרת)</Label>
+          <Label htmlFor="field-label">{t.labelTitle}</Label>
           <Input
             ref={labelInputRef}
             id="field-label"
             value={field.label || ''}
             onChange={handleLabelChange}
-            placeholder="תווית השדה"
-            dir="rtl"
+            placeholder={t.fieldLabel}
+            dir={direction}
           />
           <p className="text-xs text-muted-foreground">
-            טקסט שיוצג ליד השדה
+            {t.labelHint}
           </p>
         </div>
 
         {/* Field Index (Read-only) */}
         {field.index !== undefined && (
           <div className="space-y-2">
-            <Label htmlFor="field-index">מספר סידורי</Label>
+            <Label htmlFor="field-index">{t.serialNumber}</Label>
             <Input
               id="field-index"
               value={field.index}
@@ -157,39 +160,39 @@ export const FieldPropertiesPanel = ({
               className="text-left bg-muted"
             />
             <p className="text-xs text-muted-foreground">
-              סדר יצירת השדה (לא ניתן לעריכה)
+              {t.serialNumberHint}
             </p>
           </div>
         )}
 
         {/* Section Name */}
         <div className="space-y-2">
-          <Label htmlFor="field-section">שם מקטע</Label>
+          <Label htmlFor="field-section">{t.sectionName}</Label>
           <Input
             id="field-section"
             value={field.sectionName || ''}
             onChange={handleSectionNameChange}
-            placeholder="לדוגמה: פרטים אישיים"
-            dir="rtl"
+            placeholder={t.sectionNamePlaceholder}
+            dir={direction}
           />
           <p className="text-xs text-muted-foreground">
-            קיבוץ שדות למקטעים (מועתק אוטומטית לשדות חדשים)
+            {t.sectionNameHint}
           </p>
         </div>
 
         {/* Default Value (text fields only) */}
         {field.type === 'text' && (
           <div className="space-y-2">
-            <Label htmlFor="field-default">ערך ברירת מחדל</Label>
+            <Label htmlFor="field-default">{t.defaultValue}</Label>
             <Input
               id="field-default"
               value={field.defaultValue || ''}
               onChange={handleDefaultValueChange}
-              placeholder="טקסט ברירת מחדל"
+              placeholder={t.defaultValuePlaceholder}
               dir={field.direction}
             />
             <p className="text-xs text-muted-foreground">
-              הטקסט שיופיע בשדה כברירת מחדל
+              {t.defaultValueHint}
             </p>
           </div>
         )}
@@ -199,23 +202,23 @@ export const FieldPropertiesPanel = ({
           <>
             {/* Radio Orientation */}
             <div className="space-y-2">
-              <Label htmlFor="radio-orientation">כיוון סידור כפתורים</Label>
+              <Label htmlFor="radio-orientation">{t.radioOrientation}</Label>
               <Select
                 id="radio-orientation"
                 value={field.orientation || 'vertical'}
                 onChange={(e) => onUpdate({ orientation: e.target.value as 'vertical' | 'horizontal' })}
               >
-                <option value="vertical">אנכי (↓)</option>
-                <option value="horizontal">אופקי (→)</option>
+                <option value="vertical">{t.vertical}</option>
+                <option value="horizontal">{t.horizontal}</option>
               </Select>
               <p className="text-xs text-muted-foreground">
-                אנכי - כפתורים מסודרים למטה | אופקי - כפתורים מסודרים לצד
+                {t.radioOrientationHint}
               </p>
             </div>
 
             {/* Radio Spacing */}
             <div className="space-y-2">
-              <Label htmlFor="radio-spacing">מרווח בין כפתורים (pt)</Label>
+              <Label htmlFor="radio-spacing">{t.spacingBetweenButtons}</Label>
               <Input
                 id="radio-spacing"
                 type="number"
@@ -231,26 +234,26 @@ export const FieldPropertiesPanel = ({
                 className="text-left"
               />
               <p className="text-xs text-muted-foreground">
-                המרחק בין כל כפתור לשכנו (0-50 נקודות, 1pt ≈ 0.35mm)
+                {t.spacingHint}
               </p>
             </div>
 
             {/* Radio Options */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>אפשרויות כפתורי רדיו</Label>
+                <Label>{t.radioOptions}</Label>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     const currentOptions = field.options || [];
-                    const newOptions = [...currentOptions, `אפשרות ${currentOptions.length + 1}`];
+                    const newOptions = [...currentOptions, `Option ${currentOptions.length + 1}`];
                     onUpdate({ options: newOptions });
                   }}
                   className="h-7 px-2"
                 >
                   <Plus className="w-3 h-3 ml-1" />
-                  הוסף
+                  {t.add}
                 </Button>
               </div>
               <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -263,8 +266,8 @@ export const FieldPropertiesPanel = ({
                         newOptions[index] = sanitizeUserInput(e.target.value);
                         onUpdate({ options: newOptions });
                       }}
-                      placeholder={`אפשרות ${index + 1}`}
-                      dir="rtl"
+                      placeholder={`Option ${index + 1}`}
+                      dir={direction}
                       className="text-sm h-8"
                     />
                     <Button
@@ -279,7 +282,7 @@ export const FieldPropertiesPanel = ({
                       }}
                       disabled={(field.options || []).length <= 1}
                       className="h-8 w-8 flex-shrink-0"
-                      title="הסר אפשרות"
+                      title={t.remove}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -287,7 +290,7 @@ export const FieldPropertiesPanel = ({
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                כפתורי רדיו מאפשרים בחירת אפשרות אחת בלבד מהרשימה
+                {t.radioOptionsHint}
               </p>
             </div>
           </>
@@ -296,7 +299,7 @@ export const FieldPropertiesPanel = ({
         {/* Dropdown Options (dropdown fields only) */}
         {field.type === 'dropdown' && (
           <div className="space-y-2">
-            <Label htmlFor="field-options">אפשרויות (אחת בכל שורה)</Label>
+            <Label htmlFor="field-options">{t.options}</Label>
             <textarea
               id="field-options"
               value={field.options?.join('\n') || ''}
@@ -304,13 +307,13 @@ export const FieldPropertiesPanel = ({
                 const options = e.target.value.split('\n').map(opt => sanitizeUserInput(opt)).filter(opt => opt.length > 0);
                 onUpdate({ options });
               }}
-              placeholder="אפשרות 1&#10;אפשרות 2&#10;אפשרות 3"
-              dir="rtl"
+              placeholder="Option 1&#10;Option 2&#10;Option 3"
+              dir={direction}
               rows={5}
               className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              כל שורה היא אפשרות נפרדת ברשימה
+              {t.dropdownOptionsHint}
             </p>
           </div>
         )}
@@ -319,7 +322,7 @@ export const FieldPropertiesPanel = ({
         {field.type === 'signature' && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>חתימה</Label>
+              <Label>{t.signature}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -328,7 +331,7 @@ export const FieldPropertiesPanel = ({
                   className="flex-1"
                 >
                   <PenTool className="w-4 h-4 ml-2" />
-                  {field.signatureImage ? 'ערוך חתימה' : 'הוסף חתימה'}
+                  {field.signatureImage ? t.editSignature : t.addSignature}
                 </Button>
                 {field.signatureImage && (
                   <Button
@@ -349,7 +352,7 @@ export const FieldPropertiesPanel = ({
                   />
                   {field.signatureTimestamp && (
                     <p className="text-xs text-muted-foreground text-center mt-1">
-                      נוצרה: {new Date(field.signatureTimestamp).toLocaleDateString('he-IL')}
+                      {t.created}: {new Date(field.signatureTimestamp).toLocaleDateString(direction === 'rtl' ? 'he-IL' : 'en-US')}
                     </p>
                   )}
                 </div>
@@ -361,9 +364,9 @@ export const FieldPropertiesPanel = ({
         {/* Required Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="field-required">שדה חובה</Label>
+            <Label htmlFor="field-required">{t.requiredField}</Label>
             <p className="text-xs text-muted-foreground">
-              האם יש חובה למלא שדה זה
+              {t.requiredFieldHint}
             </p>
           </div>
           <Switch
@@ -376,9 +379,9 @@ export const FieldPropertiesPanel = ({
         {/* Auto-fill Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="field-autofill">מילוי אוטומטי</Label>
+            <Label htmlFor="field-autofill">{t.autoFill}</Label>
             <p className="text-xs text-muted-foreground">
-              האם להפעיל מילוי אוטומטי עבור שדה זה
+              {t.autoFillHint}
             </p>
           </div>
           <Switch
@@ -392,9 +395,9 @@ export const FieldPropertiesPanel = ({
         {field.type === 'text' && (
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="field-direction">כיוון טקסט מימין לשמאל</Label>
+              <Label htmlFor="field-direction">{t.textDirectionRtl}</Label>
               <p className="text-xs text-muted-foreground">
-                RTL עבור עברית, LTR עבור אנגלית
+                {t.textDirectionHint}
               </p>
             </div>
             <Switch
@@ -408,17 +411,17 @@ export const FieldPropertiesPanel = ({
         {/* Font Selection (text fields only) */}
         {field.type === 'text' && (
           <div className="space-y-2">
-            <Label htmlFor="field-font">גופן</Label>
+            <Label htmlFor="field-font">{t.font}</Label>
             <Select
               id="field-font"
               value={field.font || 'NotoSansHebrew'}
               onChange={handleFontChange}
             >
-              <option value="NotoSansHebrew">Noto Sans Hebrew (עברית)</option>
+              <option value="NotoSansHebrew">Noto Sans Hebrew</option>
               <option value="Arial">Arial</option>
             </Select>
             <p className="text-xs text-muted-foreground">
-              בחר Noto Sans Hebrew לטקסט עברי
+              {t.selectFontHint}
             </p>
           </div>
         )}
@@ -426,7 +429,7 @@ export const FieldPropertiesPanel = ({
         {/* Font Size (text fields only) */}
         {field.type === 'text' && (
           <div className="space-y-2">
-            <Label htmlFor="field-font-size">גודל גופן (pt)</Label>
+            <Label htmlFor="field-font-size">{t.fontSize} (pt)</Label>
             <Input
               id="field-font-size"
               type="number"
@@ -438,7 +441,7 @@ export const FieldPropertiesPanel = ({
               className="text-left"
             />
             <p className="text-xs text-muted-foreground">
-              טווח: 8-24 נקודות (pt)
+              {t.fontSizeRange}
             </p>
           </div>
         )}
@@ -447,21 +450,21 @@ export const FieldPropertiesPanel = ({
         <div className="pt-4 border-t border-border">
           <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
             <div>
-              <span className="font-medium">עמוד:</span> {field.pageNumber}
+              <span className="font-medium">{t.pageLabel}:</span> {field.pageNumber}
             </div>
             <div>
-              <span className="font-medium">סוג:</span>{' '}
-              {field.type === 'text' && 'טקסט'}
-              {field.type === 'checkbox' && 'תיבת סימון'}
-              {field.type === 'radio' && 'כפתור רדיו'}
-              {field.type === 'dropdown' && 'רשימה נפתחת'}
-              {field.type === 'signature' && 'חתימה'}
+              <span className="font-medium">{t.typeLabel}:</span>{' '}
+              {field.type === 'text' && t.textField}
+              {field.type === 'checkbox' && t.checkboxField}
+              {field.type === 'radio' && t.radioField}
+              {field.type === 'dropdown' && t.dropdownField}
+              {field.type === 'signature' && t.signatureField}
             </div>
             <div>
-              <span className="font-medium">רוחב:</span> {Math.round(field.width)}pt
+              <span className="font-medium">{t.widthLabel}:</span> {Math.round(field.width)}pt
             </div>
             <div>
-              <span className="font-medium">גובה:</span> {Math.round(field.height)}pt
+              <span className="font-medium">{t.heightLabel}:</span> {Math.round(field.height)}pt
             </div>
           </div>
         </div>

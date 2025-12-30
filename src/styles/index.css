@@ -40,6 +40,43 @@
     --toolbar-bg: 0 0% 100%;
     --canvas-bg: 220 14.3% 95.9%;
   }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
+    /* Field marker colors - slightly brighter for dark mode */
+    --field-text: 217.2 91.2% 69.8%;
+    --field-checkbox: 142.1 76.2% 46.3%;
+    --field-radio: 262.1 83.3% 67.8%;
+    --field-dropdown: 24.6 95% 63.1%;
+    --signature-border: 280 100% 70%;
+    --signature-bg: 280 100% 70%;
+    --field-selected: 24.6 95% 63.1%;
+    --field-hover: 262.1 83.3% 67.8%;
+
+    /* Layout colors - dark variants */
+    --sidebar-bg: 222.2 47.4% 8.2%;
+    --toolbar-bg: 222.2 47.4% 6.2%;
+    --canvas-bg: 222.2 47.4% 11.2%;
+  }
 }
 
 @layer base {

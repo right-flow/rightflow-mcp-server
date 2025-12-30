@@ -3,6 +3,7 @@ import { TopToolbar } from '@/components/layout/TopToolbar';
 import { ToolsBar } from '@/components/layout/ToolsBar';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageThumbnailSidebar } from '@/components/layout/PageThumbnailSidebar';
+import { Header } from '@/components/layout/Header';
 import { PDFViewer } from '@/components/pdf/PDFViewer';
 import { FieldListSidebar } from '@/components/fields/FieldListSidebar';
 import { RecoveryDialog } from '@/components/dialogs/RecoveryDialog';
@@ -13,6 +14,7 @@ import type { GeneratedHtmlResult } from '@/services/html-generation';
 import { VersionDisplay } from '@/components/ui/VersionDisplay';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useDirection } from '@/i18n';
 import { generateThumbnails } from '@/utils/pdfThumbnails';
 import { getFieldsWithErrors } from '@/utils/inputSanitization';
 import {
@@ -21,6 +23,7 @@ import {
   setupAutoSave,
   RecoveryData,
 } from '@/utils/crashRecovery';
+import { documentHistoryService } from '@/services/document-history';
 
 function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +74,7 @@ function App() {
   } = useTemplateEditorStore();
 
   const { settings } = useSettingsStore();
+  const direction = useDirection();
 
   // Calculate field validation errors
   const errorFieldIds = useMemo(() => {
@@ -282,9 +286,9 @@ function App() {
       const { generateFilename } = await import('@/utils/filenameGenerator');
       const { reindexFields } = await import('@/utils/fieldSorting');
 
-      // Sort fields by position before saving (RTL order)
-      const sortedFields = reindexFields(fields, 'rtl');
-      console.log('📐 Fields sorted by position before PDF generation');
+      // Sort fields by position based on language direction
+      const sortedFields = reindexFields(fields, direction);
+      console.log(`📐 Fields sorted by position (${direction}) before PDF generation`);
 
       // Auto-generate missing field names
       const fieldsWithNames = ensureFieldNames(sortedFields);
@@ -346,9 +350,9 @@ function App() {
       const { saveFieldsToFile } = await import('@/utils/fieldTemplates');
       const { reindexFields } = await import('@/utils/fieldSorting');
 
-      // Sort fields by position before saving (RTL order)
-      const sortedFields = reindexFields(fields, 'rtl');
-      console.log('📐 Fields sorted by position before template save');
+      // Sort fields by position based on language direction
+      const sortedFields = reindexFields(fields, direction);
+      console.log(`📐 Fields sorted by position (${direction}) before template save`);
 
       // Prompt for template name
       const templateName = prompt('הכנס שם לתבנית:', `template_${Date.now()}`);
@@ -357,11 +361,39 @@ function App() {
       // Save sorted fields to JSON file
       saveFieldsToFile(sortedFields, templateName);
 
+      // Also save to document history
+      try {
+        await documentHistoryService.addDocument({
+          fileName: pdfFile?.name || templateName,
+          fileSize: pdfFile?.size || 0,
+          pageCount: totalPages,
+          fieldCount: sortedFields.length,
+          fields: sortedFields,
+        });
+        console.log('✓ Document saved to history');
+      } catch (historyError) {
+        console.error('Failed to save to document history:', historyError);
+        // Don't block the save operation if history save fails
+      }
+
       alert(`✅ תבנית השדות נשמרה בהצלחה!\nקובץ: ${templateName}.json\nשדות: ${sortedFields.length}`);
     } catch (error) {
       console.error('Error saving fields:', error);
       alert(`שגיאה בשמירת שדות: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
     }
+  };
+
+  // Handle loading fields from document history
+  const handleLoadFieldsFromHistory = (historyFields: typeof fields) => {
+    if (fields.length > 0) {
+      const confirmed = confirm(
+        'קיימים שדות במסמך הנוכחי.\n\n' +
+        'האם להחליף אותם בשדות מההיסטוריה?'
+      );
+      if (!confirmed) return;
+    }
+    loadFields(historyFields);
+    alert(`✅ ${historyFields.length} שדות נטענו מההיסטוריה!`);
   };
 
   // Reprocess a single page with AI
@@ -403,7 +435,7 @@ function App() {
         ...fields.filter(f => f.pageNumber !== pageNumber),
         ...newFields
       ];
-      const sortedFields = reindexFields(allFields, 'rtl');
+      const sortedFields = reindexFields(allFields, direction);
       loadFields(sortedFields);
 
       alert(
@@ -583,7 +615,7 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col" dir="rtl">
+    <div className="w-screen h-screen flex flex-col bg-background" dir={direction}>
       {/* Recovery Dialog */}
       {recoveryData && (
         <RecoveryDialog
@@ -618,6 +650,9 @@ function App() {
         onChange={handleFieldTemplateChange}
         style={{ display: 'none' }}
       />
+
+      {/* Header with title and language/theme controls */}
+      <Header />
 
       <TopToolbar
         currentPage={currentPage}
@@ -680,7 +715,7 @@ function App() {
           onLoadError={handlePDFLoadError}
           onPageRender={handlePageRender}
         />
-        {pdfFile && fields.length > 0 && (
+        {pdfFile && (
           <FieldListSidebar
             fields={fields}
             selectedFieldId={selectedFieldId}
@@ -693,6 +728,7 @@ function App() {
             onPageNavigate={setCurrentPage}
             hoveredFieldId={hoveredFieldId}
             onFieldHover={setHoveredField}
+            onLoadFieldsFromHistory={handleLoadFieldsFromHistory}
           />
         )}
       </MainLayout>

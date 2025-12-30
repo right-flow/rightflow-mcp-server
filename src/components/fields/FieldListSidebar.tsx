@@ -1,21 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Type, CheckSquare, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { List, Code, History } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FieldDefinition } from '@/types/fields';
-import { cn } from '@/utils/cn';
+import { useTranslation, useDirection } from '@/i18n';
+import { ExtractedFieldsTab } from './ExtractedFieldsTab';
+import { JsonViewTab } from './JsonViewTab';
+import { DocumentHistoryTab } from './DocumentHistoryTab';
 
 interface FieldListSidebarProps {
   fields: FieldDefinition[];
   selectedFieldId: string | null;
-  selectedFieldIds: string[]; // Multi-select support
+  selectedFieldIds: string[];
   currentPage: number;
-  errorFieldIds?: Set<string>; // Set of field IDs with validation errors
+  errorFieldIds?: Set<string>;
   onFieldSelect: (fieldId: string) => void;
-  onToggleFieldSelection: (fieldId: string) => void; // Multi-select support
+  onToggleFieldSelection: (fieldId: string) => void;
   onFieldDelete: (fieldId: string) => void;
   onPageNavigate: (page: number) => void;
   hoveredFieldId: string | null;
   onFieldHover: (fieldId: string | null) => void;
+  onLoadFieldsFromHistory?: (fields: FieldDefinition[]) => void;
 }
 
 export const FieldListSidebar = ({
@@ -30,175 +34,76 @@ export const FieldListSidebar = ({
   onPageNavigate,
   hoveredFieldId,
   onFieldHover,
+  onLoadFieldsFromHistory,
 }: FieldListSidebarProps) => {
-  const [lastIndex, setLastIndex] = useState<number>(0);
+  const t = useTranslation();
+  const direction = useDirection();
+  const [activeTab, setActiveTab] = useState('fields');
 
-  // Read LastIndex from localStorage and update when fields change
-  useEffect(() => {
-    const storedLastIndex = localStorage.getItem('rightflow_last_field_index');
-    setLastIndex(parseInt(storedLastIndex || '0', 10));
-
-    // Listen for storage changes (in case other tabs update it)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'rightflow_last_field_index' && e.newValue) {
-        setLastIndex(parseInt(e.newValue, 10));
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [fields]); // Re-read when fields change
-
-  const handleFieldClick = (field: FieldDefinition, e: React.MouseEvent) => {
-    // Navigate to field's page if not already there
-    if (field.pageNumber !== currentPage) {
-      onPageNavigate(field.pageNumber);
+  const handleLoadFieldsFromHistory = (loadedFields: FieldDefinition[]) => {
+    if (onLoadFieldsFromHistory) {
+      onLoadFieldsFromHistory(loadedFields);
     }
-    // Ctrl+click for multi-select
-    if (e.ctrlKey || e.metaKey) {
-      onToggleFieldSelection(field.id);
-    } else {
-      onFieldSelect(field.id);
-    }
+    // Switch to fields tab after loading
+    setActiveTab('fields');
   };
-
-  const handleDelete = (e: React.MouseEvent, fieldId: string) => {
-    e.stopPropagation();
-    onFieldDelete(fieldId);
-  };
-
-  // Group fields by page and then by section
-  const fieldsByPage = fields.reduce((acc, field) => {
-    if (!acc[field.pageNumber]) {
-      acc[field.pageNumber] = {};
-    }
-    const sectionName = field.sectionName || 'כללי';
-    if (!acc[field.pageNumber][sectionName]) {
-      acc[field.pageNumber][sectionName] = [];
-    }
-    acc[field.pageNumber][sectionName].push(field);
-    return acc;
-  }, {} as Record<number, Record<string, FieldDefinition[]>>);
-
-  const sortedPages = Object.keys(fieldsByPage)
-    .map(Number)
-    .sort((a, b) => a - b);
 
   return (
-    <div className="w-64 h-full bg-sidebar-bg border-r border-border overflow-y-auto p-4" dir="rtl">
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-lg font-semibold">רשימת שדות</h3>
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-primary/10 rounded text-xs font-mono">
-            <span className="text-muted-foreground">מונה:</span>
-            <span className="font-semibold text-primary">{lastIndex}</span>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {fields.length} {fields.length === 1 ? 'שדה' : 'שדות'}
-        </p>
+    <div
+      className="w-64 h-full bg-sidebar-bg border-r border-border flex flex-col"
+      dir={direction}
+    >
+      {/* Title */}
+      <div className="p-3 border-b border-border">
+        <h3 className="text-lg font-semibold">{t.fieldsList}</h3>
       </div>
 
-      {fields.length === 0 ? (
-        <div className="text-center text-muted-foreground text-sm py-8">
-          <p>אין שדות עדיין</p>
-          <p className="mt-2 text-xs">
-            השתמש בכלים מלמעלה להוספת שדות
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sortedPages.map((pageNum) => {
-            const sections = fieldsByPage[pageNum];
-            const sortedSections = Object.keys(sections).sort();
+      {/* Tabs */}
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        defaultValue="fields"
+        className="flex-1 flex flex-col overflow-hidden"
+      >
+        <TabsList className="mx-2 mt-2">
+          <TabsTrigger value="fields" className="gap-1">
+            <List className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t.extractedFields}</span>
+          </TabsTrigger>
+          <TabsTrigger value="json" className="gap-1">
+            <Code className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t.jsonView}</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-1">
+            <History className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{t.documentHistory}</span>
+          </TabsTrigger>
+        </TabsList>
 
-            return (
-              <div key={pageNum}>
-                <div className="text-xs font-medium text-muted-foreground mb-2">
-                  עמוד {pageNum}
-                </div>
-                <div className="space-y-2">
-                  {sortedSections.map((sectionName) => {
-                    return (
-                      <div key={`${pageNum}-${sectionName}`} className="space-y-0.5">
-                        {/* Section header - always show */}
-                        <div className="text-xs font-bold text-primary bg-primary/5 rounded px-2 py-1 mb-1 mt-1.5 border-r-2 border-primary">
-                          📂 {sectionName}
-                        </div>
-                        {/* Fields in this section */}
-                        {sections[sectionName].map((field) => {
-                          const hasError = errorFieldIds?.has(field.id);
-                          return (
-                            <div
-                              key={field.id}
-                              className={cn(
-                                'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors mr-2',
-                                hasError
-                                  ? 'bg-destructive/10 border border-destructive hover:bg-destructive/20'
-                                  : (selectedFieldId === field.id || selectedFieldIds.includes(field.id))
-                                    ? 'bg-primary/10 border border-primary'
-                                    : hoveredFieldId === field.id
-                                      ? 'bg-primary/5 border border-primary/30 ring-1 ring-primary/20'
-                                      : 'hover:bg-muted border border-transparent',
-                              )}
-                              onClick={(e) => handleFieldClick(field, e)}
-                              onMouseEnter={() => onFieldHover(field.id)}
-                              onMouseLeave={() => onFieldHover(null)}
-                            >
-                              {/* Field icon */}
-                              <div
-                                className="flex-shrink-0"
-                                style={{
-                                  color:
-                                    field.type === 'text'
-                                      ? 'hsl(var(--field-text))'
-                                      : 'hsl(var(--field-checkbox))',
-                                }}
-                              >
-                                {field.type === 'text' ? (
-                                  <Type className="w-3.5 h-3.5" />
-                                ) : (
-                                  <CheckSquare className="w-3.5 h-3.5" />
-                                )}
-                              </div>
+        <TabsContent value="fields" className="flex-1 overflow-hidden">
+          <ExtractedFieldsTab
+            fields={fields}
+            selectedFieldId={selectedFieldId}
+            selectedFieldIds={selectedFieldIds}
+            currentPage={currentPage}
+            errorFieldIds={errorFieldIds}
+            onFieldSelect={onFieldSelect}
+            onToggleFieldSelection={onToggleFieldSelection}
+            onFieldDelete={onFieldDelete}
+            onPageNavigate={onPageNavigate}
+            hoveredFieldId={hoveredFieldId}
+            onFieldHover={onFieldHover}
+          />
+        </TabsContent>
 
-                              {/* Field info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs font-medium truncate">
-                                  {field.label || field.name}
-                                </div>
-                                {field.label && (
-                                  <div className="text-[10px] text-muted-foreground truncate leading-tight" dir="ltr">
-                                    {field.name}
-                                  </div>
-                                )}
-                                {field.required && (
-                                  <div className="text-[10px] text-destructive leading-tight">חובה</div>
-                                )}
-                              </div>
+        <TabsContent value="json" className="flex-1 overflow-hidden">
+          <JsonViewTab fields={fields} />
+        </TabsContent>
 
-                              {/* Delete button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                                onClick={(e) => handleDelete(e, field.id)}
-                                title="מחק שדה"
-                              >
-                                <Trash2 className="h-2.5 w-2.5" />
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        <TabsContent value="history" className="flex-1 overflow-hidden">
+          <DocumentHistoryTab onLoadFields={handleLoadFieldsFromHistory} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

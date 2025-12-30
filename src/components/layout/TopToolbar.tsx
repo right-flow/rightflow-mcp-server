@@ -2,6 +2,7 @@ import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, S
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { version } from '../../../package.json';
+import { useTranslation, useDirection } from '@/i18n';
 
 interface TopToolbarProps {
   currentPage: number;
@@ -48,6 +49,10 @@ export const TopToolbar = ({
   onExportHtml,
   isGeneratingHtml = false,
 }: TopToolbarProps) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRTL = direction === 'rtl';
+
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
@@ -68,13 +73,21 @@ export const TopToolbar = ({
     onZoomChange(Math.max(zoomLevel - 10, 50));
   };
 
+  // Swap chevron icons based on direction
+  const PrevIcon = isRTL ? ChevronRight : ChevronLeft;
+  const NextIcon = isRTL ? ChevronLeft : ChevronRight;
+
   return (
-    <div className="w-full h-14 bg-toolbar-bg border-b border-border flex items-center px-4 gap-3 shadow-sm" dir="rtl">
-      {/* File operations - right side (RTL) */}
+    <div
+      className="w-full h-14 bg-toolbar-bg border-b border-border flex items-center px-4 gap-3
+                 shadow-sm"
+      dir={direction}
+    >
+      {/* File operations */}
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={onUpload} className="gap-2">
           <Upload className="w-4 h-4" />
-          העלה PDF
+          {t.uploadPdf}
         </Button>
         <Button
           variant="outline"
@@ -84,11 +97,11 @@ export const TopToolbar = ({
           className="gap-2"
         >
           <Save className="w-4 h-4" />
-          שמור PDF
+          {t.savePdf}
         </Button>
         <Button variant="outline" size="sm" onClick={onSettings} className="gap-2">
           <Settings className="w-4 h-4" />
-          הגדרות
+          {t.settings}
         </Button>
       </div>
 
@@ -103,43 +116,43 @@ export const TopToolbar = ({
               size="sm"
               onClick={onSaveFields}
               disabled={!hasFields}
-              title="שמור שדות כתבנית"
+              title={t.saveFields}
               className="gap-2"
             >
               <Download className="w-4 h-4" />
-              שמור שדות
+              {t.saveFields}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={onExportHtml}
               disabled={!hasFields || isGeneratingHtml}
-              title={isGeneratingHtml ? 'מייצר HTML...' : 'ייצא טופס כ-HTML'}
+              title={isGeneratingHtml ? t.generating : t.exportHtml}
               className="gap-2"
             >
               <FileCode className={`w-4 h-4 ${isGeneratingHtml ? 'animate-pulse' : ''}`} />
-              {isGeneratingHtml ? 'מייצר...' : 'ייצא HTML'}
+              {isGeneratingHtml ? t.generating : t.exportHtml}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={onLoadFields}
-              title="טען שדות מתבנית"
+              title={t.loadFields}
               className="gap-2"
             >
               <FolderOpen className="w-4 h-4" />
-              טען שדות
+              {t.loadFields}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={onExtractFields}
               disabled={!hasDocument || isExtractingFields}
-              title={isExtractingFields ? 'מזהה שדות...' : 'זיהוי שדות באמצעות AI'}
+              title={isExtractingFields ? t.detecting : t.autoDetect}
               className="gap-2"
             >
               <Sparkles className={`w-4 h-4 ${isExtractingFields ? 'animate-spin' : ''}`} />
-              {isExtractingFields ? 'מזהה...' : 'זיהוי אוטומטי'}
+              {isExtractingFields ? t.detecting : t.autoDetect}
             </Button>
           </div>
 
@@ -152,7 +165,7 @@ export const TopToolbar = ({
               size="icon"
               onClick={onUndo}
               disabled={!canUndo}
-              title="בטל (Ctrl+Z)"
+              title={t.undo}
             >
               <Undo className="w-4 h-4" />
             </Button>
@@ -161,49 +174,49 @@ export const TopToolbar = ({
               size="icon"
               onClick={onRedo}
               disabled={!canRedo}
-              title="בצע שוב (Ctrl+Shift+Z)"
+              title={t.redo}
             >
               <Redo className="w-4 h-4" />
             </Button>
           </div>
 
-          <div className="flex-1" /> {/* Spacer to push remaining items to left */}
+          <div className="flex-1" /> {/* Spacer */}
 
-          {/* Navigation - center-left */}
+          {/* Navigation */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              title="עמוד הבא"
+              title={t.nextPage}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <NextIcon className="w-4 h-4" />
             </Button>
             <span className="text-sm min-w-[100px] text-center font-medium">
-              עמוד {currentPage} מתוך {totalPages}
+              {t.page} {currentPage} {t.of} {totalPages}
             </span>
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePreviousPage}
               disabled={currentPage === 1}
-              title="עמוד קודם"
+              title={t.previousPage}
             >
-              <ChevronRight className="w-4 h-4" />
+              <PrevIcon className="w-4 h-4" />
             </Button>
           </div>
 
           <Separator orientation="vertical" className="h-8" />
 
-          {/* Zoom controls - left side */}
+          {/* Zoom controls */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleZoomOut}
               disabled={zoomLevel <= 50}
-              title="הקטן"
+              title={t.zoomOut}
             >
               <ZoomOut className="w-4 h-4" />
             </Button>
@@ -213,7 +226,7 @@ export const TopToolbar = ({
               size="icon"
               onClick={handleZoomIn}
               disabled={zoomLevel >= 200}
-              title="הגדל"
+              title={t.zoomIn}
             >
               <ZoomIn className="w-4 h-4" />
             </Button>
@@ -221,7 +234,7 @@ export const TopToolbar = ({
         </>
       )}
 
-      {/* Version badge - always visible at end (left in RTL) */}
+      {/* Version badge */}
       {!hasDocument && <div className="flex-1" />}
       <span className="text-xs text-muted-foreground font-mono">v{version}</span>
     </div>

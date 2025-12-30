@@ -45,6 +45,11 @@ export const PDFCanvas = ({
     dragStartY,
     dragCurrentX,
     dragCurrentY,
+    isMarqueeSelecting,
+    marqueeStartX,
+    marqueeStartY,
+    marqueeEndX,
+    marqueeEndY,
     pageDimensions,
     addFieldWithUndo,
     updateField,
@@ -53,10 +58,14 @@ export const PDFCanvas = ({
     selectField,
     toggleFieldSelection,
     clearSelection,
+    selectMultipleFields,
     updateMultipleFields,
     startDrag,
     updateDragPosition,
     endDrag,
+    startMarquee,
+    updateMarquee,
+    endMarquee,
     hoveredFieldId,
     setHoveredField,
     setCanvasWidth: setStoreCanvasWidth,
@@ -106,13 +115,22 @@ export const PDFCanvas = ({
         event.preventDefault(); // Prevent text selection during drag
         return;
       }
+
+      // Start marquee selection in select mode
+      if (activeTool === 'select' && !isMarqueeSelecting) {
+        startMarquee(viewportCoords.x, viewportCoords.y);
+        event.preventDefault(); // Prevent text selection during marquee
+        return;
+      }
     },
     [
       activeTool,
       isDragging,
+      isMarqueeSelecting,
       currentPageDimensions,
       canvasWidth,
       startDrag,
+      startMarquee,
     ],
   );
 
@@ -307,19 +325,84 @@ export const PDFCanvas = ({
 
   const handleCanvasMouseMove = useCallback(
     (event: React.MouseEvent) => {
-      if (!isDragging || (activeTool !== 'text-field' && activeTool !== 'dropdown-field' && activeTool !== 'signature-field') || !containerRef.current) return;
+      if (!containerRef.current) return;
 
-      // Track current mouse position for drag preview
-      const viewportCoords = getCanvasRelativeCoords(event, containerRef.current);
-      updateDragPosition(viewportCoords.x, viewportCoords.y);
+      // Handle drag for field creation
+      if (isDragging && (activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field')) {
+        const viewportCoords = getCanvasRelativeCoords(event, containerRef.current);
+        updateDragPosition(viewportCoords.x, viewportCoords.y);
+        event.preventDefault();
+        return;
+      }
 
-      event.preventDefault();
+      // Handle marquee selection
+      if (isMarqueeSelecting && activeTool === 'select') {
+        const viewportCoords = getCanvasRelativeCoords(event, containerRef.current);
+        updateMarquee(viewportCoords.x, viewportCoords.y);
+        event.preventDefault();
+        return;
+      }
     },
-    [isDragging, activeTool, updateDragPosition],
+    [isDragging, isMarqueeSelecting, activeTool, updateDragPosition, updateMarquee],
+  );
+
+  // Helper function to check if a field intersects with marquee rectangle (in viewport coords)
+  const getFieldsInMarquee = useCallback(
+    (marqueeX1: number, marqueeY1: number, marqueeX2: number, marqueeY2: number) => {
+      if (!currentPageDimensions || !canvasWidth) return [];
+
+      // Normalize marquee coordinates
+      const mLeft = Math.min(marqueeX1, marqueeX2);
+      const mRight = Math.max(marqueeX1, marqueeX2);
+      const mTop = Math.min(marqueeY1, marqueeY2);
+      const mBottom = Math.max(marqueeY1, marqueeY2);
+
+      // Minimum marquee size to trigger selection (prevent accidental clicks)
+      const minSize = 5;
+      if (mRight - mLeft < minSize && mBottom - mTop < minSize) return [];
+
+      const pointsToPixelsScale = canvasWidth / currentPageDimensions.width;
+
+      return currentPageFields.filter((field) => {
+        // Convert field PDF coords to viewport coords
+        // PDF y is bottom of field, so we calculate top
+        const pdfTopY = field.y + field.height;
+        const viewportTopY = (currentPageDimensions.height - pdfTopY) * pointsToPixelsScale;
+        const viewportX = field.x * pointsToPixelsScale;
+        const viewportWidth = field.width * pointsToPixelsScale;
+        const viewportHeight = field.height * pointsToPixelsScale;
+
+        const fLeft = viewportX;
+        const fRight = viewportX + viewportWidth;
+        const fTop = viewportTopY;
+        const fBottom = viewportTopY + viewportHeight;
+
+        // Check intersection (any overlap)
+        const intersects =
+          mLeft < fRight && mRight > fLeft && mTop < fBottom && mBottom > fTop;
+
+        return intersects;
+      });
+    },
+    [currentPageFields, currentPageDimensions, canvasWidth],
   );
 
   const handleCanvasMouseUp = useCallback(
     (event: React.MouseEvent) => {
+      // Handle marquee selection end
+      if (isMarqueeSelecting && activeTool === 'select') {
+        if (marqueeStartX !== null && marqueeStartY !== null && marqueeEndX !== null && marqueeEndY !== null) {
+          const fieldsInMarquee = getFieldsInMarquee(marqueeStartX, marqueeStartY, marqueeEndX, marqueeEndY);
+          if (fieldsInMarquee.length > 0) {
+            selectMultipleFields(fieldsInMarquee.map((f) => f.id));
+            justDraggedRef.current = true; // Prevent click handler from firing
+          }
+        }
+        endMarquee();
+        return;
+      }
+
+      // Handle drag-to-create field
       if (!isDragging || (activeTool !== 'text-field' && activeTool !== 'dropdown-field' && activeTool !== 'signature-field') || !containerRef.current) return;
       if (!currentPageDimensions || !canvasWidth || dragStartX === null || dragStartY === null)
         return;
@@ -431,15 +514,23 @@ export const PDFCanvas = ({
     },
     [
       isDragging,
+      isMarqueeSelecting,
       activeTool,
       dragStartX,
       dragStartY,
+      marqueeStartX,
+      marqueeStartY,
+      marqueeEndX,
+      marqueeEndY,
       pageNumber,
       currentPageDimensions,
       canvasWidth,
       scale,
       addFieldWithUndo,
       endDrag,
+      endMarquee,
+      selectMultipleFields,
+      getFieldsInMarquee,
       settings,
     ],
   );
@@ -527,19 +618,28 @@ export const PDFCanvas = ({
   // Global mouseup handler to catch releases outside canvas (fixes bug b)
   useEffect(() => {
     const handleGlobalMouseUp = (event: MouseEvent) => {
+      // Handle drag-to-create field cancellation
       if (isDragging && (activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field')) {
         // If mouse released outside the canvas, just cancel the drag
         if (!containerRef.current?.contains(event.target as Node)) {
           endDrag(); // Cancel drag without creating field
         }
       }
+
+      // Handle marquee selection cancellation
+      if (isMarqueeSelecting && activeTool === 'select') {
+        // If mouse released outside the canvas, cancel the marquee
+        if (!containerRef.current?.contains(event.target as Node)) {
+          endMarquee(); // Cancel marquee without selecting
+        }
+      }
     };
 
-    if (isDragging) {
+    if (isDragging || isMarqueeSelecting) {
       window.addEventListener('mouseup', handleGlobalMouseUp);
       return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
     }
-  }, [isDragging, activeTool, endDrag]);
+  }, [isDragging, isMarqueeSelecting, activeTool, endDrag, endMarquee]);
 
   if (!file) {
     return null;
@@ -644,6 +744,24 @@ export const PDFCanvas = ({
                 top: Math.min(dragStartY, dragCurrentY),
                 width: Math.abs(dragCurrentX - dragStartX),
                 height: Math.abs(dragCurrentY - dragStartY),
+              }}
+            />
+          )}
+
+        {/* Marquee selection preview */}
+        {isMarqueeSelecting &&
+          marqueeStartX !== null &&
+          marqueeStartY !== null &&
+          marqueeEndX !== null &&
+          marqueeEndY !== null && (
+            <div
+              className="absolute border-2 border-dashed pointer-events-none bg-primary/10"
+              style={{
+                borderColor: 'hsl(var(--primary))',
+                left: Math.min(marqueeStartX, marqueeEndX),
+                top: Math.min(marqueeStartY, marqueeEndY),
+                width: Math.abs(marqueeEndX - marqueeStartX),
+                height: Math.abs(marqueeEndY - marqueeStartY),
               }}
             />
           )}

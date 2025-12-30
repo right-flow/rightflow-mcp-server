@@ -7,6 +7,7 @@ import { Select } from '@/components/ui/select';
 import { FieldDefinition } from '@/types/fields';
 import { cn } from '@/utils/cn';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { useTranslation, useDirection } from '@/i18n';
 
 interface MultiSelectPropertiesPanelProps {
   selectedFields: FieldDefinition[];
@@ -19,6 +20,9 @@ export const MultiSelectPropertiesPanel = ({
   onUpdateAll,
   onClose,
 }: MultiSelectPropertiesPanelProps) => {
+  const t = useTranslation();
+  const direction = useDirection();
+
   // Get common values across all selected fields
   const getCommonValue = <K extends keyof FieldDefinition>(key: K): FieldDefinition[K] | 'mixed' => {
     if (selectedFields.length === 0) return 'mixed' as any;
@@ -38,6 +42,18 @@ export const MultiSelectPropertiesPanel = ({
   const commonFont = getCommonValue('font');
   const commonFontSize = getCommonValue('fontSize');
 
+  // Helper function to get field type name
+  const getFieldTypeName = (type: string) => {
+    switch(type) {
+      case 'text': return t.textField;
+      case 'checkbox': return t.checkboxField;
+      case 'radio': return t.radioField;
+      case 'dropdown': return t.dropdownField;
+      case 'signature': return t.signatureField;
+      default: return type;
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -45,14 +61,14 @@ export const MultiSelectPropertiesPanel = ({
         'animate-in slide-in-from-right duration-200',
         'max-h-[80vh] overflow-y-auto'
       )}
-      dir="rtl"
+      dir={direction}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold">עריכה מרובה</h3>
+          <h3 className="text-lg font-semibold">{t.multiEdit}</h3>
           <p className="text-sm text-muted-foreground">
-            {selectedFields.length} שדות נבחרו
+            {selectedFields.length} {t.fieldsSelected}
           </p>
         </div>
         <Button
@@ -68,16 +84,7 @@ export const MultiSelectPropertiesPanel = ({
       {/* Field Types Summary */}
       <div className="mb-4 p-2 bg-muted/50 rounded-md">
         <p className="text-xs text-muted-foreground">
-          סוגי שדות: {[...new Set(selectedFields.map(f => {
-            switch(f.type) {
-              case 'text': return 'טקסט';
-              case 'checkbox': return 'תיבת סימון';
-              case 'radio': return 'רדיו';
-              case 'dropdown': return 'רשימה';
-              case 'signature': return 'חתימה';
-              default: return f.type;
-            }
-          }))].join(', ')}
+          {t.fieldTypes}: {[...new Set(selectedFields.map(f => getFieldTypeName(f.type)))].join(', ')}
         </p>
       </div>
 
@@ -85,28 +92,28 @@ export const MultiSelectPropertiesPanel = ({
       <div className="space-y-4">
         {/* Section Name */}
         <div className="space-y-2">
-          <Label htmlFor="multi-section">שם מקטע</Label>
+          <Label htmlFor="multi-section">{t.sectionName}</Label>
           <Input
             id="multi-section"
             value={commonSectionName === 'mixed' ? '' : (commonSectionName || '')}
             onChange={(e) => {
               const sanitized = sanitizeUserInput(e.target.value);
-              onUpdateAll({ sectionName: sanitized || 'כללי' });
+              onUpdateAll({ sectionName: sanitized || t.general });
             }}
-            placeholder={commonSectionName === 'mixed' ? '(מעורב)' : 'לדוגמה: פרטים אישיים'}
-            dir="rtl"
+            placeholder={commonSectionName === 'mixed' ? t.mixed : t.sectionNamePlaceholder}
+            dir={direction}
           />
           <p className="text-xs text-muted-foreground">
-            יעודכן עבור כל {selectedFields.length} השדות הנבחרים
+            {t.willUpdateAllFields}
           </p>
         </div>
 
         {/* Required Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="multi-required">שדה חובה</Label>
+            <Label htmlFor="multi-required">{t.requiredField}</Label>
             <p className="text-xs text-muted-foreground">
-              {commonRequired === 'mixed' ? '(מעורב)' : ''}
+              {commonRequired === 'mixed' ? t.mixed : ''}
             </p>
           </div>
           <Switch
@@ -119,9 +126,9 @@ export const MultiSelectPropertiesPanel = ({
         {/* Auto-fill Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="multi-autofill">מילוי אוטומטי</Label>
+            <Label htmlFor="multi-autofill">{t.autoFill}</Label>
             <p className="text-xs text-muted-foreground">
-              {commonAutoFill === 'mixed' ? '(מעורב)' : ''}
+              {commonAutoFill === 'mixed' ? t.mixed : ''}
             </p>
           </div>
           <Switch
@@ -135,10 +142,10 @@ export const MultiSelectPropertiesPanel = ({
         {hasTextFields && (
           <>
             <div className="pt-4 border-t border-border">
-              <p className="text-sm font-medium mb-3">מאפייני טקסט</p>
+              <p className="text-sm font-medium mb-3">{t.textProperties}</p>
               {!allSameType && (
                 <p className="text-xs text-amber-600 mb-2">
-                  * יחולו רק על שדות טקסט
+                  {t.appliesToTextFieldsOnly}
                 </p>
               )}
             </div>
@@ -146,9 +153,9 @@ export const MultiSelectPropertiesPanel = ({
             {/* Direction Toggle */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="multi-direction">כיוון טקסט מימין לשמאל</Label>
+                <Label htmlFor="multi-direction">{t.textDirectionRtl}</Label>
                 <p className="text-xs text-muted-foreground">
-                  {commonDirection === 'mixed' ? '(מעורב)' : ''}
+                  {commonDirection === 'mixed' ? t.mixed : ''}
                 </p>
               </div>
               <Switch
@@ -160,21 +167,21 @@ export const MultiSelectPropertiesPanel = ({
 
             {/* Font Selection */}
             <div className="space-y-2">
-              <Label htmlFor="multi-font">גופן</Label>
+              <Label htmlFor="multi-font">{t.font}</Label>
               <Select
                 id="multi-font"
                 value={commonFont === 'mixed' ? '' : (commonFont || 'NotoSansHebrew')}
                 onChange={(e) => onUpdateAll({ font: e.target.value })}
               >
-                {commonFont === 'mixed' && <option value="">(מעורב)</option>}
-                <option value="NotoSansHebrew">Noto Sans Hebrew (עברית)</option>
+                {commonFont === 'mixed' && <option value="">{t.mixed}</option>}
+                <option value="NotoSansHebrew">Noto Sans Hebrew</option>
                 <option value="Arial">Arial</option>
               </Select>
             </div>
 
             {/* Font Size */}
             <div className="space-y-2">
-              <Label htmlFor="multi-font-size">גודל גופן (pt)</Label>
+              <Label htmlFor="multi-font-size">{t.fontSize} (pt)</Label>
               <Input
                 id="multi-font-size"
                 type="number"
@@ -187,7 +194,7 @@ export const MultiSelectPropertiesPanel = ({
                     onUpdateAll({ fontSize: val });
                   }
                 }}
-                placeholder={commonFontSize === 'mixed' ? '(מעורב)' : ''}
+                placeholder={commonFontSize === 'mixed' ? t.mixed : ''}
                 dir="ltr"
                 className="text-left"
               />
@@ -198,7 +205,7 @@ export const MultiSelectPropertiesPanel = ({
         {/* Info */}
         <div className="pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            טיפ: לחץ על שדה תוך לחיצה על Ctrl להוספה/הסרה מהבחירה
+            {t.multiSelectTip}
           </p>
         </div>
       </div>

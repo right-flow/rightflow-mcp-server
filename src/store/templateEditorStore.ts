@@ -79,6 +79,13 @@ interface TemplateEditorStore {
   dragCurrentX: number | null;
   dragCurrentY: number | null;
 
+  // Marquee selection state
+  isMarqueeSelecting: boolean;
+  marqueeStartX: number | null;
+  marqueeStartY: number | null;
+  marqueeEndX: number | null;
+  marqueeEndY: number | null;
+
   // Metadata state
   pagesMetadata: Record<number, PageMetadata>; // page number -> metadata
 
@@ -129,6 +136,11 @@ interface TemplateEditorStore {
   updateDragPosition: (x: number, y: number) => void;
   endDrag: () => void;
 
+  // Actions - Marquee Selection
+  startMarquee: (x: number, y: number) => void;
+  updateMarquee: (x: number, y: number) => void;
+  endMarquee: () => void;
+
   // Actions - Metadata
   setPageMetadata: (pageNumber: number, metadata: PageMetadata) => void;
 
@@ -165,6 +177,11 @@ const initialState = {
   dragStartY: null,
   dragCurrentX: null,
   dragCurrentY: null,
+  isMarqueeSelecting: false,
+  marqueeStartX: null,
+  marqueeStartY: null,
+  marqueeEndX: null,
+  marqueeEndY: null,
   pagesMetadata: {},
   hoveredFieldId: null,
 };
@@ -518,6 +535,31 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
       dragStartY: null,
       dragCurrentX: null,
       dragCurrentY: null,
+    }),
+
+  // Marquee selection actions
+  startMarquee: (x, y) =>
+    set({
+      isMarqueeSelecting: true,
+      marqueeStartX: x,
+      marqueeStartY: y,
+      marqueeEndX: x,
+      marqueeEndY: y,
+    }),
+
+  updateMarquee: (x, y) =>
+    set({
+      marqueeEndX: x,
+      marqueeEndY: y,
+    }),
+
+  endMarquee: () =>
+    set({
+      isMarqueeSelecting: false,
+      marqueeStartX: null,
+      marqueeStartY: null,
+      marqueeEndX: null,
+      marqueeEndY: null,
     }),
 
   // Metadata actions

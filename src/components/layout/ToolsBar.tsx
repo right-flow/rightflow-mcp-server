@@ -1,6 +1,7 @@
 import { Type, CheckSquare, Circle, ChevronDown, PenTool, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ToolMode } from '@/types/fields';
+import { useTranslation, useDirection } from '@/i18n';
 
 interface ToolsBarProps {
   activeTool: ToolMode;
@@ -8,67 +9,69 @@ interface ToolsBarProps {
 }
 
 export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
+  const t = useTranslation();
+  const direction = useDirection();
   const isFieldToolActive = activeTool !== 'select';
 
   return (
-    <div className="w-full h-16 bg-gradient-to-b from-secondary to-background border-b border-border flex items-center justify-center px-4 gap-3" dir="rtl">
-      <div className="text-sm font-medium text-muted-foreground ml-4">
-        כלי יצירת שדות:
-      </div>
-
+    <div
+      className="w-full h-16 bg-gradient-to-b from-secondary to-background border-b border-border
+                 flex items-center justify-center px-4 gap-3"
+      dir={direction}
+    >
       <Button
         variant={activeTool === 'text-field' ? 'default' : 'outline'}
         size="default"
         onClick={() => onToolChange('text-field')}
-        title="הוסף שדה טקסט - גרור על ה-PDF ליצירת שדה"
+        title={t.textFieldTool}
         className="gap-2"
       >
         <Type className="w-5 h-5" />
-        שדה טקסט
+        {t.textFieldTool}
       </Button>
 
       <Button
         variant={activeTool === 'checkbox-field' ? 'default' : 'outline'}
         size="default"
         onClick={() => onToolChange('checkbox-field')}
-        title="הוסף תיבת סימון - לחץ על ה-PDF למיקום השדה"
+        title={t.checkboxFieldTool}
         className="gap-2"
       >
         <CheckSquare className="w-5 h-5" />
-        תיבת סימון
+        {t.checkboxFieldTool}
       </Button>
 
       <Button
         variant={activeTool === 'radio-field' ? 'default' : 'outline'}
         size="default"
         onClick={() => onToolChange('radio-field')}
-        title="הוסף כפתור רדיו - לחץ על ה-PDF למיקום השדה"
+        title={t.radioFieldTool}
         className="gap-2"
       >
         <Circle className="w-5 h-5" />
-        כפתור רדיו
+        {t.radioFieldTool}
       </Button>
 
       <Button
         variant={activeTool === 'dropdown-field' ? 'default' : 'outline'}
         size="default"
         onClick={() => onToolChange('dropdown-field')}
-        title="הוסף רשימה נפתחת - גרור על ה-PDF ליצירת שדה"
+        title={t.dropdownFieldTool}
         className="gap-2"
       >
         <ChevronDown className="w-5 h-5" />
-        רשימה נפתחת
+        {t.dropdownFieldTool}
       </Button>
 
       <Button
         variant={activeTool === 'signature-field' ? 'default' : 'outline'}
         size="default"
         onClick={() => onToolChange('signature-field')}
-        title="הוסף שדה חתימה - גרור על ה-PDF ליצירת שדה"
+        title={t.signatureFieldTool}
         className="gap-2"
       >
         <PenTool className="w-5 h-5" />
-        שדה חתימה
+        {t.signatureFieldTool}
       </Button>
 
       {/* Release button - only visible when a field tool is active */}
@@ -77,7 +80,7 @@ export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
           variant="destructive"
           size="icon"
           onClick={() => onToolChange('select')}
-          title="שחרר מצב יצירת שדה (Esc)"
+          title={t.selectTool}
           className="h-10 w-10"
         >
           <X className="w-5 h-5" />
@@ -89,10 +92,10 @@ export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
         size="default"
         onClick={() => onToolChange('select')}
         disabled={activeTool === 'select'}
-        title="מצב בחירה - בחר ועדכן שדות קיימים"
-        className="mr-auto"
+        title={t.selectTool}
+        className={direction === 'rtl' ? 'mr-auto' : 'ml-auto'}
       >
-        מצב בחירה
+        {t.selectTool}
       </Button>
     </div>
   );
