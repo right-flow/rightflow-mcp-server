@@ -295,7 +295,64 @@ select:focus {
   flex-direction: column;
 }
 
-/* Signature field */
+/* Signature field - Canvas-based signature pad */
+.signature-pad-container {
+  border: 2px solid var(--border-color);
+  border-radius: ${sv.borderRadius};
+  background: #fff;
+  overflow: hidden;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 120px;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+  background: linear-gradient(to bottom, transparent 95%, #e0e0e0 95%);
+  background-size: 100% 80px;
+  background-position: bottom;
+}
+
+.signature-canvas.signing {
+  cursor: crosshair;
+}
+
+.signature-canvas.has-signature {
+  background: #fff;
+}
+
+.signature-controls {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px;
+  background: #f5f5f5;
+  border-top: 1px solid var(--border-color);
+  gap: 8px;
+}
+
+.signature-clear-btn {
+  padding: 6px 16px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+}
+
+.signature-clear-btn:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.signature-pad-container.invalid .signature-canvas {
+  border-color: #e53935;
+}
+
+/* Legacy signature box (fallback) */
 .signature-box {
   border: 2px dashed var(--border-color);
   border-radius: ${sv.borderRadius};
@@ -420,6 +477,65 @@ textarea:invalid:not(:placeholder-shown) {
     display: block !important;
     page-break-after: always;
   }
+}
+
+/* ========================================
+   Welcome Page Styles (Phoenix Design)
+   ======================================== */
+
+.welcome-page {
+  padding: 30px 20px;
+}
+
+.welcome-section-title {
+  border-${rtl ? 'right' : 'left'}: 5px solid var(--accent-color);
+  padding-${rtl ? 'right' : 'left'}: 15px;
+  margin: 25px 0 15px;
+  color: var(--primary-color);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.welcome-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.welcome-info-box {
+  background: #f0f7ff;
+  border-${rtl ? 'right' : 'left'}: 4px solid var(--accent-color);
+  padding: 15px 20px;
+  margin: 20px 0;
+  font-size: 14px;
+  border-radius: ${sv.borderRadius};
+}
+
+.welcome-info-box strong {
+  color: var(--accent-color);
+}
+
+.welcome-documents-list {
+  margin: 15px 0;
+  padding-${rtl ? 'right' : 'left'}: 25px;
+}
+
+.welcome-documents-list li {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.welcome-documents-list li::marker {
+  color: var(--accent-color);
+}
+
+.welcome-company-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin: 10px 0;
 }
 
 /* ========================================
@@ -693,12 +809,19 @@ function adjustColor(hex: string, percent: number): string {
 
 /**
  * Generates JavaScript for form handling with multi-page tab navigation
+ * @param formId - Form element ID
+ * @param rtl - Right-to-left direction
+ * @param totalFormPages - Number of form pages (excluding welcome page)
+ * @param includeWelcome - Whether welcome page is included
  */
 export function generateFormJS(
   formId: string,
   rtl: boolean,
-  totalPages: number = 1
+  totalFormPages: number = 1,
+  includeWelcome: boolean = true
 ): string {
+  const totalTabs = includeWelcome ? totalFormPages + 1 : totalFormPages;
+
   return `
 (function() {
   'use strict';
@@ -707,9 +830,19 @@ export function generateFormJS(
   if (!form) return;
 
   // Multi-page navigation state
-  let currentPage = 1;
-  const totalPages = ${totalPages};
-  const completedPages = new Set();
+  const includeWelcome = ${includeWelcome};
+  const totalFormPages = ${totalFormPages};
+  const totalTabs = ${totalTabs};
+  let currentTabIndex = 1; // 1-based index for tabs
+  const completedTabs = new Set();
+
+  // Page ID mapping: tab index -> page ID
+  function getPageId(tabIndex) {
+    if (includeWelcome && tabIndex === 1) {
+      return 'welcome';
+    }
+    return includeWelcome ? tabIndex - 1 : tabIndex;
+  }
 
   // Get navigation elements
   const pages = form.querySelectorAll('.form-page');
@@ -721,14 +854,18 @@ export function generateFormJS(
   const progressText = document.getElementById('page-progress-text');
 
   // Initialize page display
-  function showPage(pageNum) {
+  function showTab(tabIndex) {
+    if (tabIndex < 1 || tabIndex > totalTabs) return;
+
+    const pageId = getPageId(tabIndex);
+
     // Hide all pages
     pages.forEach(function(page) {
       page.classList.remove('active');
     });
 
     // Show current page
-    const activePage = document.getElementById('page-' + pageNum);
+    const activePage = document.getElementById('page-' + pageId);
     if (activePage) {
       activePage.classList.add('active');
     }
@@ -736,46 +873,55 @@ export function generateFormJS(
     // Update tabs
     tabs.forEach(function(tab, index) {
       tab.classList.remove('active');
-      if (index + 1 === pageNum) {
+      if (index + 1 === tabIndex) {
         tab.classList.add('active');
       }
     });
 
     // Update navigation buttons
     if (prevBtn) {
-      prevBtn.disabled = pageNum === 1;
+      prevBtn.disabled = tabIndex === 1;
     }
     if (nextBtn) {
-      nextBtn.style.display = pageNum === totalPages ? 'none' : 'flex';
+      nextBtn.style.display = tabIndex === totalTabs ? 'none' : 'flex';
     }
     if (submitBtn) {
-      submitBtn.style.display = pageNum === totalPages ? 'flex' : 'none';
+      submitBtn.style.display = tabIndex === totalTabs ? 'flex' : 'none';
     }
 
     // Update progress text
     if (progressText) {
-      progressText.innerHTML = '${rtl ? 'עמוד' : 'Page'} <strong>' + pageNum + '</strong> ${rtl ? 'מתוך' : 'of'} <strong>' + totalPages + '</strong>';
+      progressText.innerHTML = '${rtl ? 'עמוד' : 'Page'} <strong>' + tabIndex + '</strong> ${rtl ? 'מתוך' : 'of'} <strong>' + totalTabs + '</strong>';
     }
 
-    currentPage = pageNum;
+    currentTabIndex = tabIndex;
   }
 
-  // Mark page as completed
-  function markPageCompleted(pageNum) {
-    completedPages.add(pageNum);
-    const tab = tabs[pageNum - 1];
-    if (tab && pageNum !== currentPage) {
+  // Mark tab as completed
+  function markTabCompleted(tabIndex) {
+    completedTabs.add(tabIndex);
+    const tab = tabs[tabIndex - 1];
+    if (tab && tabIndex !== currentTabIndex) {
       tab.classList.add('completed');
     }
     // Update connector
-    if (pageNum < totalPages && connectors[pageNum - 1]) {
-      connectors[pageNum - 1].classList.add('completed');
+    if (tabIndex < totalTabs && connectors[tabIndex - 1]) {
+      connectors[tabIndex - 1].classList.add('completed');
     }
+  }
+
+  // Check if current page is welcome page (no validation needed)
+  function isWelcomePage() {
+    return includeWelcome && currentTabIndex === 1;
   }
 
   // Validate current page fields
   function validateCurrentPage() {
-    const activePage = document.getElementById('page-' + currentPage);
+    // Welcome page has no required fields
+    if (isWelcomePage()) return true;
+
+    const pageId = getPageId(currentTabIndex);
+    const activePage = document.getElementById('page-' + pageId);
     if (!activePage) return true;
 
     const requiredFields = activePage.querySelectorAll('[required]');
@@ -803,63 +949,66 @@ export function generateFormJS(
   }
 
   // Navigation handlers
-  function goToPage(pageNum) {
-    if (pageNum < 1 || pageNum > totalPages) return;
+  function goToTab(tabIndex) {
+    if (tabIndex < 1 || tabIndex > totalTabs) return;
 
-    // Mark current page as completed if moving forward
-    if (pageNum > currentPage) {
-      markPageCompleted(currentPage);
+    // Mark current tab as completed if moving forward
+    if (tabIndex > currentTabIndex) {
+      markTabCompleted(currentTabIndex);
     }
 
-    showPage(pageNum);
+    showTab(tabIndex);
     // Scroll to top of form
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function nextPage() {
-    if (currentPage < totalPages) {
+  function nextTab() {
+    if (currentTabIndex < totalTabs) {
       if (validateCurrentPage()) {
-        markPageCompleted(currentPage);
-        goToPage(currentPage + 1);
+        markTabCompleted(currentTabIndex);
+        goToTab(currentTabIndex + 1);
       }
     }
   }
 
-  function prevPage() {
-    if (currentPage > 1) {
-      goToPage(currentPage - 1);
+  function prevTab() {
+    if (currentTabIndex > 1) {
+      goToTab(currentTabIndex - 1);
     }
   }
 
   // Tab click handlers
   tabs.forEach(function(tab, index) {
     tab.addEventListener('click', function() {
-      const targetPage = index + 1;
+      const targetTab = index + 1;
       // Allow going back freely, but validate when going forward
-      if (targetPage <= currentPage || completedPages.has(targetPage - 1)) {
-        goToPage(targetPage);
-      } else if (targetPage === currentPage + 1) {
-        nextPage();
+      if (targetTab <= currentTabIndex || completedTabs.has(targetTab - 1)) {
+        goToTab(targetTab);
+      } else if (targetTab === currentTabIndex + 1) {
+        nextTab();
       }
     });
   });
 
   // Button click handlers
   if (prevBtn) {
-    prevBtn.addEventListener('click', prevPage);
+    prevBtn.addEventListener('click', prevTab);
   }
   if (nextBtn) {
-    nextBtn.addEventListener('click', nextPage);
+    nextBtn.addEventListener('click', nextTab);
   }
 
   // Form submission handler
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Validate all pages
+    // Validate all form pages (skip welcome page)
     let allValid = true;
-    for (let i = 1; i <= totalPages; i++) {
-      const page = document.getElementById('page-' + i);
+    const startTab = includeWelcome ? 2 : 1;
+
+    for (let tabIdx = startTab; tabIdx <= totalTabs; tabIdx++) {
+      const pageId = getPageId(tabIdx);
+      const page = document.getElementById('page-' + pageId);
       if (!page) continue;
 
       const requiredFields = page.querySelectorAll('[required]');
@@ -867,8 +1016,8 @@ export function generateFormJS(
         const value = field.type === 'checkbox' ? field.checked : field.value;
         if (!value || (typeof value === 'string' && value.trim() === '')) {
           allValid = false;
-          if (i !== currentPage) {
-            goToPage(i);
+          if (tabIdx !== currentTabIndex) {
+            goToTab(tabIdx);
           }
         }
       });
@@ -916,14 +1065,162 @@ export function generateFormJS(
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
     if (e.key === 'ArrowRight') {
-      ${rtl ? 'prevPage()' : 'nextPage()'};
+      ${rtl ? 'prevTab()' : 'nextTab()'};
     } else if (e.key === 'ArrowLeft') {
-      ${rtl ? 'nextPage()' : 'prevPage()'};
+      ${rtl ? 'nextTab()' : 'prevTab()'};
     }
   });
 
-  // Initialize first page
-  showPage(1);
+  // ========================================
+  // Signature Pad Functionality
+  // ========================================
+
+  // Initialize all signature pads
+  const signaturePads = [];
+  const signatureCanvases = form.querySelectorAll('.signature-canvas');
+
+  signatureCanvases.forEach(function(canvas) {
+    const ctx = canvas.getContext('2d');
+    const container = canvas.closest('.signature-pad-container');
+    const fieldId = container.dataset.fieldId;
+    const hiddenInput = document.getElementById(fieldId);
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let hasSignature = false;
+
+    // Set canvas size to match display size
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    // Get position from event (mouse or touch)
+    function getPosition(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    // Start drawing
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      const pos = getPosition(e);
+      lastX = pos.x;
+      lastY = pos.y;
+      canvas.classList.add('signing');
+    }
+
+    // Draw line
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const pos = getPosition(e);
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+
+      lastX = pos.x;
+      lastY = pos.y;
+      hasSignature = true;
+      canvas.classList.add('has-signature');
+    }
+
+    // Stop drawing and save signature
+    function stopDrawing() {
+      if (isDrawing) {
+        isDrawing = false;
+        canvas.classList.remove('signing');
+        saveSignature();
+      }
+    }
+
+    // Save signature as base64 PNG
+    function saveSignature() {
+      if (hasSignature) {
+        const dataUrl = canvas.toDataURL('image/png');
+        hiddenInput.value = dataUrl;
+        // Remove validation error if present
+        container.classList.remove('invalid');
+        const validation = document.getElementById(fieldId + '_validation');
+        if (validation) validation.textContent = '';
+      }
+    }
+
+    // Clear signature
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasSignature = false;
+      hiddenInput.value = '';
+      canvas.classList.remove('has-signature');
+      resizeCanvas(); // Reset canvas state
+    }
+
+    // Event listeners for mouse
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
+
+    // Event listeners for touch
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+
+    // Clear button
+    const clearBtn = container.querySelector('.signature-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', clearSignature);
+    }
+
+    // Initialize canvas
+    resizeCanvas();
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      // Save current signature
+      const currentData = hiddenInput.value;
+      resizeCanvas();
+      // Restore signature if exists
+      if (currentData) {
+        const img = new Image();
+        img.onload = function() {
+          ctx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+        };
+        img.src = currentData;
+      }
+    });
+
+    // Store reference
+    signaturePads.push({
+      canvas: canvas,
+      fieldId: fieldId,
+      clear: clearSignature,
+      hasSignature: function() { return hasSignature; }
+    });
+  });
+
+  // Expose signature pads for external access
+  window.formSignaturePads = signaturePads;
+
+  // Initialize first tab (welcome page if enabled)
+  showTab(1);
 })();
 `;
 }

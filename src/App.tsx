@@ -11,7 +11,6 @@ import { UploadWarningDialog } from '@/components/dialogs/UploadWarningDialog';
 import { HtmlPreviewDialog } from '@/components/dialogs/HtmlPreviewDialog';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import type { GeneratedHtmlResult } from '@/services/html-generation';
-import { VersionDisplay } from '@/components/ui/VersionDisplay';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useDirection } from '@/i18n';
@@ -732,8 +731,6 @@ function App() {
           />
         )}
       </MainLayout>
-
-      <VersionDisplay />
     </div>
   );
 }

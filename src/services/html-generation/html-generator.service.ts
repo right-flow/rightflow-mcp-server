@@ -10,6 +10,7 @@ import type {
   HtmlFieldGroup,
   HtmlGenerationOptions,
   GeneratedHtmlResult,
+  WelcomePageConfig,
 } from './types';
 import {
   mapFieldsToHtml,
@@ -30,6 +31,54 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/**
+ * Generates the welcome/intro page HTML (Phoenix-style)
+ */
+function generateWelcomePageHtml(
+  rtl: boolean,
+  welcomeConfig?: Partial<WelcomePageConfig>
+): string {
+  const config: WelcomePageConfig = {
+    enabled: true,
+    welcomeTitle: welcomeConfig?.welcomeTitle || (rtl ? 'ברוכים הבאים!' : 'Welcome!'),
+    welcomeText: welcomeConfig?.welcomeText ||
+      (rtl
+        ? 'תודה על השימוש במערכת הטפסים הממחושבת שלנו.'
+        : 'Thank you for using our digital form system.'),
+    companyName: welcomeConfig?.companyName || '',
+    infoBoxText: welcomeConfig?.infoBoxText ||
+      (rtl
+        ? 'במהלך מילוי הטופס יתכן ותידרשו לצרף מסמכים נוספים. אנא הכינו את המסמכים הנדרשים מראש.'
+        : 'During the form filling process, you may be required to attach additional documents. Please prepare the required documents in advance.'),
+    documentsListTitle: welcomeConfig?.documentsListTitle ||
+      (rtl ? 'להלן רשימת המסמכים הנדרשים:' : 'Required documents:'),
+    requiredDocuments: welcomeConfig?.requiredDocuments ||
+      (rtl
+        ? ['צילום תעודת זהות וספח', 'מסמכים תומכים רלוונטיים']
+        : ['Copy of ID', 'Relevant supporting documents']),
+  };
+
+  let documentsListHtml = '';
+  if (config.requiredDocuments && config.requiredDocuments.length > 0) {
+    documentsListHtml = `
+      <p class="welcome-text">${escapeHtml(config.documentsListTitle || '')}</p>
+      <ul class="welcome-documents-list">
+        ${config.requiredDocuments.map(doc => `<li>${escapeHtml(doc)}</li>`).join('\n        ')}
+      </ul>`;
+  }
+
+  return `
+    <div class="form-page welcome-page active" id="page-welcome" role="tabpanel">
+      <div class="welcome-section-title">${escapeHtml(config.welcomeTitle || '')}</div>
+      <p class="welcome-text">${escapeHtml(config.welcomeText || '')}</p>
+      ${config.companyName ? `<p class="welcome-company-name">${escapeHtml(config.companyName)}</p>` : ''}
+      <div class="welcome-info-box">
+        <strong>${rtl ? 'שימו לב:' : 'Please note:'}</strong> ${escapeHtml(config.infoBoxText || '')}
+      </div>
+      ${documentsListHtml}
+    </div>`;
 }
 
 /**
@@ -123,8 +172,15 @@ function generateInputHtml(field: HtmlFormField): string {
 
     case 'signature':
       return `
-        <div class="signature-box">
-          <span>חתימה</span>
+        <div class="signature-pad-container" data-field-id="${escapeHtml(field.id)}">
+          <canvas class="signature-canvas" id="${escapeHtml(field.id)}_canvas"></canvas>
+          <input type="hidden" id="${escapeHtml(field.id)}" name="${escapeHtml(field.id)}"
+                 class="signature-data" ${field.required ? 'required' : ''}>
+          <div class="signature-controls">
+            <button type="button" class="signature-clear-btn" data-canvas="${escapeHtml(field.id)}_canvas">
+              ${field.direction === 'ltr' ? 'Clear' : 'נקה'}
+            </button>
+          </div>
         </div>`;
 
     case 'email':
@@ -167,24 +223,35 @@ function groupFieldsByPage(
 
 /**
  * Generates tab indicators HTML
+ * @param totalPages - Number of form pages (excluding welcome page)
+ * @param includeWelcome - Whether to include welcome page tab
  */
-function generateTabsHtml(totalPages: number): string {
-  if (totalPages <= 1) return '';
+function generateTabsHtml(
+  totalPages: number,
+  includeWelcome: boolean
+): string {
+  const totalTabs = includeWelcome ? totalPages + 1 : totalPages;
+  if (totalTabs <= 1) return '';
 
   let html = '<div class="page-tabs" role="tablist">';
 
-  for (let i = 1; i <= totalPages; i++) {
+  for (let i = 1; i <= totalTabs; i++) {
+    const isWelcomeTab = includeWelcome && i === 1;
+    const pageId = isWelcomeTab ? 'welcome' : (includeWelcome ? i - 1 : i);
+    const isActive = i === 1;
+
     html += `
-      <div class="page-tab${i === 1 ? ' active' : ''}"
+      <div class="page-tab${isActive ? ' active' : ''}"
            role="tab"
-           aria-selected="${i === 1}"
-           aria-controls="page-${i}"
-           tabindex="${i === 1 ? 0 : -1}">
+           aria-selected="${isActive}"
+           aria-controls="page-${pageId}"
+           tabindex="${isActive ? 0 : -1}"
+           data-page="${pageId}">
         ${i}
       </div>`;
 
     // Add connector between tabs (except after last)
-    if (i < totalPages) {
+    if (i < totalTabs) {
       html += '<div class="tab-connector"></div>';
     }
   }
@@ -195,12 +262,18 @@ function generateTabsHtml(totalPages: number): string {
 
 /**
  * Generates navigation buttons HTML
+ * @param totalPages - Number of form pages (excluding welcome page)
+ * @param rtl - Right-to-left direction
+ * @param includeWelcome - Whether welcome page is included
  */
 function generateNavigationHtml(
   totalPages: number,
-  rtl: boolean
+  rtl: boolean,
+  includeWelcome: boolean
 ): string {
-  if (totalPages <= 1) {
+  const totalTabs = includeWelcome ? totalPages + 1 : totalPages;
+
+  if (totalTabs <= 1) {
     // Single page - just show submit button
     return `
     <div class="submit-wrapper">
@@ -217,15 +290,15 @@ function generateNavigationHtml(
     <div class="page-navigation">
       <button type="button" id="prev-btn" class="nav-btn" disabled>
         <span class="arrow">${prevArrow}</span>
-        ${rtl ? 'הקודם' : 'Previous'}
+        ${rtl ? 'חזור' : 'Back'}
       </button>
 
       <div class="page-progress" id="page-progress-text">
-        ${rtl ? 'עמוד' : 'Page'} <strong>1</strong> ${rtl ? 'מתוך' : 'of'} <strong>${totalPages}</strong>
+        ${rtl ? 'עמוד' : 'Page'} <strong>1</strong> ${rtl ? 'מתוך' : 'of'} <strong>${totalTabs}</strong>
       </div>
 
       <button type="button" id="next-btn" class="nav-btn primary">
-        ${rtl ? 'הבא' : 'Next'}
+        ${rtl ? 'המשך' : 'Continue'}
         <span class="arrow">${nextArrow}</span>
       </button>
 
@@ -303,6 +376,7 @@ function generatePageHtml(
 /**
  * Main HTML generation function (template-based)
  * Generates multi-page tabbed form with navigation
+ * Includes Phoenix-style welcome page by default
  */
 export async function generateHtmlFormTemplate(
   fields: FieldDefinition[],
@@ -312,6 +386,9 @@ export async function generateHtmlFormTemplate(
 
   // Detect RTL if not specified
   const rtl = options.rtl ?? detectFormDirection(fields) === 'rtl';
+
+  // Welcome page is enabled by default
+  const includeWelcome = options.welcomePage?.enabled !== false;
 
   // Merge options with defaults
   const finalOptions: HtmlGenerationOptions = {
@@ -329,6 +406,7 @@ export async function generateHtmlFormTemplate(
     },
     includeValidation: options.includeValidation ?? true,
     generationMethod: 'template',
+    welcomePage: options.welcomePage,
   };
 
   // Convert fields
@@ -340,9 +418,9 @@ export async function generateHtmlFormTemplate(
   const pageNumbers = Array.from(pageMap.keys()).sort((a, b) => a - b);
   const totalPages = pageNumbers.length || 1;
 
-  // Generate CSS and JS with page count
+  // Generate CSS and JS with page count (including welcome page)
   const cssContent = generateDocsFlowCSS(finalOptions.rtl, finalOptions.theme);
-  const jsContent = generateFormJS(formId, finalOptions.rtl, totalPages);
+  const jsContent = generateFormJS(formId, finalOptions.rtl, totalPages, includeWelcome);
 
   // Build HTML document
   const dirAttr = finalOptions.rtl ? 'dir="rtl"' : '';
@@ -366,13 +444,18 @@ ${cssContent}
     ${finalOptions.formDescription ? `<p>${escapeHtml(finalOptions.formDescription)}</p>` : ''}
   </header>
 
-  ${generateTabsHtml(totalPages)}
+  ${generateTabsHtml(totalPages, includeWelcome)}
 
   <form id="${formId}" novalidate>
     <div class="form-pages">
 `;
 
-  // Generate pages
+  // Add welcome page if enabled (first page)
+  if (includeWelcome) {
+    htmlContent += generateWelcomePageHtml(finalOptions.rtl, finalOptions.welcomePage);
+  }
+
+  // Generate form pages
   for (let i = 0; i < pageNumbers.length; i++) {
     const pageNum = pageNumbers[i];
     const pageFields = pageMap.get(pageNum) || [];
@@ -382,7 +465,7 @@ ${cssContent}
       groups,
       finalOptions.includeValidation,
       finalOptions.rtl,
-      i === 0 // First page is active
+      !includeWelcome && i === 0 // Only first form page is active if no welcome page
     );
   }
 
@@ -394,13 +477,13 @@ ${cssContent}
       groups,
       finalOptions.includeValidation,
       finalOptions.rtl,
-      true
+      !includeWelcome // Active only if no welcome page
     );
   }
 
   htmlContent += `
     </div>
-    ${generateNavigationHtml(totalPages, finalOptions.rtl)}
+    ${generateNavigationHtml(totalPages, finalOptions.rtl, includeWelcome)}
   </form>
 </div>
 

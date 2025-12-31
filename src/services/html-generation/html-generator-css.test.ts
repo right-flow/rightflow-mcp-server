@@ -139,6 +139,48 @@ describe('html-generator-css', () => {
       expect(css).toContain('.signature-box');
     });
 
+    it('should include signature pad container styles', () => {
+      const css = generateDocsFlowCSS(true, defaultTheme);
+
+      expect(css).toContain('.signature-pad-container');
+      expect(css).toContain('.signature-canvas');
+      expect(css).toContain('.signature-controls');
+      expect(css).toContain('.signature-clear-btn');
+    });
+
+    it('should include signature canvas interaction styles', () => {
+      const css = generateDocsFlowCSS(true, defaultTheme);
+
+      expect(css).toContain('.signature-canvas.signing');
+      expect(css).toContain('.signature-canvas.has-signature');
+      expect(css).toContain('cursor: crosshair');
+    });
+
+    it('should include welcome page styles', () => {
+      const css = generateDocsFlowCSS(true, defaultTheme);
+
+      expect(css).toContain('.welcome-page');
+      expect(css).toContain('.welcome-section-title');
+      expect(css).toContain('.welcome-text');
+      expect(css).toContain('.welcome-info-box');
+      expect(css).toContain('.welcome-documents-list');
+      expect(css).toContain('.welcome-company-name');
+    });
+
+    it('should apply RTL border for welcome elements when rtl is true', () => {
+      const css = generateDocsFlowCSS(true, defaultTheme);
+
+      expect(css).toContain('border-right');
+      expect(css).toContain('padding-right');
+    });
+
+    it('should apply LTR border for welcome elements when rtl is false', () => {
+      const css = generateDocsFlowCSS(false, defaultTheme);
+
+      expect(css).toContain('border-left');
+      expect(css).toContain('padding-left');
+    });
+
     it('should include validation styles', () => {
       const css = generateDocsFlowCSS(true, defaultTheme);
 
@@ -207,6 +249,146 @@ describe('html-generator-css', () => {
       expect(js).toContain('(function()');
       expect(js).toContain("'use strict'");
       expect(js).toContain('})()');
+    });
+
+    // Welcome page tests
+    describe('welcome page support', () => {
+      it('should include welcome page handling when includeWelcome is true', () => {
+        const js = generateFormJS('myForm', true, 2, true);
+
+        expect(js).toContain('includeWelcome = true');
+        expect(js).toContain("return 'welcome'");
+      });
+
+      it('should not include welcome page handling when includeWelcome is false', () => {
+        const js = generateFormJS('myForm', true, 2, false);
+
+        expect(js).toContain('includeWelcome = false');
+      });
+
+      it('should calculate total tabs correctly with welcome page', () => {
+        const js = generateFormJS('myForm', true, 3, true);
+
+        // 3 form pages + 1 welcome = 4 tabs
+        expect(js).toContain('totalTabs = 4');
+      });
+
+      it('should calculate total tabs correctly without welcome page', () => {
+        const js = generateFormJS('myForm', true, 3, false);
+
+        // 3 form pages, no welcome
+        expect(js).toContain('totalTabs = 3');
+      });
+
+      it('should include getPageId function for welcome page mapping', () => {
+        const js = generateFormJS('myForm', true, 2, true);
+
+        expect(js).toContain('function getPageId(tabIndex)');
+        expect(js).toContain("return 'welcome'");
+      });
+
+      it('should skip welcome page validation', () => {
+        const js = generateFormJS('myForm', true, 2, true);
+
+        expect(js).toContain('isWelcomePage()');
+        expect(js).toContain('if (isWelcomePage()) return true');
+      });
+    });
+
+    // Signature pad tests
+    describe('signature pad support', () => {
+      it('should include signature pad initialization', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('signaturePads');
+        expect(js).toContain('.signature-canvas');
+      });
+
+      it('should include signature drawing functions', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('startDrawing');
+        expect(js).toContain('stopDrawing');
+        expect(js).toContain('function draw(e)');
+      });
+
+      it('should include signature save functionality', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('saveSignature');
+        expect(js).toContain('toDataURL');
+        expect(js).toContain("'image/png'");
+      });
+
+      it('should include signature clear functionality', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('clearSignature');
+        expect(js).toContain('clearRect');
+      });
+
+      it('should include mouse event listeners for signature', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain("'mousedown'");
+        expect(js).toContain("'mousemove'");
+        expect(js).toContain("'mouseup'");
+        expect(js).toContain("'mouseleave'");
+      });
+
+      it('should include touch event listeners for signature', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain("'touchstart'");
+        expect(js).toContain("'touchmove'");
+        expect(js).toContain("'touchend'");
+        expect(js).toContain("'touchcancel'");
+      });
+
+      it('should expose signature pads globally', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('window.formSignaturePads');
+      });
+
+      it('should handle canvas resize', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('resizeCanvas');
+        expect(js).toContain("addEventListener('resize'");
+      });
+
+      it('should include devicePixelRatio handling', () => {
+        const js = generateFormJS('myForm', true);
+
+        expect(js).toContain('devicePixelRatio');
+      });
+    });
+
+    // Multi-page navigation tests
+    describe('multi-page navigation', () => {
+      it('should include tab navigation functions', () => {
+        const js = generateFormJS('myForm', true, 3, true);
+
+        expect(js).toContain('showTab');
+        expect(js).toContain('goToTab');
+        expect(js).toContain('nextTab');
+        expect(js).toContain('prevTab');
+      });
+
+      it('should include tab completion tracking', () => {
+        const js = generateFormJS('myForm', true, 2, true);
+
+        expect(js).toContain('completedTabs');
+        expect(js).toContain('markTabCompleted');
+      });
+
+      it('should include keyboard navigation', () => {
+        const js = generateFormJS('myForm', true, 2, true);
+
+        expect(js).toContain('ArrowRight');
+        expect(js).toContain('ArrowLeft');
+      });
     });
   });
 });

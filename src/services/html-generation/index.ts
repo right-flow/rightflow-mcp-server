@@ -20,6 +20,7 @@ export type {
   HtmlFormTheme,
   HtmlGenerationOptions,
   GeneratedHtmlResult,
+  WelcomePageConfig,
 } from './types';
 
 export { DEFAULT_HTML_GENERATION_OPTIONS } from './types';

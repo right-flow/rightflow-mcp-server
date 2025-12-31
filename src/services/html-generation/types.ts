@@ -67,6 +67,19 @@ export interface HtmlFormTheme {
 }
 
 /**
+ * Welcome page configuration (Phoenix-style intro page)
+ */
+export interface WelcomePageConfig {
+  enabled: boolean;
+  welcomeTitle?: string;
+  welcomeText?: string;
+  companyName?: string;
+  infoBoxText?: string;
+  documentsListTitle?: string;
+  requiredDocuments?: string[];
+}
+
+/**
  * HTML generation options
  */
 export interface HtmlGenerationOptions {
@@ -77,6 +90,7 @@ export interface HtmlGenerationOptions {
   theme: HtmlFormTheme;
   includeValidation: boolean;
   generationMethod: 'ai' | 'template' | 'auto'; // 'auto' tries AI first, falls back to template
+  welcomePage?: Partial<WelcomePageConfig>; // Phoenix-style welcome/intro page
 }
 
 /**
@@ -93,6 +107,7 @@ export const DEFAULT_HTML_GENERATION_OPTIONS: HtmlGenerationOptions = {
   },
   includeValidation: true,
   generationMethod: 'auto',
+  welcomePage: { enabled: true }, // Welcome page enabled by default
 };
 
 /**
