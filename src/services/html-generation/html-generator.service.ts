@@ -114,9 +114,27 @@ function generateFieldHtml(
 }
 
 /**
+ * Generates validation data attributes for a field
+ */
+function generateValidationAttrs(field: HtmlFormField): string {
+  if (!field.validationType || !field.validators || field.validators.length === 0) {
+    return '';
+  }
+
+  const validatorsJson = JSON.stringify(field.validators)
+    .replace(/"/g, '&quot;'); // Escape quotes for HTML attribute
+
+  return `
+    data-validation-type="${escapeHtml(field.validationType)}"
+    data-validators="${validatorsJson}"
+  `.trim();
+}
+
+/**
  * Generates the input element HTML based on field type
  */
 function generateInputHtml(field: HtmlFormField): string {
+  const validationAttrs = generateValidationAttrs(field);
   const baseAttrs = `
     id="${escapeHtml(field.id)}"
     name="${escapeHtml(field.id)}"
@@ -124,6 +142,7 @@ function generateInputHtml(field: HtmlFormField): string {
     ${field.required ? 'required' : ''}
     ${field.value ? `value="${escapeHtml(field.value)}"` : ''}
     ${field.tabOrder !== undefined ? `tabindex="${field.tabOrder}"` : ''}
+    ${validationAttrs}
   `.trim();
 
   switch (field.type) {

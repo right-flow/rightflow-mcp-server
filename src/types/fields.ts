@@ -6,6 +6,14 @@ export type FieldType = 'text' | 'checkbox' | 'radio' | 'dropdown' | 'signature'
 
 export type ToolMode = 'select' | 'text-field' | 'checkbox-field' | 'radio-field' | 'dropdown-field' | 'signature-field';
 
+/**
+ * Validator configuration for field validation
+ */
+export interface ValidatorConfig {
+  name: string;                        // e.g., "israeli_id_checksum", "length_between"
+  params?: Record<string, unknown>;    // e.g., { min: 8, max: 9 }
+}
+
 export interface FieldDefinition {
   id: string;
   type: FieldType;
@@ -41,11 +49,11 @@ export interface FieldDefinition {
   signatureImage?: string; // Base64 encoded signature image (PNG/JPG)
   signatureTimestamp?: string; // ISO timestamp when signature was captured
 
-  // Validation (future enhancement)
+  // Validation
+  validationType?: string; // Field type ID from validation rules (e.g., "identity.israeli_id")
   validation?: {
-    type: 'text' | 'email' | 'number' | 'date';
-    pattern?: string;
-    maxLength?: number;
+    enabled: boolean;              // Whether validation is active for this field
+    validators?: ValidatorConfig[]; // Array of validators to apply
   };
 }
 

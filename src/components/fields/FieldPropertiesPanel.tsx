@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { X, Plus, Trash2, PenTool } from 'lucide-react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { X, Plus, Trash2, PenTool, Shield, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +10,11 @@ import { cn } from '@/utils/cn';
 import { sanitizeUserInput, validateFieldName, sanitizeFontSize } from '@/utils/inputSanitization';
 import { SignatureModal } from './SignatureModal';
 import { useTranslation, useDirection } from '@/i18n';
+import {
+  detectFieldType,
+  getAvailableFieldTypes,
+  getValidatorsForFieldType,
+} from '@/services/validation';
 
 interface FieldPropertiesPanelProps {
   field: FieldDefinition;
@@ -27,6 +32,76 @@ export const FieldPropertiesPanel = ({
   const labelInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [isValidationExpanded, setIsValidationExpanded] = useState(false);
+
+  // Get available field types for this field type
+  const availableFieldTypes = useMemo(
+    () => getAvailableFieldTypes(field.type),
+    [field.type]
+  );
+
+  // Detect field type based on label (debounced)
+  const detectedType = useMemo(() => {
+    if (!field.label || field.label.trim() === '') return null;
+    return detectFieldType(field.label, field.type, field.sectionName);
+  }, [field.label, field.type, field.sectionName]);
+
+  // Handle validation type change
+  const handleValidationTypeChange = useCallback(
+    (validationType: string) => {
+      if (validationType === '') {
+        // Clear validation
+        onUpdate({
+          validationType: undefined,
+          validation: undefined,
+        });
+      } else {
+        // Set validation type and get validators
+        const validators = getValidatorsForFieldType(validationType);
+        onUpdate({
+          validationType,
+          validation: {
+            enabled: true,
+            validators,
+          },
+        });
+      }
+    },
+    [onUpdate]
+  );
+
+  // Handle validation toggle
+  const handleValidationToggle = useCallback(
+    (enabled: boolean) => {
+      if (enabled && field.validationType) {
+        const validators = getValidatorsForFieldType(field.validationType);
+        onUpdate({
+          validation: {
+            enabled: true,
+            validators,
+          },
+        });
+      } else {
+        onUpdate({
+          validation: field.validation
+            ? { ...field.validation, enabled }
+            : { enabled, validators: [] },
+        });
+      }
+    },
+    [field.validationType, field.validation, onUpdate]
+  );
+
+  // Auto-apply detected type suggestion when label changes (only if no validation set)
+  useEffect(() => {
+    if (
+      detectedType?.bestMatch &&
+      !field.validationType &&
+      detectedType.bestMatch.score >= 80
+    ) {
+      // Auto-suggest but don't auto-enable - just show in UI
+    }
+  }, [detectedType, field.validationType]);
 
   // Auto-focus name input when panel opens for a new field with empty name
   useEffect(() => {
@@ -146,6 +221,110 @@ export const FieldPropertiesPanel = ({
             {t.labelHint}
           </p>
         </div>
+
+        {/* Validation Section */}
+        {availableFieldTypes.length > 0 && (
+          <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border">
+            <button
+              type="button"
+              onClick={() => setIsValidationExpanded(!isValidationExpanded)}
+              className="flex items-center justify-between w-full text-sm font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary" />
+                <span>{t.fieldValidation}</span>
+                {field.validation?.enabled && (
+                  <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+                    {t.active}
+                  </span>
+                )}
+              </div>
+              <ChevronDown
+                className={cn(
+                  'w-4 h-4 transition-transform',
+                  isValidationExpanded && 'rotate-180'
+                )}
+              />
+            </button>
+
+            {isValidationExpanded && (
+              <div className="space-y-3 pt-2">
+                {/* Detected/Suggested Type */}
+                {detectedType?.bestMatch && !field.validationType && (
+                  <div className="p-2 bg-primary/10 rounded text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">
+                        {t.suggestedType}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={() =>
+                          handleValidationTypeChange(detectedType.bestMatch!.fieldTypeId)
+                        }
+                      >
+                        {t.apply}
+                      </Button>
+                    </div>
+                    <div className="font-medium text-primary">
+                      {detectedType.bestMatch.displayName}
+                    </div>
+                  </div>
+                )}
+
+                {/* Validation Type Dropdown */}
+                <div className="space-y-1">
+                  <Label htmlFor="validation-type" className="text-xs">
+                    {t.validationType}
+                  </Label>
+                  <Select
+                    id="validation-type"
+                    value={field.validationType || ''}
+                    onChange={(e) => handleValidationTypeChange(e.target.value)}
+                  >
+                    <option value="">{t.noValidation}</option>
+                    {availableFieldTypes.map((ft) => (
+                      <option key={ft.id} value={ft.id}>
+                        {ft.displayName}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Validation Toggle */}
+                {field.validationType && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="validation-enabled" className="text-xs">
+                        {t.enableValidation}
+                      </Label>
+                      <Switch
+                        id="validation-enabled"
+                        checked={field.validation?.enabled || false}
+                        onCheckedChange={handleValidationToggle}
+                      />
+                    </div>
+
+                    {/* Show validators list */}
+                    {field.validation?.validators &&
+                      field.validation.validators.length > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">
+                            {t.validators}:
+                          </span>{' '}
+                          {field.validation.validators
+                            .map((v) => v.name)
+                            .join(', ')}
+                        </div>
+                      )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Field Index (Read-only) */}
         {field.index !== undefined && (

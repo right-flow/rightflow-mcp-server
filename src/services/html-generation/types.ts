@@ -3,7 +3,7 @@
  * Types for converting PDF field definitions to HTML forms
  */
 
-import type { FieldDefinition } from '@/types/fields';
+import type { FieldDefinition, ValidatorConfig } from '@/types/fields';
 
 /**
  * HTML form field type - mapped from FieldDefinition.type
@@ -43,6 +43,9 @@ export interface HtmlFormField {
   section?: string; // Maps from sectionName
   tabOrder?: number; // Maps from index
   direction: 'ltr' | 'rtl';
+  // Validation properties
+  validationType?: string; // e.g., "identity.israeli_id"
+  validators?: ValidatorConfig[]; // Array of validators to apply
 }
 
 /**

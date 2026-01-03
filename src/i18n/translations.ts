@@ -224,6 +224,16 @@ export interface Translations {
   bytes: string;
   kb: string;
   mb: string;
+
+  // Field validation
+  fieldValidation: string;
+  active: string;
+  suggestedType: string;
+  apply: string;
+  validationType: string;
+  noValidation: string;
+  enableValidation: string;
+  validators: string;
 }
 
 const hebrewTranslations: Translations = {
@@ -450,6 +460,16 @@ const hebrewTranslations: Translations = {
   bytes: 'בייט',
   kb: 'ק"ב',
   mb: 'מ"ב',
+
+  // Field validation
+  fieldValidation: 'אימות שדה',
+  active: 'פעיל',
+  suggestedType: 'סוג מוצע',
+  apply: 'החל',
+  validationType: 'סוג אימות',
+  noValidation: 'ללא אימות',
+  enableValidation: 'הפעל אימות',
+  validators: 'חוקי אימות',
 };
 
 const englishTranslations: Translations = {
@@ -676,6 +696,16 @@ const englishTranslations: Translations = {
   bytes: 'bytes',
   kb: 'KB',
   mb: 'MB',
+
+  // Field validation
+  fieldValidation: 'Field Validation',
+  active: 'Active',
+  suggestedType: 'Suggested Type',
+  apply: 'Apply',
+  validationType: 'Validation Type',
+  noValidation: 'No Validation',
+  enableValidation: 'Enable Validation',
+  validators: 'Validators',
 };
 
 const translations: Record<Language, Translations> = {

@@ -27,7 +27,7 @@ function mapFieldType(type: FieldDefinition['type']): HtmlFieldType {
  * Converts a single FieldDefinition to HtmlFormField
  */
 function mapFieldToHtml(field: FieldDefinition): HtmlFormField {
-  return {
+  const htmlField: HtmlFormField = {
     id: field.id,
     name: field.name,
     type: mapFieldType(field.type),
@@ -47,6 +47,14 @@ function mapFieldToHtml(field: FieldDefinition): HtmlFormField {
     tabOrder: field.index,
     direction: field.direction,
   };
+
+  // Add validation properties if enabled
+  if (field.validationType && field.validation?.enabled) {
+    htmlField.validationType = field.validationType;
+    htmlField.validators = field.validation.validators;
+  }
+
+  return htmlField;
 }
 
 /**

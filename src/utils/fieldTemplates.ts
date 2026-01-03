@@ -93,8 +93,9 @@ export function saveFieldsToFile(
 
 /**
  * Load field definitions from a JSON file
+ * Supports both new template format and legacy plain array format
  *
- * @param file - JSON file containing field template
+ * @param file - JSON file containing field template or plain array of fields
  * @returns Promise resolving to array of field definitions
  * @throws Error if file is invalid or incompatible
  */
@@ -107,15 +108,36 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
   // Read file contents
   const text = await file.text();
 
-  let template: FieldTemplate;
+  let parsed: FieldTemplate | FieldDefinition[];
   try {
-    template = JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch (error) {
     throw new Error('קובץ JSON לא תקין');
   }
 
-  // Validate template format
-  if (!template.version || !template.fields || !Array.isArray(template.fields)) {
+  // Handle legacy format: plain array of fields
+  let template: FieldTemplate;
+  if (Array.isArray(parsed)) {
+    // Convert legacy format to new template format
+    console.log('Converting legacy field array format to template format...');
+    template = {
+      version: '1.0',
+      name: file.name.replace('.json', ''),
+      fields: parsed as FieldDefinition[],
+      createdAt: new Date().toISOString(),
+      metadata: {
+        totalFields: parsed.length,
+        fieldTypes: {},
+        hasHebrewFields: false,
+      },
+    };
+  } else if (parsed && typeof parsed === 'object') {
+    template = parsed as FieldTemplate;
+    // Validate new template format
+    if (!template.version || !template.fields || !Array.isArray(template.fields)) {
+      throw new Error('פורמט תבנית לא תקין');
+    }
+  } else {
     throw new Error('פורמט תבנית לא תקין');
   }
 
@@ -167,6 +189,7 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
 
 /**
  * Validate a field template file without loading it
+ * Supports both new template format and legacy plain array format
  *
  * @param file - JSON file to validate
  * @returns Validation result with metadata
@@ -180,8 +203,26 @@ export async function validateFieldTemplateFile(
     }
 
     const text = await file.text();
-    const template: FieldTemplate = JSON.parse(text);
+    const parsed = JSON.parse(text);
 
+    // Handle legacy format: plain array of fields
+    if (Array.isArray(parsed)) {
+      if (parsed.length === 0) {
+        return { isValid: false, error: 'התבנית לא כוללת שדות' };
+      }
+      // Legacy format is valid
+      return {
+        isValid: true,
+        metadata: {
+          totalFields: parsed.length,
+          fieldTypes: {},
+          hasHebrewFields: false,
+        },
+      };
+    }
+
+    // New template format
+    const template = parsed as FieldTemplate;
     if (!template.version || !template.fields || !Array.isArray(template.fields)) {
       return { isValid: false, error: 'פורמט תבנית לא תקין' };
     }
