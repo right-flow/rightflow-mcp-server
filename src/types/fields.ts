@@ -32,6 +32,7 @@ export interface FieldDefinition {
   defaultValue?: string;
   autoFill?: boolean; // Whether the field should be auto-filled
   sectionName?: string; // Section name for grouping fields
+  station?: string; // Filling station: 'client' (default), 'agent', or custom value
   index?: number; // Creation order index for HTML form generation
 
   // Hebrew-specific

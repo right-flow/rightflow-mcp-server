@@ -182,9 +182,15 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
     );
   }
 
-  console.log(`✓ Field template loaded: ${template.name} (${validatedFields.length} fields)`);
+  // Normalize fields - ensure station has default value for backward compatibility
+  const normalizedFields = validatedFields.map(field => ({
+    ...field,
+    station: field.station || 'client',
+  }));
 
-  return validatedFields;
+  console.log(`✓ Field template loaded: ${template.name} (${normalizedFields.length} fields)`);
+
+  return normalizedFields;
 }
 
 /**

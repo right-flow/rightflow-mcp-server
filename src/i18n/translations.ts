@@ -148,6 +148,10 @@ export interface Translations {
   requiredFieldHint: string;
   autoFill: string;
   autoFillHint: string;
+  station: string;
+  stationHint: string;
+  stationClient: string;
+  stationAgent: string;
   textDirectionRtl: string;
   textDirectionHint: string;
   selectFontHint: string;
@@ -234,6 +238,11 @@ export interface Translations {
   noValidation: string;
   enableValidation: string;
   validators: string;
+  validationMultiHint: string;
+
+  // Multi-delete confirmation
+  deleteConfirmTitle: string;
+  deleteConfirmMessage: string;
 }
 
 const hebrewTranslations: Translations = {
@@ -384,6 +393,10 @@ const hebrewTranslations: Translations = {
   requiredFieldHint: 'האם יש חובה למלא שדה זה',
   autoFill: 'מילוי אוטומטי',
   autoFillHint: 'האם להפעיל מילוי אוטומטי עבור שדה זה',
+  station: 'תחנת מילוי',
+  stationHint: 'מי ימלא את השדה הזה',
+  stationClient: 'לקוח',
+  stationAgent: 'סוכן',
   textDirectionRtl: 'כיוון טקסט מימין לשמאל',
   textDirectionHint: 'RTL עבור עברית, LTR עבור אנגלית',
   selectFontHint: 'בחר Noto Sans Hebrew לטקסט עברי',
@@ -470,6 +483,11 @@ const hebrewTranslations: Translations = {
   noValidation: 'ללא אימות',
   enableValidation: 'הפעל אימות',
   validators: 'חוקי אימות',
+  validationMultiHint: 'אימות יוחל על כל השדות הנבחרים',
+
+  // Multi-delete confirmation
+  deleteConfirmTitle: 'מחיקת שדות',
+  deleteConfirmMessage: 'האם אתה בטוח שברצונך למחוק {count} שדות?',
 };
 
 const englishTranslations: Translations = {
@@ -620,6 +638,10 @@ const englishTranslations: Translations = {
   requiredFieldHint: 'Is this field mandatory to fill',
   autoFill: 'Auto Fill',
   autoFillHint: 'Enable auto-fill for this field',
+  station: 'Filling Station',
+  stationHint: 'Who will fill this field',
+  stationClient: 'Client',
+  stationAgent: 'Agent',
   textDirectionRtl: 'Text Direction Right-to-Left',
   textDirectionHint: 'RTL for Hebrew, LTR for English',
   selectFontHint: 'Select Noto Sans Hebrew for Hebrew text',
@@ -706,6 +728,11 @@ const englishTranslations: Translations = {
   noValidation: 'No Validation',
   enableValidation: 'Enable Validation',
   validators: 'Validators',
+  validationMultiHint: 'Validation will apply to all selected fields',
+
+  // Multi-delete confirmation
+  deleteConfirmTitle: 'Delete Fields',
+  deleteConfirmMessage: 'Are you sure you want to delete {count} fields?',
 };
 
 const translations: Record<Language, Translations> = {

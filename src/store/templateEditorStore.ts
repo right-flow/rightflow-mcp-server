@@ -113,6 +113,7 @@ interface TemplateEditorStore {
   updateFieldWithUndo: (id: string, updates: Partial<FieldDefinition>) => void; // Undo-aware version
   deleteField: (id: string) => void;
   deleteFieldWithUndo: (id: string) => void; // Undo-aware version
+  deleteMultipleFieldsWithUndo: (ids: string[]) => void; // Undo-aware multi-delete
   selectField: (id: string | null) => void;
   toggleFieldSelection: (id: string) => void; // Add/remove from multi-select
   addToSelection: (id: string) => void; // Add to multi-select
@@ -365,6 +366,61 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
         }
       },
     });
+
+    state.undoManager.execute(action);
+  },
+
+  // Undo-aware multi-field deletion
+  deleteMultipleFieldsWithUndo: (ids) => {
+    const state = get();
+    const fieldsToDelete = state.fields.filter((f) => ids.includes(f.id));
+
+    if (fieldsToDelete.length === 0) {
+      console.warn('No fields found for deletion:', ids);
+      return;
+    }
+
+    // Find the highest index among fields being deleted
+    const maxDeleteIndex = fieldsToDelete.reduce((max, f) => {
+      return f.index !== undefined && f.index > max ? f.index : max;
+    }, 0);
+
+    // Check if deleting the field with highest index overall
+    const overallMaxIndex = state.fields.reduce((max, f) => {
+      return f.index !== undefined && f.index > max ? f.index : max;
+    }, 0);
+    const deletingLastCreatedField = maxDeleteIndex === overallMaxIndex;
+
+    // Create a composite undo action for all fields
+    const action = {
+      type: 'DELETE_MULTIPLE_FIELDS' as const,
+      timestamp: Date.now(),
+      description: `Delete ${fieldsToDelete.length} fields`,
+      execute: () => {
+        set((prevState) => ({
+          fields: prevState.fields.filter((f) => !ids.includes(f.id)),
+          selectedFieldId: null,
+          selectedFieldIds: [],
+        }));
+        if (deletingLastCreatedField) {
+          // Find the new max index after deletion
+          const remainingFields = state.fields.filter((f) => !ids.includes(f.id));
+          const newMaxIndex = remainingFields.reduce((max, f) => {
+            return f.index !== undefined && f.index > max ? f.index : max;
+          }, 0);
+          localStorage.setItem(LAST_INDEX_KEY, newMaxIndex.toString());
+        }
+      },
+      undo: () => {
+        // Restore all deleted fields
+        set((prevState) => ({
+          fields: [...prevState.fields, ...fieldsToDelete.map((f) => ({
+            ...f,
+            index: getNextFieldIndex(),
+          }))],
+        }));
+      },
+    };
 
     state.undoManager.execute(action);
   },

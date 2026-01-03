@@ -5,10 +5,12 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { FieldOverlay } from '@/components/fields/FieldOverlay';
 import { FieldPropertiesPanel } from '@/components/fields/FieldPropertiesPanel';
 import { MultiSelectPropertiesPanel } from '@/components/fields/MultiSelectPropertiesPanel';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { getCanvasRelativeCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
 import { FieldDefinition } from '@/types/fields';
+import { useTranslation, useDirection } from '@/i18n';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -33,6 +35,9 @@ export const PDFCanvas = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const justDraggedRef = useRef(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const t = useTranslation();
+  const direction = useDirection();
 
   // Zustand stores
   const {
@@ -55,6 +60,7 @@ export const PDFCanvas = ({
     updateField,
     updateFieldWithUndo,
     deleteFieldWithUndo,
+    deleteMultipleFieldsWithUndo,
     selectField,
     toggleFieldSelection,
     clearSelection,
@@ -574,15 +580,23 @@ export const PDFCanvas = ({
         }
       }
 
-      // Delete key - delete selected field
+      // Delete key - delete selected field(s)
       // Only if not typing in an input/textarea
-      if (e.key === 'Delete' && selectedFieldId) {
+      if (e.key === 'Delete') {
         const target = e.target as HTMLElement;
         const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 
         if (!isTyping) {
-          e.preventDefault();
-          deleteFieldWithUndo(selectedFieldId);
+          // Multiple fields selected - show confirmation
+          if (selectedFieldIds.length > 1) {
+            e.preventDefault();
+            setShowDeleteConfirm(true);
+          }
+          // Single field selected
+          else if (selectedFieldId) {
+            e.preventDefault();
+            deleteFieldWithUndo(selectedFieldId);
+          }
         }
       }
 
@@ -794,6 +808,22 @@ export const PDFCanvas = ({
           />
         );
       })()}
+
+      {/* Multi-Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title={t.deleteConfirmTitle}
+        message={t.deleteConfirmMessage.replace('{count}', String(selectedFieldIds.length))}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        variant="danger"
+        direction={direction}
+        onConfirm={() => {
+          deleteMultipleFieldsWithUndo(selectedFieldIds);
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 };

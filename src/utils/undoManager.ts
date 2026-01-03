@@ -20,6 +20,7 @@ import { FieldDefinition } from '@/types/fields';
 export type ActionType =
   | 'ADD_FIELD'
   | 'DELETE_FIELD'
+  | 'DELETE_MULTIPLE_FIELDS'
   | 'UPDATE_FIELD'
   | 'MOVE_FIELD'
   | 'RESIZE_FIELD';

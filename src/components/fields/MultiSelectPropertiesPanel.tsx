@@ -1,4 +1,5 @@
-import { X } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { X, Shield, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -8,6 +9,7 @@ import { FieldDefinition } from '@/types/fields';
 import { cn } from '@/utils/cn';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { useTranslation, useDirection } from '@/i18n';
+import { getAvailableFieldTypes, getValidatorsForFieldType } from '@/services/validation';
 
 interface MultiSelectPropertiesPanelProps {
   selectedFields: FieldDefinition[];
@@ -22,6 +24,7 @@ export const MultiSelectPropertiesPanel = ({
 }: MultiSelectPropertiesPanelProps) => {
   const t = useTranslation();
   const direction = useDirection();
+  const [isValidationExpanded, setIsValidationExpanded] = useState(false);
 
   // Get common values across all selected fields
   const getCommonValue = <K extends keyof FieldDefinition>(key: K): FieldDefinition[K] | 'mixed' => {
@@ -38,9 +41,64 @@ export const MultiSelectPropertiesPanel = ({
   const commonSectionName = getCommonValue('sectionName');
   const commonRequired = getCommonValue('required');
   const commonAutoFill = getCommonValue('autoFill');
+  const commonStation = getCommonValue('station');
   const commonDirection = getCommonValue('direction');
   const commonFont = getCommonValue('font');
   const commonFontSize = getCommonValue('fontSize');
+  const commonValidationType = getCommonValue('validationType');
+
+  // Get available field types based on the common field type (only if all same type)
+  const availableFieldTypes = useMemo(() => {
+    if (!allSameType || selectedFields.length === 0) return [];
+    return getAvailableFieldTypes(selectedFields[0].type);
+  }, [allSameType, selectedFields]);
+
+  // Check if any field has validation enabled
+  const hasValidationEnabled = selectedFields.some(f => f.validation?.enabled);
+
+  // Handle validation type change for all selected fields
+  const handleValidationTypeChange = useCallback(
+    (validationType: string) => {
+      if (validationType === '') {
+        // Clear validation
+        onUpdateAll({
+          validationType: undefined,
+          validation: undefined,
+        });
+      } else {
+        // Set validation type and get validators
+        const validators = getValidatorsForFieldType(validationType);
+        onUpdateAll({
+          validationType,
+          validation: {
+            enabled: true,
+            validators,
+          },
+        });
+      }
+    },
+    [onUpdateAll]
+  );
+
+  // Handle validation toggle for all selected fields
+  const handleValidationToggle = useCallback(
+    (enabled: boolean) => {
+      if (enabled && commonValidationType && commonValidationType !== 'mixed') {
+        const validators = getValidatorsForFieldType(commonValidationType as string);
+        onUpdateAll({
+          validation: {
+            enabled: true,
+            validators,
+          },
+        });
+      } else {
+        onUpdateAll({
+          validation: enabled ? { enabled: true, validators: [] } : { enabled: false, validators: [] },
+        });
+      }
+    },
+    [onUpdateAll, commonValidationType]
+  );
 
   // Helper function to get field type name
   const getFieldTypeName = (type: string) => {
@@ -137,6 +195,91 @@ export const MultiSelectPropertiesPanel = ({
             onCheckedChange={(checked) => onUpdateAll({ autoFill: checked })}
           />
         </div>
+
+        {/* Station Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="multi-station">{t.station}</Label>
+          <Select
+            id="multi-station"
+            value={commonStation === 'mixed' ? '' : (commonStation || 'client')}
+            onChange={(e) => onUpdateAll({ station: e.target.value })}
+          >
+            {commonStation === 'mixed' && <option value="">{t.mixed}</option>}
+            <option value="client">{t.stationClient}</option>
+            <option value="agent">{t.stationAgent}</option>
+          </Select>
+        </div>
+
+        {/* Validation Section (only if all fields are same type and validation is available) */}
+        {allSameType && availableFieldTypes.length > 0 && (
+          <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border">
+            <button
+              type="button"
+              onClick={() => setIsValidationExpanded(!isValidationExpanded)}
+              className="flex items-center justify-between w-full text-sm font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-primary" />
+                <span>{t.fieldValidation}</span>
+                {hasValidationEnabled && (
+                  <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+                    {t.active}
+                  </span>
+                )}
+              </div>
+              <ChevronDown
+                className={cn(
+                  'w-4 h-4 transition-transform',
+                  isValidationExpanded && 'rotate-180'
+                )}
+              />
+            </button>
+
+            {isValidationExpanded && (
+              <div className="space-y-3 pt-2">
+                {/* Validation Type Dropdown */}
+                <div className="space-y-1">
+                  <Label htmlFor="multi-validation-type" className="text-xs">
+                    {t.validationType}
+                  </Label>
+                  <Select
+                    id="multi-validation-type"
+                    value={commonValidationType === 'mixed' ? '' : (commonValidationType || '')}
+                    onChange={(e) => handleValidationTypeChange(e.target.value)}
+                  >
+                    {commonValidationType === 'mixed' && (
+                      <option value="">{t.mixed}</option>
+                    )}
+                    <option value="">{t.noValidation}</option>
+                    {availableFieldTypes.map((ft) => (
+                      <option key={ft.id} value={ft.id}>
+                        {ft.displayName}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                {/* Validation Toggle */}
+                {commonValidationType && commonValidationType !== 'mixed' && (
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="multi-validation-enabled" className="text-xs">
+                      {t.enableValidation}
+                    </Label>
+                    <Switch
+                      id="multi-validation-enabled"
+                      checked={hasValidationEnabled}
+                      onCheckedChange={handleValidationToggle}
+                    />
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground">
+                  {t.validationMultiHint}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Text-specific properties (only if there are text fields) */}
         {hasTextFields && (

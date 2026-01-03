@@ -359,6 +359,22 @@ export const FieldPropertiesPanel = ({
           </p>
         </div>
 
+        {/* Station Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="field-station">{t.station}</Label>
+          <Select
+            id="field-station"
+            value={field.station || 'client'}
+            onChange={(e) => onUpdate({ station: e.target.value })}
+          >
+            <option value="client">{t.stationClient}</option>
+            <option value="agent">{t.stationAgent}</option>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {t.stationHint}
+          </p>
+        </div>
+
         {/* Default Value (text fields only) */}
         {field.type === 'text' && (
           <div className="space-y-2">
