@@ -233,7 +233,7 @@ export function validateInList(
  */
 export function validateRequiredChecked(
   _value: string,
-  _params: Record<string, unknown>,
+  _params?: Record<string, unknown>,
   element?: HTMLElement
 ): boolean {
   if (element instanceof HTMLInputElement && element.type === 'checkbox') {
