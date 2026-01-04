@@ -59,30 +59,78 @@ function mapFieldToHtml(field: FieldDefinition): HtmlFormField {
 
 /**
  * Converts FieldDefinition[] to HtmlFormField[]
- * Sorts by index (creation order) for proper tab ordering
+ * Sorts by physical position (RTL: right to left, top to bottom)
+ * Uses dynamic gap detection to handle varying row spacing
  */
 export function mapFieldsToHtml(fields: FieldDefinition[]): HtmlFormField[] {
-  return fields
-    .map(mapFieldToHtml)
-    .sort((a, b) => {
-      // Sort by tabOrder (index) if available
-      if (a.tabOrder !== undefined && b.tabOrder !== undefined) {
-        return a.tabOrder - b.tabOrder;
-      }
-      // Fallback to position-based sorting
-      if (a.position && b.position) {
-        // Sort by page first
-        if (a.position.page !== b.position.page) {
-          return a.position.page - b.position.page;
-        }
-        // Then by Y (top to bottom)
-        const yDiff = b.position.y - a.position.y; // Higher Y = lower on page in PDF coords
-        if (Math.abs(yDiff) > 10) return yDiff;
-        // Then by X (RTL: right to left)
-        return b.position.x - a.position.x;
-      }
-      return 0;
+  const htmlFields = fields.map(mapFieldToHtml);
+  if (htmlFields.length === 0) return [];
+
+  // Group by page
+  const pageGroups = new Map<number, HtmlFormField[]>();
+  for (const field of htmlFields) {
+    const page = field.position?.page ?? 1;
+    if (!pageGroups.has(page)) {
+      pageGroups.set(page, []);
+    }
+    pageGroups.get(page)!.push(field);
+  }
+
+  const result: HtmlFormField[] = [];
+
+  // Process each page
+  for (const [, pageFields] of Array.from(pageGroups.entries()).sort((a, b) => a[0] - b[0])) {
+    // Sort by Y (descending - top to bottom)
+    const sortedByY = [...pageFields].sort((a, b) => {
+      const aY = a.position?.y ?? 0;
+      const bY = b.position?.y ?? 0;
+      return bY - aY;
     });
+
+    // Calculate gaps between consecutive fields
+    const gaps: number[] = [];
+    for (let i = 0; i < sortedByY.length - 1; i++) {
+      const y1 = sortedByY[i].position?.y ?? 0;
+      const y2 = sortedByY[i + 1].position?.y ?? 0;
+      gaps.push(y1 - y2);
+    }
+
+    if (gaps.length === 0) {
+      result.push(...sortedByY);
+      continue;
+    }
+
+    // Find gap threshold using median
+    const sortedGaps = [...gaps].sort((a, b) => a - b);
+    const median = sortedGaps[Math.floor(sortedGaps.length / 2)];
+    const gapThreshold = Math.max(median * 2, 20);
+
+    // Group into rows based on gaps
+    const rows: HtmlFormField[][] = [];
+    let currentRow: HtmlFormField[] = [sortedByY[0]];
+
+    for (let i = 0; i < gaps.length; i++) {
+      if (gaps[i] > gapThreshold) {
+        rows.push(currentRow);
+        currentRow = [sortedByY[i + 1]];
+      } else {
+        currentRow.push(sortedByY[i + 1]);
+      }
+    }
+    rows.push(currentRow);
+
+    // Sort within each row by X (right to left)
+    for (const row of rows) {
+      row.sort((a, b) => {
+        const aX = a.position?.x ?? 0;
+        const bX = b.position?.x ?? 0;
+        return bX - aX;
+      });
+      result.push(...row);
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -129,7 +177,7 @@ export function createFieldGroups(fields: FieldDefinition[]): HtmlFieldGroup[] {
       return aFirst.pageNumber - bFirst.pageNumber;
     }
 
-    // Then by Y position (higher Y in PDF = earlier)
+    // Then by Y position (in PDF: Y=0 is bottom, higher Y = higher on page)
     return bFirst.y - aFirst.y;
   });
 }
@@ -166,55 +214,69 @@ export function detectFormDirection(fields: FieldDefinition[]): 'rtl' | 'ltr' {
 
 /**
  * Groups fields into rows based on Y position
- * Fields with similar Y positions are grouped into the same row
+ * Uses dynamic gap detection to handle varying row spacing
  */
 export function groupFieldsIntoRows(
   fields: HtmlFormField[],
-  threshold: number = 20
+  _threshold: number = 15 // Kept for backward compatibility but not used
 ): HtmlFormField[][] {
   if (fields.length === 0) return [];
 
-  // Sort by position
+  // Sort by Y (descending - top to bottom)
   const sorted = [...fields].sort((a, b) => {
     if (!a.position || !b.position) return 0;
     // Sort by page first
     if (a.position.page !== b.position.page) {
       return a.position.page - b.position.page;
     }
-    // Then by Y (descending for PDF coords)
     return b.position.y - a.position.y;
   });
 
+  // Calculate gaps between consecutive fields
+  const gaps: number[] = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const y1 = sorted[i].position?.y ?? 0;
+    const y2 = sorted[i + 1].position?.y ?? 0;
+    gaps.push(y1 - y2);
+  }
+
+  if (gaps.length === 0) {
+    // Only one field
+    const singleRow = [...sorted];
+    singleRow.sort((a, b) => {
+      const aX = a.position?.x ?? 0;
+      const bX = b.position?.x ?? 0;
+      return bX - aX;
+    });
+    return [singleRow];
+  }
+
+  // Find gap threshold using median
+  const sortedGaps = [...gaps].sort((a, b) => a - b);
+  const median = sortedGaps[Math.floor(sortedGaps.length / 2)];
+  const gapThreshold = Math.max(median * 2, 20);
+
+  // Group into rows based on gaps
   const rows: HtmlFormField[][] = [];
   let currentRow: HtmlFormField[] = [sorted[0]];
-  let currentY = sorted[0].position?.y ?? 0;
 
-  for (let i = 1; i < sorted.length; i++) {
-    const field = sorted[i];
-    const fieldY = field.position?.y ?? 0;
-
-    if (Math.abs(fieldY - currentY) <= threshold) {
-      // Same row
-      currentRow.push(field);
-    } else {
-      // New row
+  for (let i = 0; i < gaps.length; i++) {
+    if (gaps[i] > gapThreshold) {
+      // Large gap = new row
       rows.push(currentRow);
-      currentRow = [field];
-      currentY = fieldY;
+      currentRow = [sorted[i + 1]];
+    } else {
+      // Small gap = same row
+      currentRow.push(sorted[i + 1]);
     }
   }
+  rows.push(currentRow); // Add last row
 
-  // Add last row
-  if (currentRow.length > 0) {
-    rows.push(currentRow);
-  }
-
-  // Sort fields within each row by X position (left to right in DOM)
-  // Flexbox with dir="rtl" will automatically reverse visual order
+  // Sort fields within each row by X (right to left)
   for (const row of rows) {
     row.sort((a, b) => {
       if (!a.position || !b.position) return 0;
-      return a.position.x - b.position.x; // Left to right (lowest X first)
+      return b.position.x - a.position.x;
     });
   }
 

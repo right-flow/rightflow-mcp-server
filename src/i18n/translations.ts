@@ -200,6 +200,7 @@ export interface Translations {
   willUpdateAllFields: string;
   textProperties: string;
   appliesToTextFieldsOnly: string;
+  appliesToRadioFieldsOnly: string;
   mixed: string;
   multiSelectTip: string;
 
@@ -213,6 +214,10 @@ export interface Translations {
   copyJson: string;
   jsonCopied: string;
   noFieldsForJson: string;
+  sortRTL: string;
+  sorted: string;
+  sortByPosition: string;
+  showOriginalOrder: string;
 
   // Document history tab
   noDocumentHistory: string;
@@ -381,7 +386,7 @@ const hebrewTranslations: Translations = {
   vertical: 'אנכי (↓)',
   horizontal: 'אופקי (→)',
   spacingBetweenButtons: 'מרווח בין כפתורים (pt)',
-  spacingHint: 'המרחק בין כל כפתור לשכנו (0-50 נקודות, 1pt ≈ 0.35mm)',
+  spacingHint: 'המרחק בין כל כפתור לשכנו (-5 עד 10 נקודות | שלילי = overlapping, 1pt ≈ 0.35mm)',
   radioOptions: 'אפשרויות כפתורי רדיו',
   radioOptionsHint: 'כפתורי רדיו מאפשרים בחירת אפשרות אחת בלבד מהרשימה',
   dropdownOptionsHint: 'כל שורה היא אפשרות נפרדת ברשימה',
@@ -445,6 +450,7 @@ const hebrewTranslations: Translations = {
   willUpdateAllFields: 'יעודכן עבור כל השדות הנבחרים',
   textProperties: 'מאפייני טקסט',
   appliesToTextFieldsOnly: '* יחולו רק על שדות טקסט',
+  appliesToRadioFieldsOnly: '* יחולו רק על שדות רדיו',
   mixed: '(מעורב)',
   multiSelectTip: 'טיפ: לחץ על שדה תוך לחיצה על Ctrl להוספה/הסרה מהבחירה',
 
@@ -458,6 +464,10 @@ const hebrewTranslations: Translations = {
   copyJson: 'העתק JSON',
   jsonCopied: 'JSON הועתק!',
   noFieldsForJson: 'אין שדות להצגה',
+  sortRTL: 'מיין RTL',
+  sorted: 'ממוין',
+  sortByPosition: 'מיין לפי מיקום פיזי (RTL)',
+  showOriginalOrder: 'הצג סדר מקורי',
 
   // Document history tab
   noDocumentHistory: 'אין היסטוריית מסמכים',
@@ -626,7 +636,7 @@ const englishTranslations: Translations = {
   vertical: 'Vertical (↓)',
   horizontal: 'Horizontal (→)',
   spacingBetweenButtons: 'Spacing Between Buttons (pt)',
-  spacingHint: 'Distance between each button (0-50 points, 1pt ≈ 0.35mm)',
+  spacingHint: 'Distance between each button (-5 to 10 points | negative = overlapping, 1pt ≈ 0.35mm)',
   radioOptions: 'Radio Button Options',
   radioOptionsHint: 'Radio buttons allow selecting only one option from the list',
   dropdownOptionsHint: 'Each line is a separate option in the list',
@@ -690,6 +700,7 @@ const englishTranslations: Translations = {
   willUpdateAllFields: 'Will update all selected fields',
   textProperties: 'Text Properties',
   appliesToTextFieldsOnly: '* Applies to text fields only',
+  appliesToRadioFieldsOnly: '* Applies to radio fields only',
   mixed: '(Mixed)',
   multiSelectTip: 'Tip: Click a field while holding Ctrl to add/remove from selection',
 
@@ -703,6 +714,10 @@ const englishTranslations: Translations = {
   copyJson: 'Copy JSON',
   jsonCopied: 'JSON Copied!',
   noFieldsForJson: 'No fields to display',
+  sortRTL: 'Sort RTL',
+  sorted: 'Sorted',
+  sortByPosition: 'Sort by physical position (RTL)',
+  showOriginalOrder: 'Show original order',
 
   // Document history tab
   noDocumentHistory: 'No document history',
