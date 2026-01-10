@@ -5,6 +5,7 @@ import { cn } from '@/utils/cn';
 import { FieldDefinition } from '@/types/fields';
 import { FieldContextMenu } from './FieldContextMenu';
 import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
+import { useMultiDrag } from '@/hooks/useMultiDrag';
 
 interface PageDimensions {
   width: number;
@@ -17,11 +18,13 @@ interface StaticTextFieldProps {
   scale: number;
   pageDimensions: PageDimensions;
   canvasWidth: number;
+  selectedFieldIds: string[];
   onSelect: (id: string) => void;
   onToggleSelection: (id: string) => void;
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   onHover?: (id: string | null) => void;
   isHovered?: boolean;
 }
@@ -32,11 +35,13 @@ export const StaticTextField = ({
   scale,
   pageDimensions,
   canvasWidth,
+  selectedFieldIds,
   onSelect,
   onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onMultiDrag,
   onHover,
   isHovered,
 }: StaticTextFieldProps) => {
@@ -47,27 +52,17 @@ export const StaticTextField = ({
   const viewportWidth = field.width * pointsToPixelsScale;
   const viewportHeight = field.height * pointsToPixelsScale;
 
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    // d.x, d.y is the TOP-LEFT corner in viewport
-    // Convert TOP-LEFT to PDF coordinates
-    const pdfTopCoords = viewportToPDFCoords(
-      d.x,
-      d.y, // top of field
-      pageDimensions,
-      scale * 100,
-      canvasWidth,
-    );
-
-    // field.y should be the BOTTOM - subtract height from top
-    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeight * pixelsToPointsScale;
-    const pdfBottomY = pdfTopCoords.y - pdfHeight;
-
-    onUpdate(field.id, {
-      x: pdfTopCoords.x,
-      y: pdfBottomY, // Bottom edge in PDF coordinates
-    });
-  };
+  // Multi-drag support
+  const { handleDragStart, handleDragStop } = useMultiDrag({
+    field,
+    selectedFieldIds,
+    scale,
+    pageDimensions,
+    canvasWidth,
+    viewportHeight,
+    onUpdate,
+    onMultiDrag,
+  });
 
   const handleResizeStop = (
     _e: any,
@@ -123,11 +118,13 @@ export const StaticTextField = ({
   );
 
   // BUG FIX: Check for undefined/null instead of truthiness to allow borderWidth = 0
+  // Station-based border colors: blue for client, orange for agent
+  const stationBorderColor = field.station === 'agent' ? '#f97316' : '#3b82f6';
   const borderStyle = isSelected
     ? '2px solid #2563eb'
     : field.borderWidth !== undefined && field.borderWidth !== null && field.borderColor
     ? `${field.borderWidth}px solid ${field.borderColor}`
-    : '1px dashed #9ca3af';
+    : `1px dashed ${stationBorderColor}`;
 
   // BUG FIX: Text alignment logic
   // Date: 2026-01-06
@@ -152,6 +149,7 @@ export const StaticTextField = ({
           width: viewportWidth,
           height: viewportHeight,
         }}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
         minWidth={25 * scale}
@@ -159,6 +157,7 @@ export const StaticTextField = ({
         bounds="parent"
         className={cn(
           'field-marker field-marker-static-text',
+          field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group',

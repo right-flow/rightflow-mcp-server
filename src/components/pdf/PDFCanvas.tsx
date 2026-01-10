@@ -68,6 +68,7 @@ export const PDFCanvas = ({
     clearSelection,
     selectMultipleFields,
     updateMultipleFields,
+    moveMultipleFieldsByDelta,
     startDrag,
     updateDragPosition,
     endDrag,
@@ -761,6 +762,9 @@ export const PDFCanvas = ({
             onFieldDuplicate={(id) => {
               const { duplicateField } = useTemplateEditorStore.getState();
               duplicateField(id);
+            }}
+            onMultiDrag={(_draggedFieldId, deltaX, deltaY) => {
+              moveMultipleFieldsByDelta(deltaX, deltaY);
             }}
             hoveredFieldId={hoveredFieldId}
             onFieldHover={setHoveredField}

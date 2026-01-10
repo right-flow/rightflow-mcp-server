@@ -6,6 +6,7 @@ import { FieldDefinition } from '@/types/fields';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
 import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
+import { useMultiDrag } from '@/hooks/useMultiDrag';
 
 interface PageDimensions {
   width: number;
@@ -18,11 +19,13 @@ interface SignatureFieldProps {
   scale: number;
   pageDimensions: PageDimensions;
   canvasWidth: number;
+  selectedFieldIds: string[];
   onSelect: (id: string) => void;
   onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   onHover?: (id: string | null) => void;
   isHovered?: boolean;
 }
@@ -33,41 +36,33 @@ export const SignatureField = ({
   scale,
   pageDimensions,
   canvasWidth,
+  selectedFieldIds,
   onSelect,
   onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onMultiDrag,
   onHover,
   isHovered,
 }: SignatureFieldProps) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    // d.x, d.y is the TOP-LEFT corner in viewport
-    // Convert TOP-LEFT to PDF coordinates
-    const pdfTopCoords = viewportToPDFCoords(
-      d.x,
-      d.y, // top of field
-      pageDimensions,
-      scale * 100,
-      canvasWidth,
-    );
+  // Calculate viewport height for multi-drag hook (declared early for hook dependency)
+  const pointsToPixelsScaleEarly = canvasWidth / pageDimensions.width;
+  const viewportHeightEarly = field.height * pointsToPixelsScaleEarly;
 
-    // Calculate viewport height inside the function
-    const pointsToPixelsScale = canvasWidth / pageDimensions.width;
-    const viewportHeightLocal = field.height * pointsToPixelsScale;
-
-    // field.y should be the BOTTOM - subtract height from top
-    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeightLocal * pixelsToPointsScale;
-    const pdfBottomY = pdfTopCoords.y - pdfHeight;
-
-    onUpdate(field.id, {
-      x: pdfTopCoords.x,
-      y: pdfBottomY, // Bottom edge in PDF coordinates
-    });
-  };
+  // Multi-drag support
+  const { handleDragStart, handleDragStop } = useMultiDrag({
+    field,
+    selectedFieldIds,
+    scale,
+    pageDimensions,
+    canvasWidth,
+    viewportHeight: viewportHeightEarly,
+    onUpdate,
+    onMultiDrag,
+  });
 
   const handleResizeStop = (
     _e: any,
@@ -138,6 +133,11 @@ export const SignatureField = ({
     });
   };
 
+  // Compute station-based border color (fixes CSS override bug)
+  const stationBorderColor = field.station === 'agent'
+    ? 'hsl(var(--field-station-agent))'
+    : 'hsl(var(--field-station-client))';
+
   return (
     <>
       <Rnd
@@ -149,6 +149,7 @@ export const SignatureField = ({
           width: viewportWidth,
           height: viewportHeight,
         }}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
         minWidth={80 * scale}
@@ -156,13 +157,14 @@ export const SignatureField = ({
         bounds="parent"
         className={cn(
           'field-marker field-marker-signature',
+          field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group',
         )}
         style={{
           zIndex: isSelected ? 1000 : 100,
-          border: '2px dashed hsl(var(--signature-border))',
+          border: `2px dashed ${stationBorderColor}`,
           backgroundColor: field.signatureImage ? 'transparent' : 'hsl(var(--signature-bg) / 0.05)',
         }}
         onClick={(e: React.MouseEvent) => {

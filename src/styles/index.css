@@ -35,6 +35,10 @@
     --field-selected: 24.6 95% 53.1%;
     --field-hover: 262.1 83.3% 57.8%;
 
+    /* Station-based colors */
+    --field-station-client: 217.2 91.2% 59.8%; /* Blue for client */
+    --field-station-agent: 24.6 95% 53.1%; /* Orange for agent */
+
     /* Layout colors */
     --sidebar-bg: 210 40% 98%;
     --toolbar-bg: 0 0% 100%;
@@ -71,6 +75,10 @@
     --signature-bg: 280 100% 70%;
     --field-selected: 24.6 95% 63.1%;
     --field-hover: 262.1 83.3% 67.8%;
+
+    /* Station-based colors - brighter for dark mode */
+    --field-station-client: 217.2 91.2% 69.8%; /* Blue for client */
+    --field-station-agent: 24.6 95% 63.1%; /* Orange for agent */
 
     /* Layout colors - dark variants */
     --sidebar-bg: 222.2 47.4% 8.2%;
@@ -121,6 +129,15 @@
 
 .field-marker-signature {
   @apply border-[hsl(var(--signature-border))] bg-[hsl(var(--signature-bg))]/5;
+}
+
+/* Station-based field marker styles */
+.field-marker-station-client {
+  @apply border-[hsl(var(--field-station-client))] bg-[hsl(var(--field-station-client))]/5;
+}
+
+.field-marker-station-agent {
+  @apply border-[hsl(var(--field-station-agent))] bg-[hsl(var(--field-station-agent))]/5;
 }
 
 .field-marker-selected {

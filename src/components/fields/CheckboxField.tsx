@@ -5,7 +5,8 @@ import { cn } from '@/utils/cn';
 import { FieldDefinition } from '@/types/fields';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
-import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
+import { pdfToViewportCoords } from '@/utils/pdfCoordinates';
+import { useMultiDrag } from '@/hooks/useMultiDrag';
 
 interface PageDimensions {
   width: number;
@@ -18,11 +19,13 @@ interface CheckboxFieldProps {
   scale: number;
   pageDimensions: PageDimensions;
   canvasWidth: number;
+  selectedFieldIds: string[];
   onSelect: (id: string) => void;
   onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   onHover?: (id: string | null) => void;
   isHovered?: boolean;
 }
@@ -33,11 +36,13 @@ export const CheckboxField = ({
   scale,
   pageDimensions,
   canvasWidth,
+  selectedFieldIds,
   onSelect,
   onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onMultiDrag,
   onHover,
   isHovered,
 }: CheckboxFieldProps) => {
@@ -48,43 +53,17 @@ export const CheckboxField = ({
   const viewportWidth = field.width * pointsToPixelsScale;
   const viewportHeight = field.height * pointsToPixelsScale;
 
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    // Validate position isn't negative or NaN
-    if (d.x < 0 || d.y < 0 || isNaN(d.x) || isNaN(d.y)) {
-      console.error('[CheckboxField] Invalid drag position detected:', d);
-      return;
-    }
-
-    // d.x, d.y is the TOP-LEFT corner in viewport
-    // Convert TOP-LEFT to PDF coordinates
-    const pdfTopCoords = viewportToPDFCoords(
-      d.x,
-      d.y, // top of field
-      pageDimensions,
-      scale * 100,
-      canvasWidth,
-    );
-
-    // Validate converted coordinates
-    if (isNaN(pdfTopCoords.x) || isNaN(pdfTopCoords.y)) {
-      console.error('[CheckboxField] Invalid PDF coordinates conversion:', { d, pdfTopCoords, scale, canvasWidth });
-      return;
-    }
-
-    // field.y should be the BOTTOM - subtract height from top
-    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeight * pixelsToPointsScale;
-    const pdfBottomY = pdfTopCoords.y - pdfHeight;
-
-    // Ensure coordinates are within valid bounds (clamp to page dimensions)
-    const clampedX = Math.max(0, Math.min(pdfTopCoords.x, pageDimensions.width - field.width));
-    const clampedY = Math.max(0, Math.min(pdfBottomY, pageDimensions.height - field.height));
-
-    onUpdate(field.id, {
-      x: clampedX,
-      y: clampedY, // Bottom edge in PDF coordinates
-    });
-  };
+  // Multi-drag support
+  const { handleDragStart, handleDragStop } = useMultiDrag({
+    field,
+    selectedFieldIds,
+    scale,
+    pageDimensions,
+    canvasWidth,
+    viewportHeight,
+    onUpdate,
+    onMultiDrag,
+  });
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -117,11 +96,13 @@ export const CheckboxField = ({
           width: Math.max(viewportWidth, 24), // Minimum 24px for easier dragging
           height: Math.max(viewportHeight, 24), // Minimum 24px for easier dragging
         }}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         enableResizing={false} // Checkboxes have fixed size - no resize handles
         bounds="parent"
         className={cn(
           'field-marker field-marker-checkbox',
+          field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group flex items-center justify-center',

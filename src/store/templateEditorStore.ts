@@ -123,6 +123,7 @@ interface TemplateEditorStore {
   clearSelection: () => void; // Clear all selections
   selectMultipleFields: (ids: string[]) => void; // Select multiple at once
   updateMultipleFields: (ids: string[], updates: Partial<FieldDefinition>) => void; // Update multiple fields
+  moveMultipleFieldsByDelta: (deltaX: number, deltaY: number) => void; // Move selected fields by delta
   getFieldsForPage: (page: number) => FieldDefinition[];
   copyField: () => void;
   pasteField: () => void;
@@ -470,6 +471,27 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
       ids.includes(field.id) ? { ...field, ...updates } : field
     ),
   })),
+
+  // Move all selected fields by a delta (in PDF coordinates)
+  moveMultipleFieldsByDelta: (deltaX, deltaY) => {
+    const state = get();
+    const selectedIds = state.selectedFieldIds;
+
+    if (selectedIds.length <= 1) return;
+
+    set((prevState) => ({
+      fields: prevState.fields.map((field) => {
+        if (selectedIds.includes(field.id)) {
+          return {
+            ...field,
+            x: field.x + deltaX,
+            y: field.y + deltaY,
+          };
+        }
+        return field;
+      }),
+    }));
+  },
 
   getFieldsForPage: (page) => {
     const state = get();

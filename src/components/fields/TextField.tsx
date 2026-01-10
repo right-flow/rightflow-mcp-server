@@ -6,6 +6,7 @@ import { FieldDefinition } from '@/types/fields';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
 import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
+import { useMultiDrag } from '@/hooks/useMultiDrag';
 
 interface PageDimensions {
   width: number;
@@ -18,11 +19,13 @@ interface TextFieldProps {
   scale: number;
   pageDimensions: PageDimensions;
   canvasWidth: number;
+  selectedFieldIds: string[];
   onSelect: (id: string) => void;
   onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   onHover?: (id: string | null) => void;
   isHovered?: boolean;
 }
@@ -33,11 +36,13 @@ export const TextField = ({
   scale,
   pageDimensions,
   canvasWidth,
+  selectedFieldIds,
   onSelect,
   onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onMultiDrag,
   onHover,
   isHovered,
 }: TextFieldProps) => {
@@ -48,27 +53,17 @@ export const TextField = ({
   const viewportWidth = field.width * pointsToPixelsScale;
   const viewportHeight = field.height * pointsToPixelsScale;
 
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    // d.x, d.y is the TOP-LEFT corner in viewport
-    // Convert TOP-LEFT to PDF coordinates
-    const pdfTopCoords = viewportToPDFCoords(
-      d.x,
-      d.y, // top of field
-      pageDimensions,
-      scale * 100,
-      canvasWidth,
-    );
-
-    // field.y should be the BOTTOM - subtract height from top
-    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeight * pixelsToPointsScale;
-    const pdfBottomY = pdfTopCoords.y - pdfHeight;
-
-    onUpdate(field.id, {
-      x: pdfTopCoords.x,
-      y: pdfBottomY, // Bottom edge in PDF coordinates
-    });
-  };
+  // Multi-drag support
+  const { handleDragStart, handleDragStop } = useMultiDrag({
+    field,
+    selectedFieldIds,
+    scale,
+    pageDimensions,
+    canvasWidth,
+    viewportHeight,
+    onUpdate,
+    onMultiDrag,
+  });
 
   const handleResizeStop = (
     _e: any,
@@ -134,6 +129,7 @@ export const TextField = ({
           width: viewportWidth,
           height: viewportHeight,
         }}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
         minWidth={25 * scale}
@@ -141,6 +137,7 @@ export const TextField = ({
         bounds="parent"
         className={cn(
           'field-marker field-marker-text',
+          field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group',

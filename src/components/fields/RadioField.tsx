@@ -5,7 +5,8 @@ import { cn } from '@/utils/cn';
 import { FieldDefinition } from '@/types/fields';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
-import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
+import { pdfToViewportCoords } from '@/utils/pdfCoordinates';
+import { useMultiDrag } from '@/hooks/useMultiDrag';
 
 interface PageDimensions {
   width: number;
@@ -18,11 +19,13 @@ interface RadioFieldProps {
   scale: number;
   pageDimensions: PageDimensions;
   canvasWidth: number;
+  selectedFieldIds: string[];
   onSelect: (id: string) => void;
   onToggleSelection: (id: string) => void; // Multi-select support
   onUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   onHover?: (id: string | null) => void;
   isHovered?: boolean;
 }
@@ -33,18 +36,17 @@ export const RadioField = ({
   scale,
   pageDimensions,
   canvasWidth,
+  selectedFieldIds,
   onSelect,
   onToggleSelection,
   onUpdate,
   onDelete,
   onDuplicate,
+  onMultiDrag,
   onHover,
   isHovered,
 }: RadioFieldProps) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-
-  // Use hover state from store via prop or internal? 
-  // Better to pass from parent (FieldOverlay) who gets it from store.
 
   const options = field.options || ['אפשרות 1'];
   const spacing = field.spacing !== undefined ? field.spacing : 1;
@@ -65,39 +67,17 @@ export const RadioField = ({
   const viewportWidth = containerWidth * pointsToPixelsScale;
   const viewportHeight = containerHeight * pointsToPixelsScale;
 
-  const handleDragStop = (_e: any, d: { x: number; y: number }) => {
-    // Validate position isn't negative or NaN
-    if (d.x < 0 || d.y < 0 || isNaN(d.x) || isNaN(d.y)) {
-      console.error('Invalid drag position detected:', d);
-      return;
-    }
-
-    // d.x, d.y is the TOP-LEFT corner in viewport
-    // Convert TOP-LEFT to PDF coordinates
-    const pdfTopCoords = viewportToPDFCoords(
-      d.x,
-      d.y, // top of field
-      pageDimensions,
-      scale * 100,
-      canvasWidth,
-    );
-
-    // Validate converted coordinates
-    if (isNaN(pdfTopCoords.x) || isNaN(pdfTopCoords.y) || pdfTopCoords.x < 0 || pdfTopCoords.y < 0) {
-      console.error('Invalid PDF coordinates conversion:', { d, pdfTopCoords, scale, canvasWidth });
-      return;
-    }
-
-    // field.y should be the BOTTOM - subtract height from top
-    const pixelsToPointsScale = pageDimensions.width / canvasWidth;
-    const pdfHeight = viewportHeight * pixelsToPointsScale;
-    const pdfBottomY = pdfTopCoords.y - pdfHeight;
-
-    onUpdate(field.id, {
-      x: pdfTopCoords.x,
-      y: pdfBottomY, // Bottom edge in PDF coordinates
-    });
-  };
+  // Multi-drag support
+  const { handleDragStart, handleDragStop } = useMultiDrag({
+    field,
+    selectedFieldIds,
+    scale,
+    pageDimensions,
+    canvasWidth,
+    viewportHeight,
+    onUpdate,
+    onMultiDrag,
+  });
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -131,11 +111,13 @@ export const RadioField = ({
           width: viewportWidth,
           height: viewportHeight,
         }}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         enableResizing={false} // Radio buttons have fixed size - no resize handles
         bounds="parent"
         className={cn(
           'field-marker field-marker-radio',
+          field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
           'group',

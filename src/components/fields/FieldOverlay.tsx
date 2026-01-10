@@ -23,6 +23,7 @@ interface FieldOverlayProps {
   onFieldUpdate: (id: string, updates: Partial<FieldDefinition>) => void;
   onFieldDelete: (id: string) => void;
   onFieldDuplicate: (id: string) => void;
+  onMultiDrag: (draggedFieldId: string, deltaX: number, deltaY: number) => void;
   hoveredFieldId: string | null;
   onFieldHover: (id: string | null) => void;
 }
@@ -39,6 +40,7 @@ export const FieldOverlay = ({
   onFieldUpdate,
   onFieldDelete,
   onFieldDuplicate,
+  onMultiDrag,
   hoveredFieldId,
   onFieldHover,
 }: FieldOverlayProps) => {
@@ -59,11 +61,13 @@ export const FieldOverlay = ({
             scale: scaleFactor,
             pageDimensions,
             canvasWidth,
+            selectedFieldIds,
             onSelect: onFieldSelect,
             onToggleSelection: onToggleFieldSelection,
             onUpdate: onFieldUpdate,
             onDelete: onFieldDelete,
             onDuplicate: onFieldDuplicate,
+            onMultiDrag,
             onHover: onFieldHover,
           };
 
