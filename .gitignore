@@ -53,4 +53,10 @@ Phase0-Testing/output/*.pdf
 !.claude/commands/
 !.claude/agents/
 
-!.env
+# Temporary test scripts and debug files
+check-model.mjs
+simple-test.mjs
+test-api-direct.mjs
+test-autofill.js
+screenshots/
+nul
