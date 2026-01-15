@@ -47,6 +47,7 @@ function mapFieldToHtml(field: FieldDefinition): HtmlFormField {
     section: field.sectionName,
     tabOrder: field.index,
     direction: field.direction,
+    station: field.station || 'client', // Default to client if not specified
   };
 
   // Add validation properties if enabled

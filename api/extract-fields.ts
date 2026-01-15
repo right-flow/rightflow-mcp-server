@@ -46,6 +46,8 @@ interface AIFieldResponse {
   radioGroup?: string;
   orientation?: 'horizontal' | 'vertical';
   options?: string[];    // Options for radio/dropdown fields
+  buttonSpacing?: number; // Percentage distance between radio/checkbox buttons
+  buttonSize?: number;    // Percentage size of individual radio/checkbox buttons
 }
 
 interface GuidanceTextResponse {
@@ -173,25 +175,68 @@ CRITICAL - COORDINATE PRECISION:
 - For small checkboxes/radio buttons: typically 2-3% width, 1.5-2.5% height.
 - For text fields: measure the actual input box, not the label.
 
-RADIO BUTTONS - IMPORTANT RULES:
-1. Radio buttons are MUTUALLY EXCLUSIVE choices for ONE question.
-2. Look for visual indicators: circles (○), dots, or grouped options with a shared question/label.
-3. GENDER example: "ז" and "נ" next to circles = ONE radio group with 2 options.
-   - Return as SINGLE field with "options": ["ז", "נ"] NOT two separate fields.
-4. Each radio field should have:
-   - "type": "radio"
-   - "options": array of the ACTUAL Hebrew labels (e.g., ["ז", "נ"], NOT ["אפשרות 1", "אפשרות 2"])
-   - "radioGroup": unique identifier for the question (e.g., "gender", "marital_status")
-   - "label": the question text if visible (e.g., "מין")
-   - Position should be the FIRST option's location.
+RADIO BUTTONS AND CHECKBOXES - ADVANCED DETECTION AGENT:
 
-CHECKBOX vs RADIO DECISION:
-- Use RADIO when: options are mutually exclusive (only one can be selected).
+STEP 1 - DETERMINE FIELD TYPE (RADIO vs CHECKBOX):
+- Use RADIO BUTTONS when: options appear in a CLEAR row (horizontal) or column (vertical) layout.
+- Use CHECKBOXES when: options appear in a CLUSTER pattern (scattered, grid, or irregular layout).
+- Visual indicators for RADIO: circles (○), dots aligned in a row/column with shared question.
+- Visual indicators for CHECKBOX: squares (☐), checkmarks, scattered positioning.
+- Rule: If marks form a distinct line (horizontal/vertical), use RADIO. If scattered/clustered, use CHECKBOX.
+
+STEP 2 - DETECT ORIENTATION (for RADIO buttons):
+- HORIZONTAL: buttons arranged in a row (same Y, different X positions).
+- VERTICAL: buttons arranged in a column (same X, different Y positions).
+- DEFAULT: If orientation is unclear, use "horizontal".
+- Set "orientation": "horizontal" or "vertical" accordingly.
+
+STEP 3 - MEASURE BUTTON SIZE:
+- Most form checkbox/radio buttons are VERY SMALL: typically 5-8 pixels (1-1.5% of page).
+- Measure the ACTUAL circle/square size in the PDF, not the surrounding area.
+- widthPercent and heightPercent should reflect the TRUE button size.
+- Common sizes: 1-2% width, 1-2% height for small forms.
+
+STEP 4 - CALCULATE SPACING BETWEEN BUTTONS:
+- Measure the distance between the CENTER of each button to the next.
+- Return "buttonSpacing": percentage distance between consecutive buttons.
+- This helps maintain exact PDF layout when rendering the form.
+
+STEP 5 - DETERMINE STARTING POSITION:
+- For HORIZONTAL layout: position should be the LEFTMOST button's coordinates.
+- For VERTICAL layout: position should be the TOPMOST button's coordinates.
+- Buttons will be spread from this starting point according to orientation and spacing.
+
+RADIO FIELD STRUCTURE:
+Each radio field should include:
+- "type": "radio"
+- "options": array of ACTUAL Hebrew labels (e.g., ["ז", "נ"], NOT generic placeholders)
+- "radioGroup": unique identifier (e.g., "gender", "marital_status")
+- "orientation": "horizontal" or "vertical"
+- "buttonSpacing": percentage distance between button centers
+- "buttonSize": percentage size of individual buttons (e.g., 1.5)
+- "label": the question text if visible (e.g., "מין")
+- Position (xPercent, yPercent): starting button location (leftmost for horizontal, topmost for vertical)
+
+EXAMPLE - Gender Radio Group:
+{
+  "type": "radio",
+  "xPercent": 85, "yPercent": 15,
+  "widthPercent": 1.5, "heightPercent": 1.5,
+  "options": ["ז", "נ"],
+  "radioGroup": "gender",
+  "orientation": "horizontal",
+  "buttonSpacing": 5,
+  "buttonSize": 1.5,
+  "label": "מין"
+}
+
+CHECKBOX vs RADIO FINAL DECISION:
+- Use RADIO when: options are mutually exclusive AND arranged in clear row/column.
 - Use CHECKBOX when:
   - Multiple selections allowed.
-  - Complex multi-row/column layouts where options span large areas.
+  - Complex multi-row/column layouts or clustered positioning.
   - Independent yes/no choices.
-- When in doubt with complex layouts (4+ options scattered across rows), use CHECKBOX.
+- When in doubt with complex layouts (4+ options scattered), use CHECKBOX.
 
 FIELD NAMING:
 - "name": descriptive English name based on field purpose (e.g., "first_name", "id_number", "gender").
@@ -215,13 +260,15 @@ JSON OUTPUT FORMAT (ONLY):
   "fields": [
     {
       "type": "radio",
-      "xPercent": 85, "yPercent": 15, "widthPercent": 2, "heightPercent": 2,
+      "xPercent": 85, "yPercent": 15, "widthPercent": 1.5, "heightPercent": 1.5,
       "pageNumber": 1,
       "label": "מין",
       "name": "gender",
       "options": ["ז", "נ"],
       "radioGroup": "gender",
       "orientation": "horizontal",
+      "buttonSpacing": 5,
+      "buttonSize": 1.5,
       "sectionName": "פרטים אישיים",
       "required": true,
       "direction": "rtl"

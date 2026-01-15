@@ -44,6 +44,7 @@ export interface HtmlFormField {
   section?: string; // Maps from sectionName
   tabOrder?: number; // Maps from index
   direction: 'ltr' | 'rtl';
+  station?: string; // Filling station: 'client' (default), 'agent', or custom
   // Validation properties
   validationType?: string; // e.g., "identity.israeli_id"
   validators?: ValidatorConfig[]; // Array of validators to apply
@@ -105,6 +106,7 @@ export interface HtmlGenerationOptions {
   includeValidation: boolean;
   generationMethod: 'ai' | 'template' | 'auto'; // 'auto' tries AI first, falls back to template
   welcomePage?: Partial<WelcomePageConfig>; // Phoenix-style welcome/intro page
+  userRole?: 'client' | 'agent'; // Current user role - determines which station fields are enabled
 }
 
 /**

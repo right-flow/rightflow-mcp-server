@@ -43,8 +43,10 @@ export interface FieldDefinition {
   // Radio and dropdown specific
   options?: string[]; // For dropdown and radio fields - array of option labels
   radioGroup?: string; // For radio buttons - group name (radio only)
-  spacing?: number; // Spacing between radio buttons (radio only)
+  spacing?: number; // Spacing between radio buttons (radio only) - legacy field
   orientation?: 'vertical' | 'horizontal'; // Radio button layout direction (radio only)
+  buttonSpacing?: number; // Precise spacing between button centers (in points, from AI detection)
+  buttonSize?: number; // Size of individual buttons (in points, from AI detection)
 
   // Signature specific
   signatureImage?: string; // Base64 encoded signature image (PNG/JPG)

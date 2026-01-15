@@ -18,6 +18,8 @@ interface GeminiFieldResponse {
   sectionName?: string;
   radioGroup?: string;
   orientation?: 'horizontal' | 'vertical';
+  buttonSpacing?: number; // Distance between radio/checkbox buttons (in points)
+  buttonSize?: number;    // Size of individual radio/checkbox buttons (in points)
 }
 
 interface GeminiGuidanceResponse {
@@ -344,7 +346,9 @@ export async function extractFieldsWithAI(
           : (gf.label ? [gf.label] : ['אפשרות']),
         radioGroup: gf.radioGroup || `radio_group_${index + 1}`,
         spacing: 1,
-        orientation: gf.orientation || 'vertical',
+        orientation: gf.orientation || 'horizontal', // Default to horizontal per design spec
+        buttonSpacing: gf.buttonSpacing, // Precise spacing from AI detection
+        buttonSize: gf.buttonSize, // Button size from AI detection
       }),
     }),
   );
@@ -477,7 +481,9 @@ export async function reprocessSinglePage(
           : (gf.label ? [gf.label] : ['אפשרות']),
         radioGroup: gf.radioGroup || `radio_group_p${pageNumber}_${index + 1}`,
         spacing: 1,
-        orientation: gf.orientation || 'vertical',
+        orientation: gf.orientation || 'horizontal', // Default to horizontal per design spec
+        buttonSpacing: gf.buttonSpacing, // Precise spacing from AI detection
+        buttonSize: gf.buttonSize, // Button size from AI detection
       }),
     }),
   );
