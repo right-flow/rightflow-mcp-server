@@ -398,7 +398,7 @@ describe('html-generator-css', () => {
         const js = generateFormJS('myForm', true);
 
         // Extract parseDate function from generated JS
-        const parseDateMatch = js.match(/function parseDate\(str\) \{[\s\S]*?\n    \}/);
+        const parseDateMatch = js.match(/function parseDate\(str\) \{[\s\S]*?\n {4}\}/);
         if (!parseDateMatch) {
           throw new Error('parseDate function not found in generated JS');
         }

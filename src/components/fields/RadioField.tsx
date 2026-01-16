@@ -158,7 +158,7 @@ export const RadioField = ({
                 style={{
                   color: 'hsl(var(--field-radio))',
                   maxWidth: orientation === 'horizontal' ? '100px' : '150px',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {sanitizeUserInput(option)}
@@ -171,10 +171,10 @@ export const RadioField = ({
         {field.label && (
           <div
             className={cn(
-              "absolute text-[10px] px-1 py-0.5 whitespace-nowrap outline-none",
+              'absolute text-[10px] px-1 py-0.5 whitespace-nowrap outline-none',
               orientation === 'horizontal'
-                ? "bottom-full left-1/2 -translate-x-1/2 mb-1"  // מעל לאופקי
-                : "top-0 right-0"                                // מימין לאנכי
+                ? 'bottom-full left-1/2 -translate-x-1/2 mb-1'  // מעל לאופקי
+                : 'top-0 right-0',                                // מימין לאנכי
             )}
             style={{
               color: 'hsl(var(--field-radio))',

@@ -46,7 +46,7 @@ const MAX_FILENAME_LENGTH = 200;
  */
 export function generateFilename(
   namingSettings: NamingSettings,
-  fallbackFilename: string = 'document'
+  fallbackFilename: string = 'document',
 ): string {
   // If no template defined, use fallback
   if (!namingSettings.filenameTemplate || namingSettings.filenameTemplate.length === 0) {
@@ -94,7 +94,7 @@ export function generateFilename(
   // Check maximum length and truncate if necessary
   if (filename.length > MAX_FILENAME_LENGTH) {
     console.warn(
-      `Filename too long (${filename.length} chars), truncating to ${MAX_FILENAME_LENGTH}`
+      `Filename too long (${filename.length} chars), truncating to ${MAX_FILENAME_LENGTH}`,
     );
     filename = filename.substring(0, MAX_FILENAME_LENGTH);
   }

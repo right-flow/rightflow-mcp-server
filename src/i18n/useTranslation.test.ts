@@ -136,10 +136,10 @@ describe('useTranslation hook', () => {
 
     it('should update both when language changes', () => {
       const { result: translationResult, rerender: rerenderTranslation } = renderHook(
-        () => useTranslation()
+        () => useTranslation(),
       );
       const { result: directionResult, rerender: rerenderDirection } = renderHook(
-        () => useDirection()
+        () => useDirection(),
       );
 
       // Change to English

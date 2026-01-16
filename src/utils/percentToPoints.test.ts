@@ -44,7 +44,7 @@ interface AIFieldResponse {
 function convertPercentToPoints(
   field: AIFieldResponse,
   pageWidth: number = PAGE_SIZES.A4.width,
-  pageHeight: number = PAGE_SIZES.A4.height
+  pageHeight: number = PAGE_SIZES.A4.height,
 ): {
   x: number;
   y: number;
@@ -469,7 +469,7 @@ describe('different page sizes', () => {
     const result = convertPercentToPoints(
       field,
       PAGE_SIZES.LETTER.width,
-      PAGE_SIZES.LETTER.height
+      PAGE_SIZES.LETTER.height,
     );
 
     expect(result.x).toBe(306); // 50% of 612
@@ -488,7 +488,7 @@ describe('different page sizes', () => {
     const result = convertPercentToPoints(
       field,
       PAGE_SIZES.LEGAL.width,
-      PAGE_SIZES.LEGAL.height
+      PAGE_SIZES.LEGAL.height,
     );
 
     expect(result.x).toBe(306); // 50% of 612
@@ -625,7 +625,7 @@ describe('real-world scenarios', () => {
           widthPercent: 2,
           heightPercent: 2,
           name: `option_${i + 1}`,
-        })
+        }),
       );
 
       const results = checkboxes.map(cb => convertPercentToPoints(cb));

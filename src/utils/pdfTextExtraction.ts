@@ -32,7 +32,7 @@ export interface TextExtractionOptions {
  */
 export async function extractTextFromPDFArea(
   pdfDocument: PDFDocumentProxy,
-  options: TextExtractionOptions
+  options: TextExtractionOptions,
 ): Promise<string> {
   const { x, y, width, height, pageNumber } = options;
 

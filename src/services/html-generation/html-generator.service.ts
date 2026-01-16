@@ -45,7 +45,7 @@ function escapeHtml(text: string): string {
  */
 function generateWelcomePageHtml(
   rtl: boolean,
-  welcomeConfig?: Partial<WelcomePageConfig>
+  welcomeConfig?: Partial<WelcomePageConfig>,
 ): string {
   const config: WelcomePageConfig = {
     enabled: true,
@@ -93,7 +93,7 @@ function generateWelcomePageHtml(
  */
 function generateFieldHtml(
   field: HtmlFormField,
-  includeValidation: boolean
+  includeValidation: boolean,
 ): string {
   const flexGrow = field.position?.width
     ? Math.max(1, Math.round(field.position.width / 50))
@@ -105,9 +105,11 @@ function generateFieldHtml(
   }
 
   const requiredMark = field.required ? '<span class="required">*</span>' : '';
+  const requiredClass = field.required ? ' required-field' : '';
+  const stationClass = field.station ? ` station-${escapeHtml(field.station)}` : '';
 
   let fieldHtml = `
-    <div class="form-group" style="flex-grow: ${flexGrow};" data-field-id="${escapeHtml(field.id)}">
+    <div class="form-group${requiredClass}${stationClass}" style="flex-grow: ${flexGrow};" data-field-id="${escapeHtml(field.id)}" data-station="${escapeHtml(field.station || 'client')}">
       <label for="${escapeHtml(field.id)}">
         ${escapeHtml(displayLabel)}${requiredMark}
       </label>`;
@@ -275,14 +277,19 @@ function generateInputHtml(field: HtmlFormField): string {
     case 'tel':
       return `<input type="tel" class="form-control" ${baseAttrs}>`;
 
-    case 'date':
+    case 'date': {
+      // Get date format from validators or use default
+      const dateFormat = 'dd/mm/yyyy';
+      const formatHint = field.direction === 'rtl' ? `פורמט: ${dateFormat}` : `Format: ${dateFormat}`;
       return `
         <div class="date-picker-wrapper" data-field-id="${escapeHtml(field.id)}">
           <input type="text" class="form-control date-input" ${baseAttrs}
-                 placeholder="dd/mm/yyyy" pattern="\\d{2}/\\d{2}/\\d{4}">
-          <button type="button" class="date-picker-btn" aria-label="בחר תאריך">📅</button>
+                 placeholder="${dateFormat}" pattern="\\d{2}/\\d{2}/\\d{4}">
+          <button type="button" class="date-picker-btn" aria-label="${field.direction === 'rtl' ? 'בחר תאריך' : 'Select date'}">📅</button>
           <div class="date-picker-calendar" style="display: none;"></div>
-        </div>`;
+        </div>
+        <div class="field-format-hint">${escapeHtml(formatHint)}</div>`;
+    }
 
     case 'number':
       return `<input type="number" class="form-control" ${baseAttrs}>`;
@@ -298,7 +305,7 @@ function generateInputHtml(field: HtmlFormField): string {
  * Groups fields by page number
  */
 function groupFieldsByPage(
-  fields: HtmlFormField[]
+  fields: HtmlFormField[],
 ): Map<number, HtmlFormField[]> {
   const pageMap = new Map<number, HtmlFormField[]>();
 
@@ -320,7 +327,7 @@ function groupFieldsByPage(
  */
 function generateTabsHtml(
   totalPages: number,
-  includeWelcome: boolean
+  includeWelcome: boolean,
 ): string {
   const totalTabs = includeWelcome ? totalPages + 1 : totalPages;
   if (totalTabs <= 1) return '';
@@ -361,7 +368,7 @@ function generateTabsHtml(
 function generateNavigationHtml(
   totalPages: number,
   rtl: boolean,
-  includeWelcome: boolean
+  includeWelcome: boolean,
 ): string {
   const totalTabs = includeWelcome ? totalPages + 1 : totalPages;
 
@@ -409,12 +416,12 @@ function generatePageHtml(
   groups: HtmlFieldGroup[],
   includeValidation: boolean,
   rtl: boolean,
-  isActive: boolean = false
+  isActive: boolean = false,
 ): string {
   // Filter groups that have fields on this page
   const pageFieldIds = new Set(fields.map((f) => f.id));
   const pageGroups = groups.filter((g) =>
-    g.fields.some((fid) => pageFieldIds.has(fid))
+    g.fields.some((fid) => pageFieldIds.has(fid)),
   );
 
   let html = `
@@ -472,7 +479,7 @@ function generatePageHtml(
  */
 export async function generateHtmlFormTemplate(
   fields: FieldDefinition[],
-  options: Partial<HtmlGenerationOptions> = {}
+  options: Partial<HtmlGenerationOptions> = {},
 ): Promise<GeneratedHtmlResult> {
   const formId = `form_${crypto.randomUUID().replace(/-/g, '').substring(0, 12)}`;
 
@@ -512,7 +519,7 @@ export async function generateHtmlFormTemplate(
 
   // Generate CSS and JS with page count (including welcome page)
   const cssContent = generateDocsFlowCSS(finalOptions.rtl, finalOptions.theme);
-  const jsContent = generateFormJS(formId, finalOptions.rtl, totalPages, includeWelcome);
+  const jsContent = generateFormJS(formId, finalOptions.rtl, totalPages, includeWelcome, finalOptions.userRole || 'client');
 
   // Build HTML document
   const dirAttr = finalOptions.rtl ? 'dir="rtl"' : '';
@@ -557,7 +564,7 @@ ${cssContent}
       groups,
       finalOptions.includeValidation,
       finalOptions.rtl,
-      !includeWelcome && i === 0 // Only first form page is active if no welcome page
+      !includeWelcome && i === 0, // Only first form page is active if no welcome page
     );
   }
 
@@ -569,7 +576,7 @@ ${cssContent}
       groups,
       finalOptions.includeValidation,
       finalOptions.rtl,
-      !includeWelcome // Active only if no welcome page
+      !includeWelcome, // Active only if no welcome page
     );
   }
 

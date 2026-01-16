@@ -35,7 +35,7 @@ export function Tabs({ defaultValue, value, onValueChange, children, className }
       }
       onValueChange?.(newValue);
     },
-    [value, onValueChange]
+    [value, onValueChange],
   );
 
   return (
@@ -55,7 +55,7 @@ export function TabsList({ children, className }: TabsListProps) {
     <div
       className={cn(
         'flex items-center border-b border-border bg-muted/50 rounded-t-lg overflow-hidden',
-        className
+        className,
       )}
       role="tablist"
     >
@@ -88,7 +88,7 @@ export function TabsTrigger({ value, children, className, disabled }: TabsTrigge
           ? 'bg-background text-foreground border-b-2 border-primary'
           : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
         disabled && 'opacity-50 cursor-not-allowed',
-        className
+        className,
       )}
     >
       {children}

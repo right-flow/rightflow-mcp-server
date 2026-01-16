@@ -119,6 +119,6 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'rightflow-settings', // LocalStorage key
-    }
-  )
+    },
+  ),
 );

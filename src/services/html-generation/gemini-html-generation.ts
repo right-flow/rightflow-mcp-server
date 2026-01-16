@@ -25,7 +25,7 @@ const API_ENDPOINT = '/api/generate-html';
  */
 export async function generateHtmlWithGemini(
   fields: FieldDefinition[],
-  options: Partial<HtmlGenerationOptions> = {}
+  options: Partial<HtmlGenerationOptions> = {},
 ): Promise<GeneratedHtmlResult> {
   // Prepare data for API
   const htmlFields = mapFieldsToHtml(fields);
@@ -61,7 +61,7 @@ export async function generateHtmlWithGemini(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
-      errorData.error || `API request failed with status ${response.status}`
+      errorData.error || `API request failed with status ${response.status}`,
     );
   }
 

@@ -40,7 +40,7 @@ function getHtmlTypesForFieldType(fieldType: FieldType): string[] {
  * Normalize validators to ValidatorConfig format
  */
 function normalizeValidators(
-  validators: (string | ValidatorConfig)[]
+  validators: (string | ValidatorConfig)[],
 ): ValidatorConfig[] {
   return validators.map((v) => {
     if (typeof v === 'string') {
@@ -92,7 +92,7 @@ function calculateMatchScore(label: string, pattern: string): number {
  */
 function isHtmlTypeCompatible(
   fieldType: FieldType,
-  allowedHtmlTypes: string[]
+  allowedHtmlTypes: string[],
 ): boolean {
   const fieldHtmlTypes = getHtmlTypesForFieldType(fieldType);
   return fieldHtmlTypes.some((type) => allowedHtmlTypes.includes(type));
@@ -108,7 +108,7 @@ function isHtmlTypeCompatible(
 export function detectFieldType(
   label: string,
   fieldType: FieldType,
-  sectionName?: string
+  sectionName?: string,
 ): DetectionResult {
   if (!label || label.trim() === '') {
     return { bestMatch: null, allMatches: [] };
@@ -123,7 +123,7 @@ export function detectFieldType(
 
   // Check each field type definition
   for (const [fieldTypeId, definition] of Object.entries(
-    validationRules.fieldTypes
+    validationRules.fieldTypes,
   )) {
     // Check HTML type compatibility
     if (!isHtmlTypeCompatible(fieldType, definition.htmlTypes)) {
@@ -169,12 +169,12 @@ export function detectFieldType(
  * Useful for populating a dropdown in the UI
  */
 export function getAvailableFieldTypes(
-  fieldType: FieldType
+  fieldType: FieldType,
 ): Array<{ id: string; displayName: string }> {
   const result: Array<{ id: string; displayName: string }> = [];
 
   for (const [fieldTypeId, definition] of Object.entries(
-    validationRules.fieldTypes
+    validationRules.fieldTypes,
   )) {
     if (isHtmlTypeCompatible(fieldType, definition.htmlTypes)) {
       result.push({
@@ -191,7 +191,7 @@ export function getAvailableFieldTypes(
  * Get validators for a field type ID
  */
 export function getValidatorsForFieldType(
-  fieldTypeId: string
+  fieldTypeId: string,
 ): ValidatorConfig[] {
   const definition = validationRules.fieldTypes[fieldTypeId];
   if (!definition) {

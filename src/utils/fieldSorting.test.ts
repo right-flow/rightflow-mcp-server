@@ -17,7 +17,7 @@ describe('fieldSorting', () => {
         const storageMock = {
             getItem: (key: string) => store[key] || null,
             setItem: (key: string, value: string) => { store[key] = value.toString(); },
-            clear: () => { store = {}; }
+            clear: () => { store = {}; },
         };
         Object.defineProperty(window, 'localStorage', { value: storageMock, writable: true });
     });

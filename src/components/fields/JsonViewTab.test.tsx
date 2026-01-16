@@ -106,7 +106,7 @@ describe('JsonViewTab', () => {
 
       await waitFor(() => {
         expect(mockWriteText).toHaveBeenCalledWith(
-          JSON.stringify(mockFields, null, 2)
+          JSON.stringify(mockFields, null, 2),
         );
       });
     });

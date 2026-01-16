@@ -69,7 +69,7 @@ export const PageThumbnailSidebar = ({
                   'absolute top-1 right-1 p-1 rounded bg-blue-600 text-white',
                   'opacity-0 group-hover:opacity-100 transition-opacity',
                   'hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed',
-                  isThisPageReprocessing && 'opacity-100'
+                  isThisPageReprocessing && 'opacity-100',
                 )}
                 title={`עבד מחדש עמוד ${pageNumber}`}
               >

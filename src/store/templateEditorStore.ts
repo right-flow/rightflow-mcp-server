@@ -468,7 +468,7 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
 
   updateMultipleFields: (ids, updates) => set((state) => ({
     fields: state.fields.map((field) =>
-      ids.includes(field.id) ? { ...field, ...updates } : field
+      ids.includes(field.id) ? { ...field, ...updates } : field,
     ),
   })),
 

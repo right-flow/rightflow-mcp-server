@@ -164,7 +164,7 @@ export async function extractFieldsFromPDF(pdfFile: File): Promise<FieldDefiniti
           extractedFields.push(fieldWithId);
 
           console.log(
-            `   ✓ Extracted ${fieldType} field: "${fieldName}" on page ${pageNumber} at (${x.toFixed(1)}, ${y.toFixed(1)})`
+            `   ✓ Extracted ${fieldType} field: "${fieldName}" on page ${pageNumber} at (${x.toFixed(1)}, ${y.toFixed(1)})`,
           );
         }
       } catch (error) {

@@ -223,12 +223,18 @@ function isNeighbor(f1: FieldDefinition, f2: FieldDefinition): boolean {
 
 /**
  * Detects the dominant orientation of a group of fields
+ * Default to horizontal if unclear per design spec
  */
 function detectOrientation(fields: FieldDefinition[]): 'horizontal' | 'vertical' {
-    if (fields.length < 2) return 'vertical';
+    if (fields.length < 2) return 'horizontal'; // Default to horizontal per design spec
 
     const xVariance = Math.max(...fields.map(f => f.x)) - Math.min(...fields.map(f => f.x));
     const yVariance = Math.max(...fields.map(f => f.y)) - Math.min(...fields.map(f => f.y));
+
+    // If variances are very similar, default to horizontal
+    if (Math.abs(xVariance - yVariance) < ALIGNMENT_THRESHOLD) {
+        return 'horizontal';
+    }
 
     return xVariance > yVariance ? 'horizontal' : 'vertical';
 }

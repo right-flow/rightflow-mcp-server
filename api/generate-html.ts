@@ -35,6 +35,11 @@ interface HtmlFormField {
   section?: string;
   tabOrder?: number;
   direction: 'ltr' | 'rtl';
+  position?: {
+    page: number;
+    x?: number;
+    y?: number;
+  };
 }
 
 /**
@@ -76,7 +81,7 @@ interface RequestBody {
 
 export default async function handler(
   req: VercelRequest,
-  res: VercelResponse
+  res: VercelResponse,
 ) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -173,7 +178,7 @@ ${JSON.stringify(
     page: f.position?.page ?? 1,
   })),
   null,
-  2
+  2,
 )}
 
 CRITICAL REQUIREMENTS:
@@ -225,7 +230,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks or explanations.
 
     const result = await withTimeout(
       model.generateContent(prompt),
-      timeout
+      timeout,
     );
 
     const responseText = result.response.text();
@@ -249,7 +254,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks or explanations.
       } else {
         console.error(
           '[HTML Generation] Response was not JSON:',
-          cleanedText.substring(0, 200)
+          cleanedText.substring(0, 200),
         );
         throw new Error('AI returned text instead of JSON');
       }
@@ -261,7 +266,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown code blocks or explanations.
     } catch (parseError) {
       console.error(
         '[HTML Generation] JSON parse failed:',
-        cleanedText.substring(0, 500)
+        cleanedText.substring(0, 500),
       );
       throw new Error('Failed to parse AI response as JSON');
     }

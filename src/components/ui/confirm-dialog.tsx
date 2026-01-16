@@ -62,7 +62,7 @@ export const ConfirmDialog = ({
         className={cn(
           'relative bg-background border border-border rounded-lg shadow-xl',
           'w-full max-w-md mx-4 p-6',
-          'animate-in fade-in-0 zoom-in-95 duration-200'
+          'animate-in fade-in-0 zoom-in-95 duration-200',
         )}
       >
         <h2 className="text-lg font-semibold mb-2">{title}</h2>

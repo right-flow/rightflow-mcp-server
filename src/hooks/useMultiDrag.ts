@@ -44,7 +44,7 @@ export function useMultiDrag({
       // Store initial viewport position
       dragStartRef.current = { x: d.x, y: d.y };
     },
-    []
+    [],
   );
 
   const handleDragStop = useCallback(
@@ -59,7 +59,7 @@ export function useMultiDrag({
         d.y,
         pageDimensions,
         scale * 100,
-        canvasWidth
+        canvasWidth,
       );
 
       const pixelsToPointsScale = pageDimensions.width / canvasWidth;
@@ -98,7 +98,7 @@ export function useMultiDrag({
       viewportHeight,
       onUpdate,
       onMultiDrag,
-    ]
+    ],
   );
 
   return {

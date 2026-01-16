@@ -191,10 +191,10 @@ export const SignatureModal = ({
           <div className="grid grid-cols-2 gap-2 mb-4 p-1 bg-muted rounded-lg">
             <button
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                'px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center',
                 activeTab === 'draw'
                   ? 'bg-background shadow-sm'
-                  : 'hover:bg-background/50'
+                  : 'hover:bg-background/50',
               )}
               onClick={() => setActiveTab('draw')}
             >
@@ -203,10 +203,10 @@ export const SignatureModal = ({
             </button>
             <button
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center",
+                'px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-center',
                 activeTab === 'upload'
                   ? 'bg-background shadow-sm'
-                  : 'hover:bg-background/50'
+                  : 'hover:bg-background/50',
               )}
               onClick={() => setActiveTab('upload')}
             >

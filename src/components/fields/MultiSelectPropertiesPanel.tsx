@@ -80,7 +80,7 @@ export const MultiSelectPropertiesPanel = ({
         });
       }
     },
-    [onUpdateAll]
+    [onUpdateAll],
   );
 
   // Handle validation toggle for all selected fields
@@ -100,7 +100,7 @@ export const MultiSelectPropertiesPanel = ({
         });
       }
     },
-    [onUpdateAll, commonValidationType]
+    [onUpdateAll, commonValidationType],
   );
 
   // Helper function to get field type name
@@ -120,7 +120,7 @@ export const MultiSelectPropertiesPanel = ({
       className={cn(
         'fixed right-4 top-20 w-80 bg-background border border-border rounded-lg shadow-lg p-4 z-[2000]',
         'animate-in slide-in-from-right duration-200',
-        'max-h-[80vh] overflow-y-auto'
+        'max-h-[80vh] overflow-y-auto',
       )}
       dir={direction}
     >
@@ -233,7 +233,7 @@ export const MultiSelectPropertiesPanel = ({
               <ChevronDown
                 className={cn(
                   'w-4 h-4 transition-transform',
-                  isValidationExpanded && 'rotate-180'
+                  isValidationExpanded && 'rotate-180',
                 )}
               />
             </button>

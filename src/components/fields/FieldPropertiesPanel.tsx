@@ -37,7 +37,7 @@ export const FieldPropertiesPanel = ({
   // Get available field types for this field type
   const availableFieldTypes = useMemo(
     () => getAvailableFieldTypes(field.type),
-    [field.type]
+    [field.type],
   );
 
   // Detect field type based on label (debounced)
@@ -67,7 +67,7 @@ export const FieldPropertiesPanel = ({
         });
       }
     },
-    [onUpdate]
+    [onUpdate],
   );
 
   // Handle validation toggle
@@ -89,7 +89,7 @@ export const FieldPropertiesPanel = ({
         });
       }
     },
-    [field.validationType, field.validation, onUpdate]
+    [field.validationType, field.validation, onUpdate],
   );
 
   // Auto-apply detected type suggestion when label changes (only if no validation set)
@@ -164,7 +164,7 @@ export const FieldPropertiesPanel = ({
       className={cn(
         'fixed right-4 top-20 w-80 bg-background border border-border rounded-lg shadow-lg p-4 z-[2000]',
         'animate-in slide-in-from-right duration-200',
-        'max-h-[80vh] overflow-y-auto'
+        'max-h-[80vh] overflow-y-auto',
       )}
       dir={direction}
     >
@@ -242,7 +242,7 @@ export const FieldPropertiesPanel = ({
               <ChevronDown
                 className={cn(
                   'w-4 h-4 transition-transform',
-                  isValidationExpanded && 'rotate-180'
+                  isValidationExpanded && 'rotate-180',
                 )}
               />
             </button>

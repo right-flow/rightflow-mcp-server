@@ -169,7 +169,7 @@ interface GeminiFieldResponse {
  */
 function convertGeminiFieldToDefinition(
   gf: GeminiFieldResponse,
-  index: number
+  index: number,
 ) {
   return {
     id: 'test-uuid',
@@ -681,8 +681,8 @@ describe('metadata aggregation', () => {
         pageNumber: pageNum,
         sections: sections.map(name => ({
           name,
-          y: Math.min(...pageFields.filter(f => f.sectionName === name).map(f => f.y))
-        }))
+          y: Math.min(...pageFields.filter(f => f.sectionName === name).map(f => f.y)),
+        })),
       });
     });
 

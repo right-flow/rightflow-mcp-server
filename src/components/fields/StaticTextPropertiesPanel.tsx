@@ -110,7 +110,7 @@ export const StaticTextPropertiesPanel = ({
       className={cn(
         'fixed right-4 top-20 w-80 bg-background border border-border rounded-lg shadow-lg p-4 z-[2000]',
         'animate-in slide-in-from-right duration-200',
-        'max-h-[80vh] overflow-y-auto'
+        'max-h-[80vh] overflow-y-auto',
       )}
       dir={direction}
     >
@@ -259,7 +259,7 @@ export const StaticTextPropertiesPanel = ({
                 ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)'
                 : 'none',
               backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
             }}
           ></div>
         </div>

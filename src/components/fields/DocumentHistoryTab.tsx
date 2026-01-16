@@ -134,7 +134,7 @@ export const DocumentHistoryTab = ({ onLoadFields }: DocumentHistoryTabProps) =>
             key={doc.id}
             className={cn(
               'group p-3 rounded-lg border border-border bg-card/50 hover:bg-card',
-              'transition-colors cursor-pointer'
+              'transition-colors cursor-pointer',
             )}
             onClick={() => handleLoadFields(doc)}
           >

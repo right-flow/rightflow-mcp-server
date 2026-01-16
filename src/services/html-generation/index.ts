@@ -44,7 +44,7 @@ export type ProgressCallback = (status: string, progress?: number) => void;
 export async function generateHtmlForm(
   fields: FieldDefinition[],
   options: Partial<HtmlGenerationOptions> = {},
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
 ): Promise<GeneratedHtmlResult> {
   if (!fields || fields.length === 0) {
     throw new Error('No fields provided for HTML generation');
@@ -75,7 +75,7 @@ export async function generateHtmlForm(
     } catch (error) {
       console.warn(
         '[HTML Generation] AI generation failed, falling back to template:',
-        error
+        error,
       );
 
       // If strict AI mode, throw the error
@@ -100,7 +100,7 @@ export async function generateHtmlForm(
  */
 export function downloadHtmlFile(
   result: GeneratedHtmlResult,
-  filename?: string
+  filename?: string,
 ): void {
   const blob = new Blob([result.htmlContent], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -154,7 +154,7 @@ export async function downloadFormPackageZip(
   fields: FieldDefinition[],
   htmlResult: GeneratedHtmlResult,
   filename?: string,
-  formMetadata?: FormMetadata
+  formMetadata?: FormMetadata,
 ): Promise<void> {
   // Use existing filename generator from settings if no filename provided
   const settings = useSettingsStore.getState().settings;
@@ -173,7 +173,7 @@ export async function downloadFormPackageZip(
     formMetadata: formMetadata || {
       companyName: 'Unknown',
       formName: 'Unknown',
-      confidence: 'low' as const
+      confidence: 'low' as const,
     },
     fields: fields.map((field) => ({
       id: field.id,
@@ -195,7 +195,7 @@ export async function downloadFormPackageZip(
       radioGroup: field.radioGroup,
     })),
     generatedAt: new Date().toISOString(),
-    version: '1.0'
+    version: '1.0',
   };
   const jsonString = JSON.stringify(packageData, null, 2);
   zip.file(`${baseName}.json`, jsonString);

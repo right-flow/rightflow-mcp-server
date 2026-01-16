@@ -6,7 +6,7 @@ import { FieldDefinition } from '@/types/fields';
  */
 export function sortFieldsByPosition(
     fields: FieldDefinition[],
-    direction: 'rtl' | 'ltr' = 'rtl'
+    direction: 'rtl' | 'ltr' = 'rtl',
 ): FieldDefinition[] {
     // Group fields by page
     const byPage = new Map<number, FieldDefinition[]>();
@@ -89,7 +89,7 @@ export function createPageDictionaries(fields: FieldDefinition[]): PageDictionar
                 name: f.name,
                 x: f.x,
                 y: f.y,
-                type: f.type
-            }))
+                type: f.type,
+            })),
         }));
 }

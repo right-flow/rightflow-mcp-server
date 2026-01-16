@@ -175,7 +175,7 @@ export const ExtractedFieldsTab = ({
                                 ? 'bg-primary/10 border border-primary'
                                 : hoveredFieldId === field.id
                                 ? 'bg-primary/5 border border-primary/30 ring-1 ring-primary/20'
-                                : 'hover:bg-muted border border-transparent'
+                                : 'hover:bg-muted border border-transparent',
                             )}
                             onClick={(e) => handleFieldClick(field, e)}
                             onMouseEnter={() => onFieldHover(field.id)}

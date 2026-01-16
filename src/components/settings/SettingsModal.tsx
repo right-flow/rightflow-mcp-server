@@ -53,7 +53,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               'flex-1 px-4 py-3 text-sm font-medium transition-colors',
               activeTab === 'text'
                 ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                : 'hover:bg-muted',
             )}
             onClick={() => setActiveTab('text')}
           >
@@ -64,7 +64,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               'flex-1 px-4 py-3 text-sm font-medium transition-colors',
               activeTab === 'checkbox'
                 ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                : 'hover:bg-muted',
             )}
             onClick={() => setActiveTab('checkbox')}
           >
@@ -75,7 +75,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               'flex-1 px-4 py-3 text-sm font-medium transition-colors',
               activeTab === 'radio'
                 ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                : 'hover:bg-muted',
             )}
             onClick={() => setActiveTab('radio')}
           >
@@ -86,7 +86,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               'flex-1 px-4 py-3 text-sm font-medium transition-colors',
               activeTab === 'dropdown'
                 ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                : 'hover:bg-muted',
             )}
             onClick={() => setActiveTab('dropdown')}
           >
@@ -97,7 +97,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
               'flex-1 px-4 py-3 text-sm font-medium transition-colors',
               activeTab === 'naming'
                 ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                : 'hover:bg-muted',
             )}
             onClick={() => setActiveTab('naming')}
           >
@@ -385,7 +385,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                             <button
                               onClick={() => {
                                 const newTemplate = settings.naming.filenameTemplate.filter(
-                                  (_, i) => i !== index
+                                  (_, i) => i !== index,
                                 );
                                 updateNamingSettings({ filenameTemplate: newTemplate });
                               }}
@@ -415,7 +415,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                             <button
                               onClick={() => {
                                 const newTemplate = settings.naming.filenameTemplate.filter(
-                                  (_, i) => i !== index
+                                  (_, i) => i !== index,
                                 );
                                 updateNamingSettings({ filenameTemplate: newTemplate });
                               }}

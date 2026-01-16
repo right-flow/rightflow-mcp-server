@@ -1,5 +1,6 @@
-import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen, Sparkles, FileCode } from 'lucide-react';
+import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen, Sparkles, FileCode, Globe, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { version } from '../../../package.json';
 import { useTranslation, useDirection } from '@/i18n';
@@ -25,6 +26,10 @@ interface TopToolbarProps {
   hasFields?: boolean;
   onExportHtml?: () => void;
   isGeneratingHtml?: boolean;
+  onPublish?: () => void;
+  isPublishing?: boolean;
+  formStatus?: 'draft' | 'published' | 'archived';
+  onViewHistory?: () => void;
 }
 
 export const TopToolbar = ({
@@ -48,6 +53,10 @@ export const TopToolbar = ({
   hasFields = false,
   onExportHtml,
   isGeneratingHtml = false,
+  onPublish,
+  isPublishing = false,
+  formStatus = 'draft',
+  onViewHistory,
 }: TopToolbarProps) => {
   const t = useTranslation();
   const direction = useDirection();
@@ -133,6 +142,45 @@ export const TopToolbar = ({
               <FileCode className={`w-4 h-4 ${isGeneratingHtml ? 'animate-pulse' : ''}`} />
               {isGeneratingHtml ? t.generating : t.exportHtml}
             </Button>
+            {/* Status Badge */}
+            {hasDocument && hasFields && (
+              <Badge
+                variant={formStatus === 'published' ? 'default' : 'outline'}
+                className={`${
+                  formStatus === 'published'
+                    ? 'bg-green-600 hover:bg-green-700 text-white border-green-600'
+                    : formStatus === 'archived'
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
+                    : 'bg-gray-100 text-gray-700 border-gray-300'
+                }`}
+              >
+                {formStatus === 'published' ? '✓ מפורסם' : formStatus === 'archived' ? 'ארכיון' : 'טיוטה'}
+              </Badge>
+            )}
+            <Button
+              variant={formStatus === 'published' ? 'default' : 'outline'}
+              size="sm"
+              onClick={onPublish}
+              disabled={!hasDocument || !hasFields || isPublishing}
+              title={isPublishing ? 'מפרסם...' : formStatus === 'published' ? 'מפורסם' : 'פרסם טופס'}
+              className="gap-2"
+            >
+              <Globe className={`w-4 h-4 ${isPublishing ? 'animate-pulse' : ''}`} />
+              {isPublishing ? 'מפרסם...' : formStatus === 'published' ? 'מפורסם' : 'פרסם טופס'}
+            </Button>
+            {formStatus === 'published' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onViewHistory}
+                disabled={!hasDocument}
+                title="צפה בהיסטוריית גרסאות"
+                className="gap-2"
+              >
+                <History className="w-4 h-4" />
+                היסטוריה
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

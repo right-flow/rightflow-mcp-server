@@ -168,7 +168,7 @@ export const DropdownField = ({
           className="absolute top-0 right-0 text-[10px] px-1 py-0.5 whitespace-nowrap"
           style={{
             color: 'hsl(var(--field-dropdown))',
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
           }}
           dir="rtl"
         >

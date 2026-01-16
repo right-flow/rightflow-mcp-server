@@ -144,7 +144,7 @@ class DocumentHistoryService {
         now,
         fieldsJson,
         input.pdfHash || null,
-      ]
+      ],
     );
 
     const result = this.db.exec('SELECT last_insert_rowid() as id');
@@ -188,7 +188,7 @@ class DocumentHistoryService {
 
     this.db.run(
       `UPDATE document_history SET ${updates.join(', ')} WHERE id = ?`,
-      values
+      values,
     );
 
     await this.saveToIndexedDB();
@@ -204,7 +204,7 @@ class DocumentHistoryService {
        FROM document_history
        ORDER BY updated_at DESC
        LIMIT ?`,
-      [limit]
+      [limit],
     );
 
     if (!result[0]) return [];
@@ -231,7 +231,7 @@ class DocumentHistoryService {
               created_at, updated_at, fields_json, pdf_hash
        FROM document_history
        WHERE id = ?`,
-      [id]
+      [id],
     );
 
     if (!result[0] || !result[0].values[0]) return null;

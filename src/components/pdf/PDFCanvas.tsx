@@ -725,7 +725,7 @@ export const PDFCanvas = ({
           const pdfTopY = gt.y + gt.height;
           const viewportTopCoords = {
             x: gt.x * pointsToPixelsScale,
-            y: (currentPageDimensions.height - pdfTopY) * pointsToPixelsScale
+            y: (currentPageDimensions.height - pdfTopY) * pointsToPixelsScale,
           };
 
           return (

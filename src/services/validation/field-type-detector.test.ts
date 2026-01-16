@@ -78,7 +78,7 @@ describe('field-type-detector', () => {
       // Check that matches are sorted by score (highest first)
       for (let i = 1; i < result.allMatches.length; i++) {
         expect(result.allMatches[i - 1].score).toBeGreaterThanOrEqual(
-          result.allMatches[i].score
+          result.allMatches[i].score,
         );
       }
     });
@@ -100,7 +100,7 @@ describe('field-type-detector', () => {
 
       // Should include israeli_id_checksum validator
       const hasChecksumValidator = result.bestMatch?.validators.some(
-        (v) => v.name === 'israeli_id_checksum'
+        (v) => v.name === 'israeli_id_checksum',
       );
       expect(hasChecksumValidator).toBe(true);
     });

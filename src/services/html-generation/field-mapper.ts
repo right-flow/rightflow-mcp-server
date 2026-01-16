@@ -47,6 +47,7 @@ function mapFieldToHtml(field: FieldDefinition): HtmlFormField {
     section: field.sectionName,
     tabOrder: field.index,
     direction: field.direction,
+    station: field.station || 'client', // Default to client if not specified
   };
 
   // Add validation properties if enabled
@@ -232,7 +233,7 @@ export function detectFormDirection(fields: FieldDefinition[]): 'rtl' | 'ltr' {
  */
 export function groupFieldsIntoRows(
   fields: HtmlFormField[],
-  _threshold: number = 15 // Kept for backward compatibility but not used
+  _threshold: number = 15, // Kept for backward compatibility but not used
 ): HtmlFormField[][] {
   if (fields.length === 0) return [];
 

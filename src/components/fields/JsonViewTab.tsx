@@ -114,7 +114,7 @@ export const JsonViewTab = ({ fields }: JsonViewTabProps) => {
         <div className="flex gap-2">
           {/* Sort by position button */}
           <Button
-            variant={isSorted ? "default" : "outline"}
+            variant={isSorted ? 'default' : 'outline'}
             size="sm"
             onClick={() => setIsSorted(!isSorted)}
             className="h-7 gap-1.5"

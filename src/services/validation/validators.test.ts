@@ -250,10 +250,10 @@ describe('validators', () => {
 
     it('should run parametric validators with params', () => {
       expect(
-        runValidator('length_between', 'hello', { min: 3, max: 10 })
+        runValidator('length_between', 'hello', { min: 3, max: 10 }),
       ).toBe(true);
       expect(
-        runValidator('length_between', 'hi', { min: 3, max: 10 })
+        runValidator('length_between', 'hi', { min: 3, max: 10 }),
       ).toBe(false);
     });
 

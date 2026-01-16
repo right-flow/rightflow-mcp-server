@@ -24,8 +24,10 @@ const createMockField = (id: string, x = 100, y = 100): FieldDefinition => ({
   y,
   width: 150,
   height: 20,
-  page: 1,
+  pageNumber: 1,
   station: 'client',
+  required: false,
+  direction: 'ltr',
 });
 
 describe('useMultiDrag', () => {
@@ -51,7 +53,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(false);
@@ -70,7 +72,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(false);
@@ -89,7 +91,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(true);
@@ -108,7 +110,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(true);
@@ -129,7 +131,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Simulate drag start
@@ -163,7 +165,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       act(() => {
@@ -193,7 +195,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       act(() => {
@@ -208,7 +210,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.any(Number),
-        expect.any(Number)
+        expect.any(Number),
       );
       expect(mockOnUpdate).not.toHaveBeenCalled();
     });
@@ -226,7 +228,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Start at (100, 100), drag to (200, 100) - 100px right
@@ -242,7 +244,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(100, 1), // deltaX in PDF points
-        expect.closeTo(0, 1)    // deltaY should be 0
+        expect.closeTo(0, 1),    // deltaY should be 0
       );
     });
 
@@ -259,7 +261,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Start at (100, 100), drag to (100, 200) - 100px down in viewport
@@ -275,7 +277,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(0, 1),     // deltaX should be 0
-        expect.closeTo(-100, 1)   // deltaY negative (PDF Y is inverted)
+        expect.closeTo(-100, 1),   // deltaY negative (PDF Y is inverted)
       );
     });
 
@@ -293,7 +295,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Drag 50px right at 50% zoom
@@ -309,7 +311,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(100, 1), // 50px * 2 = 100 points
-        expect.closeTo(0, 1)
+        expect.closeTo(0, 1),
       );
     });
 
@@ -327,7 +329,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Drag 100px right at 200% zoom
@@ -343,7 +345,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(50, 1), // 100px / 2 = 50 points
-        expect.closeTo(0, 1)
+        expect.closeTo(0, 1),
       );
     });
 
@@ -360,7 +362,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Drag diagonally: 50px right, 30px down
@@ -375,7 +377,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(50, 1),  // 50 points right
-        expect.closeTo(-30, 1)  // 30 points down (negative in PDF)
+        expect.closeTo(-30, 1),  // 30 points down (negative in PDF)
       );
     });
   });
@@ -394,7 +396,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // First drag
@@ -419,7 +421,7 @@ describe('useMultiDrag', () => {
         2,
         'field-1',
         expect.closeTo(50, 1),
-        expect.closeTo(0, 1)
+        expect.closeTo(0, 1),
       );
     });
 
@@ -436,7 +438,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Call drag stop without drag start
@@ -468,7 +470,7 @@ describe('useMultiDrag', () => {
             onUpdate: mockOnUpdate,
             onMultiDrag: mockOnMultiDrag,
           }),
-        { initialProps: { selectedFieldIds: selectedIds } }
+        { initialProps: { selectedFieldIds: selectedIds } },
       );
 
       // Start drag with single selection
@@ -504,7 +506,7 @@ describe('useMultiDrag', () => {
             onUpdate: mockOnUpdate,
             onMultiDrag: mockOnMultiDrag,
           }),
-        { initialProps: { selectedFieldIds: ['field-1'] } }
+        { initialProps: { selectedFieldIds: ['field-1'] } },
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(false);
@@ -535,7 +537,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Start and stop at same position
@@ -550,7 +552,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(0, 0.01),
-        expect.closeTo(0, 0.01)
+        expect.closeTo(0, 0.01),
       );
     });
 
@@ -567,7 +569,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // Drag from positive to negative X (off canvas left)
@@ -582,7 +584,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(-100, 1), // -100 points left
-        expect.closeTo(0, 1)
+        expect.closeTo(0, 1),
       );
     });
 
@@ -599,7 +601,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       // 1px movement
@@ -614,7 +616,7 @@ describe('useMultiDrag', () => {
       expect(mockOnMultiDrag).toHaveBeenCalledWith(
         'field-1',
         expect.closeTo(1, 0.1),
-        expect.closeTo(0, 0.1)
+        expect.closeTo(0, 0.1),
       );
     });
 
@@ -631,7 +633,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       expect(result.current.isPartOfMultiSelection).toBe(false);
@@ -664,7 +666,7 @@ describe('useMultiDrag', () => {
           viewportHeight: 20,
           onUpdate: mockOnUpdate,
           onMultiDrag: mockOnMultiDrag,
-        })
+        }),
       );
 
       const firstHandleDragStart = result.current.handleDragStart;
@@ -689,7 +691,7 @@ describe('useMultiDrag', () => {
             onUpdate: mockOnUpdate,
             onMultiDrag: mockOnMultiDrag,
           }),
-        { initialProps: { selectedFieldIds: ['field-1'] } }
+        { initialProps: { selectedFieldIds: ['field-1'] } },
       );
 
       const firstHandleDragStop = result.current.handleDragStop;
@@ -702,32 +704,3 @@ describe('useMultiDrag', () => {
     });
   });
 });
-
-// Custom matcher for closeTo
-expect.extend({
-  closeTo(received: number, expected: number, precision = 2) {
-    const pass = Math.abs(received - expected) < Math.pow(10, -precision);
-    if (pass) {
-      return {
-        message: () =>
-          `expected ${received} not to be close to ${expected}`,
-        pass: true,
-      };
-    } else {
-      return {
-        message: () =>
-          `expected ${received} to be close to ${expected} (precision: ${precision})`,
-        pass: false,
-      };
-    }
-  },
-});
-
-declare module 'vitest' {
-  interface Assertion {
-    closeTo(expected: number, precision?: number): void;
-  }
-  interface AsymmetricMatchersContaining {
-    closeTo(expected: number, precision?: number): unknown;
-  }
-}

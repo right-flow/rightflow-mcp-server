@@ -37,7 +37,7 @@ export function validateNumeric(value: string): boolean {
  */
 export function validateLengthMin(
   value: string,
-  params: { min: number }
+  params: { min: number },
 ): boolean {
   if (value === '') return true;
   return value.length >= params.min;
@@ -48,7 +48,7 @@ export function validateLengthMin(
  */
 export function validateLengthBetween(
   value: string,
-  params: { min: number; max: number }
+  params: { min: number; max: number },
 ): boolean {
   if (value === '') return true;
   return value.length >= params.min && value.length <= params.max;
@@ -59,7 +59,7 @@ export function validateLengthBetween(
  */
 export function validateLengthExact(
   value: string,
-  params: { length: number }
+  params: { length: number },
 ): boolean {
   if (value === '') return true;
   return value.length === params.length;
@@ -70,7 +70,7 @@ export function validateLengthExact(
  */
 export function validateRegex(
   value: string,
-  params: { pattern: string }
+  params: { pattern: string },
 ): boolean {
   if (value === '') return true;
   try {
@@ -87,7 +87,7 @@ export function validateRegex(
  */
 export function validateGreaterThan(
   value: string,
-  params: { min: number }
+  params: { min: number },
 ): boolean {
   if (value === '') return true;
   const num = parseFloat(value);
@@ -100,7 +100,7 @@ export function validateGreaterThan(
  */
 export function validateRange(
   value: string,
-  params: { min: number; max: number }
+  params: { min: number; max: number },
 ): boolean {
   if (value === '') return true;
   const num = parseFloat(value);
@@ -154,7 +154,7 @@ export function validateDate(value: string): boolean {
  */
 export function validateAge(
   value: string,
-  params: { min: number; max: number }
+  params: { min: number; max: number },
 ): boolean {
   if (value === '') return true;
 
@@ -196,7 +196,7 @@ export function validateNotInFuture(value: string): boolean {
  */
 export function validateInList(
   value: string,
-  params: { listName: string }
+  params: { listName: string },
 ): boolean {
   if (value === '') return true;
 
@@ -234,7 +234,7 @@ export function validateInList(
 export function validateRequiredChecked(
   _value: string,
   _params?: Record<string, unknown>,
-  element?: HTMLElement
+  element?: HTMLElement,
 ): boolean {
   if (element instanceof HTMLInputElement && element.type === 'checkbox') {
     return element.checked;
@@ -289,7 +289,7 @@ export function runValidator(
   validatorName: string,
   value: string,
   params?: Record<string, unknown>,
-  element?: HTMLElement
+  element?: HTMLElement,
 ): boolean {
   const validator = validators[validatorName];
   if (!validator) {

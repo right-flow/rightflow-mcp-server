@@ -13,7 +13,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByRole('tab', { name: 'Tab 1' })).toHaveAttribute('aria-selected', 'true');
@@ -31,7 +31,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByRole('tab', { name: 'Tab 2' })).toHaveAttribute('aria-selected', 'true');
@@ -50,7 +50,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByText('Content 1')).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       fireEvent.click(screen.getByRole('tab', { name: 'Tab 2' }));
@@ -94,7 +94,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       const disabledTab = screen.getByRole('tab', { name: 'Tab 2' });
@@ -117,7 +117,7 @@ describe('Tabs Component', () => {
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
           <TabsContent value="tab3">Content 3</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByText('Content 2')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('Tabs Component', () => {
           </TabsList>
           <TabsContent value="tab1">Content 1</TabsContent>
           <TabsContent value="tab2">Content 2</TabsContent>
-        </Tabs>
+        </Tabs>,
       );
 
       expect(screen.getByRole('tablist')).toBeInTheDocument();
