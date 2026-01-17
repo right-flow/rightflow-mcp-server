@@ -152,7 +152,7 @@ app.use('/assets', express.static(join(distPath, 'assets'), {
 }));
 
 // PDFs - no caching (always fresh)
-app.get('/*.pdf', (req, res) => {
+app.get(/.*\.pdf$/, (req, res) => {
   res.set('Content-Type', 'application/pdf');
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(join(distPath, req.path));
