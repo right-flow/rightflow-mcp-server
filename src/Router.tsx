@@ -9,6 +9,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { FormViewerPage } from './pages/FormViewerPage';
 import { LandingPage } from './pages/LandingPage';
 import { ResponsesPage } from './pages/ResponsesPage';
+import { ResponsesListPage } from './pages/ResponsesListPage';
 
 const router = createBrowserRouter([
   {
@@ -28,8 +29,12 @@ const router = createBrowserRouter([
     element: <EditorPage />,
   },
   {
-    path: '/form/:slug',
+    path: '/f/:slug',
     element: <FormViewerPage />,
+  },
+  {
+    path: '/responses',
+    element: <ResponsesListPage />,
   },
   {
     path: '/responses/:formId',

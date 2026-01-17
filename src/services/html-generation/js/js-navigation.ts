@@ -364,5 +364,10 @@ export function generateNavigationJs(
     validateCurrentPage: validateCurrentPage,
     goToTab: goToTab
   };
+
+  // Additional modules will be inserted here (signature, date picker, validation)
+  // PLACEHOLDER_FOR_ADDITIONAL_MODULES
+
+})(); // End of main IIFE
 `;
 }

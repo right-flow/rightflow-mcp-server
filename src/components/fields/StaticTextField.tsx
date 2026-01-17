@@ -159,7 +159,7 @@ export const StaticTextField = ({
           'field-marker field-marker-static-text',
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
-          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
+          isHovered && 'field-marker-hovered',
           'group',
         )}
         style={{

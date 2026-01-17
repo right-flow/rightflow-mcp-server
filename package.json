@@ -1,7 +1,7 @@
 {
   "name": "rightflow-hebrew-pdf-filler",
   "private": true,
-  "version": "2.3.2",
+  "version": "2.4.0",
   "description": "Hebrew PDF form creation and filling with native RTL support",
   "author": "RightFlow Contributors",
   "license": "PROPRIETARY",
@@ -45,11 +45,15 @@
     "test:unit": "vitest run --grep",
     "test:integration": "vitest run --grep",
     "test:e2e": "playwright test",
-    "db:migrate": "knex migrate:latest --knexfile knexfile.ts",
-    "db:migrate:make": "knex migrate:make --knexfile knexfile.ts",
-    "db:migrate:rollback": "knex migrate:rollback --knexfile knexfile.ts",
+    "db:migrate": "knex migrate:latest --knexfile knexfile.cjs",
+    "db:migrate:make": "knex migrate:make --knexfile knexfile.cjs",
+    "db:migrate:rollback": "knex migrate:rollback --knexfile knexfile.cjs",
     "db:migrate:production": "npx knex migrate:latest --knexfile knexfile.cjs --env production",
-    "db:seed": "knex seed:run --knexfile knexfile.ts",
+    "db:seed": "knex seed:run --knexfile knexfile.cjs",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:db:reset": "docker-compose down -v && docker-compose up -d && npm run db:migrate",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel"
   },
@@ -70,6 +74,8 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "framer-motion": "^12.26.2",
+    "html5-qrcode": "^2.3.8",
     "jszip": "^3.10.1",
     "knex": "^3.1.0",
     "lucide-react": "^0.344.0",
@@ -114,6 +120,8 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.4.5",
     "vite": "^5.2.8",
-    "vitest": "^2.1.9"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^2.1.9",
+    "workbox-window": "^7.4.0"
   }
 }

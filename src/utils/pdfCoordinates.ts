@@ -40,14 +40,6 @@ export const viewportToPDFCoords = (
   // Flip y-axis: viewport Y from top, PDF Y from bottom
   const pdfY = pageDimensions.height - (viewportY * pixelsToPointsScale);
 
-  console.log('[viewportToPDFCoords] Converting:');
-  console.log(`  Input: viewport (${viewportX.toFixed(2)}, ${viewportY.toFixed(2)}) px`);
-  console.log(`  Page: ${pageDimensions.width.toFixed(2)} x ${pageDimensions.height.toFixed(2)} pts`);
-  console.log(`  Canvas width: ${canvasWidth.toFixed(2)} px`);
-  console.log(`  Scale: ${pixelsToPointsScale.toFixed(4)} pts/px`);
-  console.log(`  Output: PDF (${pdfX.toFixed(2)}, ${pdfY.toFixed(2)}) pts`);
-  console.log(`  (Distance from bottom: ${pdfY.toFixed(2)} pts)`);
-
   return {
     x: pdfX,
     y: pdfY,

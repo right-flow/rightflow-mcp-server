@@ -44,11 +44,26 @@ export function useMultiDrag({
       // Store initial viewport position
       dragStartRef.current = { x: d.x, y: d.y };
     },
-    [],
+    [field.id],
   );
 
   const handleDragStop = useCallback(
     (_e: any, d: { x: number; y: number }) => {
+      // Check if the user actually dragged the field
+      // If dragStartRef is null or the position hasn't changed, this was just a click
+      if (!dragStartRef.current) {
+        return; // Just a click, not a drag
+      }
+
+      const deltaX = Math.abs(d.x - dragStartRef.current.x);
+      const deltaY = Math.abs(d.y - dragStartRef.current.y);
+      const DRAG_THRESHOLD = 1; // pixels
+
+      if (deltaX < DRAG_THRESHOLD && deltaY < DRAG_THRESHOLD) {
+        dragStartRef.current = null;
+        return; // Movement too small, treat as click
+      }
+
       // Compute fresh value inside callback to avoid stale closure
       const isPartOfMultiSelection =
         selectedFieldIds.length > 1 && selectedFieldIds.includes(field.id);
@@ -101,8 +116,13 @@ export function useMultiDrag({
     ],
   );
 
+  const handleDrag = useCallback((_e: any, _d: { x: number; y: number }) => {
+    // Placeholder for potential real-time multi-drag visual feedback
+  }, []);
+
   return {
     handleDragStart,
+    handleDrag,
     handleDragStop,
     isPartOfMultiSelection,
   };

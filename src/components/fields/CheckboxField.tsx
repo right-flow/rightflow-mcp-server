@@ -88,13 +88,12 @@ export const CheckboxField = ({
   return (
     <>
       <Rnd
-        position={{
+        key={`${field.id}-${field.x}-${field.y}-${field.width}-${field.height}`}
+        default={{
           x: viewportTopCoords.x,
-          y: viewportTopCoords.y, // Use TOP-LEFT for Rnd positioning
-        }}
-        size={{
-          width: Math.max(viewportWidth, 24), // Minimum 24px for easier dragging
-          height: Math.max(viewportHeight, 24), // Minimum 24px for easier dragging
+          y: viewportTopCoords.y,
+          width: Math.max(viewportWidth, 24),
+          height: Math.max(viewportHeight, 24),
         }}
         onDragStart={handleDragStart}
         onDragStop={handleDragStop}
@@ -104,7 +103,7 @@ export const CheckboxField = ({
           'field-marker field-marker-checkbox',
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
-          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
+          isHovered && 'field-marker-hovered',
           'group flex items-center justify-center',
         )}
         style={{

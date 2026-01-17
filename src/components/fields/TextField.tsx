@@ -54,7 +54,7 @@ export const TextField = ({
   const viewportHeight = field.height * pointsToPixelsScale;
 
   // Multi-drag support
-  const { handleDragStart, handleDragStop } = useMultiDrag({
+  const { handleDragStart, handleDrag, handleDragStop } = useMultiDrag({
     field,
     selectedFieldIds,
     scale,
@@ -121,17 +121,18 @@ export const TextField = ({
   return (
     <>
       <Rnd
-        position={{
+        key={`${field.id}-${field.x}-${field.y}-${field.width}-${field.height}`}
+        default={{
           x: viewportTopCoords.x,
-          y: viewportTopCoords.y, // Use TOP-LEFT for Rnd positioning
-        }}
-        size={{
+          y: viewportTopCoords.y,
           width: viewportWidth,
           height: viewportHeight,
         }}
         onDragStart={handleDragStart}
+        onDrag={handleDrag}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
+        enableUserSelectHack={false}
         minWidth={25 * scale}
         minHeight={20 * scale}
         bounds="parent"
@@ -139,7 +140,7 @@ export const TextField = ({
           'field-marker field-marker-text',
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
-          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
+          isHovered && 'field-marker-hovered',
           'group',
         )}
         style={{

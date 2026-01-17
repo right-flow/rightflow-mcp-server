@@ -2,7 +2,7 @@
  * Knex Configuration File
  * Database migrations and seeds configuration
  *
- * Aligned with DocsFlow backend patterns
+ * Aligned with RightFlow backend patterns
  */
 
 import type { Knex } from 'knex';

@@ -5,15 +5,26 @@
 
 /**
  * Generates JavaScript for date picker functionality
+ * @param rtl - Whether form is RTL (Hebrew) or LTR (English)
  */
-export function generateDatePickerJs(): string {
+export function generateDatePickerJs(rtl: boolean = true): string {
+  const dateFormat = rtl ? 'DD/MM/YYYY' : 'MM/DD/YYYY';
+  const months = rtl
+    ? ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+    : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const days = rtl
+    ? ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']
+    : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
   return `
   // ========================================
   // Date Picker Functionality
   // ========================================
 
-  const HEBREW_MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-  const HEBREW_DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+  const MONTHS = ${JSON.stringify(months)};
+  const DAYS = ${JSON.stringify(days)};
+  const IS_RTL = ${rtl};
+  const DATE_FORMAT = '${dateFormat}';
 
   const datePickers = [];
   const dateWrappers = form.querySelectorAll('.date-picker-wrapper');
@@ -28,19 +39,21 @@ export function generateDatePickerJs(): string {
     let currentDate = new Date();
     let selectedDate = null;
 
-    // Format date as dd/mm/yyyy
+    // Format date based on locale
     function formatDate(date) {
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const year = date.getFullYear();
-      return day + '/' + month + '/' + year;
+      return IS_RTL ? (day + '/' + month + '/' + year) : (month + '/' + day + '/' + year);
     }
 
-    // Parse dd/mm/yyyy to Date
+    // Parse date based on locale format
+    // RTL (Hebrew): DD/MM/YYYY
+    // LTR (English): MM/DD/YYYY
     // BUG FIX: Added comprehensive date validation
     // Date: 2026-01-04
     // Issue: Function allowed invalid dates (month=0, day=40, negative years)
-    //        causing array out of bounds access for HEBREW_MONTHS[month]
+    //        causing array out of bounds access for MONTHS[month]
     // Fix: Added range validation and actual date validity check
     // Context: Documents/Fixes/date-validation-parsedate-fix.md
     // Prevention: Added unit tests for edge cases
@@ -48,8 +61,8 @@ export function generateDatePickerJs(): string {
       const parts = str.split('/');
       if (parts.length !== 3) return null;
 
-      const day = parseInt(parts[0], 10);
-      const monthInput = parseInt(parts[1], 10);
+      const day = IS_RTL ? parseInt(parts[0], 10) : parseInt(parts[1], 10);
+      const monthInput = IS_RTL ? parseInt(parts[1], 10) : parseInt(parts[0], 10);
       const year = parseInt(parts[2], 10);
 
       // Validate parsing succeeded
@@ -92,7 +105,7 @@ export function generateDatePickerJs(): string {
       // Header
       let html = '<div class="date-picker-header">';
       html += '<button type="button" class="date-picker-nav" data-action="prev">◀</button>';
-      html += '<div class="date-picker-current">' + HEBREW_MONTHS[month] + ' ' + year + '</div>';
+      html += '<div class="date-picker-current">' + MONTHS[month] + ' ' + year + '</div>';
       html += '<button type="button" class="date-picker-nav" data-action="next">▶</button>';
       html += '</div>';
 
@@ -101,7 +114,7 @@ export function generateDatePickerJs(): string {
 
       // Day headers
       for (var i = 0; i < 7; i++) {
-        html += '<div class="date-picker-day-header">' + HEBREW_DAYS[i] + '</div>';
+        html += '<div class="date-picker-day-header">' + DAYS[i] + '</div>';
       }
 
       // Calculate first day of month

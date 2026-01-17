@@ -1,9 +1,29 @@
-import { Upload, Save, ChevronRight, ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, Settings, Download, FolderOpen, Sparkles, FileCode, Globe, History } from 'lucide-react';
+import {
+  Upload,
+  ChevronRight,
+  ChevronLeft,
+  ZoomIn,
+  ZoomOut,
+  Undo,
+  Redo,
+  Settings,
+  Download,
+  Sparkles,
+  Globe,
+  History,
+  Layout,
+  Share2,
+  ChevronDown,
+  Moon,
+  Sun,
+  Languages,
+  Home,
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { version } from '../../../package.json';
 import { useTranslation, useDirection } from '@/i18n';
+import { useAppStore } from '@/store/appStore';
 
 interface TopToolbarProps {
   currentPage: number;
@@ -19,13 +39,8 @@ interface TopToolbarProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
-  onSaveFields?: () => void;
-  onLoadFields?: () => void;
   onExtractFields?: () => void;
   isExtractingFields?: boolean;
-  hasFields?: boolean;
-  onExportHtml?: () => void;
-  isGeneratingHtml?: boolean;
   onPublish?: () => void;
   isPublishing?: boolean;
   formStatus?: 'draft' | 'published' | 'archived';
@@ -46,13 +61,8 @@ export const TopToolbar = ({
   onRedo,
   canUndo = false,
   canRedo = false,
-  onSaveFields,
-  onLoadFields,
   onExtractFields,
   isExtractingFields = false,
-  hasFields = false,
-  onExportHtml,
-  isGeneratingHtml = false,
   onPublish,
   isPublishing = false,
   formStatus = 'draft',
@@ -60,231 +70,173 @@ export const TopToolbar = ({
 }: TopToolbarProps) => {
   const t = useTranslation();
   const direction = useDirection();
+  const navigate = useNavigate();
+  const { theme, toggleTheme, language, setLanguage } = useAppStore();
+  const isDark = theme === 'dark';
   const isRTL = direction === 'rtl';
 
+  const handleGoHome = () => {
+    navigate('/dashboard');
+  };
+
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
+    if (currentPage > 1) onPageChange(currentPage - 1);
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
-    }
+    if (currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
-  const handleZoomIn = () => {
-    onZoomChange(Math.min(zoomLevel + 10, 200));
-  };
+  const handleZoomIn = () => onZoomChange(Math.min(zoomLevel + 10, 200));
+  const handleZoomOut = () => onZoomChange(Math.max(zoomLevel - 10, 50));
 
-  const handleZoomOut = () => {
-    onZoomChange(Math.max(zoomLevel - 10, 50));
-  };
-
-  // Swap chevron icons based on direction
   const PrevIcon = isRTL ? ChevronRight : ChevronLeft;
   const NextIcon = isRTL ? ChevronLeft : ChevronRight;
 
   return (
-    <div
-      className="w-full h-14 bg-toolbar-bg border-b border-border flex items-center px-4 gap-3
-                 shadow-sm"
+    <header
+      className="w-full h-16 glass backdrop-blur-2xl border-b border-border flex items-center px-6 gap-4 z-50 sticky top-0"
       dir={direction}
     >
-      {/* File operations */}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onUpload} className="gap-2">
-          <Upload className="w-4 h-4" />
-          {t.uploadPdf}
-        </Button>
+      {/* Brand & File Info */}
+      <div className="flex items-center gap-4 flex-shrink-0">
+        {/* Home button */}
         <Button
-          variant="outline"
-          size="sm"
-          onClick={onSave}
-          disabled={!hasDocument}
-          className="gap-2"
+          variant="ghost"
+          size="icon"
+          onClick={handleGoHome}
+          className="h-9 w-9 rounded-xl hover:bg-primary/10"
+          title={t.backToDashboard}
         >
-          <Save className="w-4 h-4" />
-          {t.savePdf}
+          <Home className="w-5 h-5" />
         </Button>
-        <Button variant="outline" size="sm" onClick={onSettings} className="gap-2">
-          <Settings className="w-4 h-4" />
-          {t.settings}
-        </Button>
+
+        <div className="flex items-center gap-2 group cursor-pointer" onClick={handleGoHome}>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+            <Layout className="text-white w-5 h-5" />
+          </div>
+          <span className="font-bold hidden md:block">Right<span className="text-primary">Flow</span></span>
+        </div>
+
+        <Separator orientation="vertical" className="h-6 hidden sm:block" />
+
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col">
+            <span className="text-sm font-bold truncate max-w-[150px]">
+              {hasDocument ? t.currentDocument : t.untitledForm}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              {t[formStatus]}
+            </span>
+          </div>
+          <ChevronDown className="w-3 h-3 text-muted-foreground" />
+        </div>
       </div>
 
-      {hasDocument && (
-        <>
-          <Separator orientation="vertical" className="h-8" />
-
-          {/* Field template operations */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSaveFields}
-              disabled={!hasFields}
-              title={t.saveFields}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              {t.saveFields}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onExportHtml}
-              disabled={!hasFields || isGeneratingHtml}
-              title={isGeneratingHtml ? t.generating : t.exportHtml}
-              className="gap-2"
-            >
-              <FileCode className={`w-4 h-4 ${isGeneratingHtml ? 'animate-pulse' : ''}`} />
-              {isGeneratingHtml ? t.generating : t.exportHtml}
-            </Button>
-            {/* Status Badge */}
-            {hasDocument && hasFields && (
-              <Badge
-                variant={formStatus === 'published' ? 'default' : 'outline'}
-                className={`${
-                  formStatus === 'published'
-                    ? 'bg-green-600 hover:bg-green-700 text-white border-green-600'
-                    : formStatus === 'archived'
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
-                    : 'bg-gray-100 text-gray-700 border-gray-300'
-                }`}
-              >
-                {formStatus === 'published' ? '✓ מפורסם' : formStatus === 'archived' ? 'ארכיון' : 'טיוטה'}
-              </Badge>
-            )}
-            <Button
-              variant={formStatus === 'published' ? 'default' : 'outline'}
-              size="sm"
-              onClick={onPublish}
-              disabled={!hasDocument || !hasFields || isPublishing}
-              title={isPublishing ? 'מפרסם...' : formStatus === 'published' ? 'מפורסם' : 'פרסם טופס'}
-              className="gap-2"
-            >
-              <Globe className={`w-4 h-4 ${isPublishing ? 'animate-pulse' : ''}`} />
-              {isPublishing ? 'מפרסם...' : formStatus === 'published' ? 'מפורסם' : 'פרסם טופס'}
-            </Button>
-            {formStatus === 'published' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onViewHistory}
-                disabled={!hasDocument}
-                title="צפה בהיסטוריית גרסאות"
-                className="gap-2"
-              >
-                <History className="w-4 h-4" />
-                היסטוריה
+      <div className="flex-1 flex items-center justify-center gap-4">
+        {/* Navigation & Controls */}
+        {hasDocument && (
+          <div className="glass bg-muted/30 px-3 py-1.5 rounded-2xl flex items-center gap-4 border border-white/10 shadow-sm">
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={onUndo} disabled={!canUndo} title={t.undo}>
+                <Undo className="w-3.5 h-3.5" />
               </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onLoadFields}
-              title={t.loadFields}
-              className="gap-2"
-            >
-              <FolderOpen className="w-4 h-4" />
-              {t.loadFields}
-            </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={onRedo} disabled={!canRedo} title={t.redo}>
+                <Redo className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            <Separator orientation="vertical" className="h-4" />
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handlePreviousPage} disabled={currentPage === 1} title={t.previousPage}>
+                <PrevIcon className="w-3.5 h-3.5" />
+              </Button>
+              <span className="text-xs font-bold min-w-[60px] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleNextPage} disabled={currentPage === totalPages} title={t.nextPage}>
+                <NextIcon className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            <Separator orientation="vertical" className="h-4" />
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleZoomOut} disabled={zoomLevel <= 50} title={t.zoomOut}>
+                <ZoomOut className="w-3.5 h-3.5" />
+              </Button>
+              <span className="text-xs font-bold min-w-[35px] text-center">{zoomLevel}%</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleZoomIn} disabled={zoomLevel >= 200} title={t.zoomIn}>
+                <ZoomIn className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 mr-2">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-xl" title={isDark ? t.lightMode : t.darkMode}>
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+            className="h-9 rounded-xl font-bold text-[10px] uppercase"
+          >
+            <Languages className="w-4 h-4 mr-1.5" />
+            {language}
+          </Button>
+        </div>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        {!hasDocument ? (
+          <Button onClick={onUpload} className="btn-primary py-1.5 px-4 text-sm h-9 flex items-center gap-2 shadow-none ml-2">
+            <Upload className="w-4 h-4" />
+            {t.uploadPdf}
+          </Button>
+        ) : (
+          <>
             <Button
               variant="outline"
               size="sm"
               onClick={onExtractFields}
-              disabled={!hasDocument || isExtractingFields}
-              title={isExtractingFields ? t.detecting : t.autoDetect}
-              className="gap-2"
+              disabled={isExtractingFields}
+              className={`h-9 rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 gap-2 transition-all ${isExtractingFields ? 'animate-pulse' : ''}`}
             >
               <Sparkles className={`w-4 h-4 ${isExtractingFields ? 'animate-spin' : ''}`} />
-              {isExtractingFields ? t.detecting : t.autoDetect}
+              <span className="hidden lg:inline">{isExtractingFields ? t.detecting : t.autoDetect}</span>
             </Button>
-          </div>
 
-          <Separator orientation="vertical" className="h-8" />
+            <Separator orientation="vertical" className="h-6 mx-1" />
 
-          {/* Undo/Redo */}
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onUndo}
-              disabled={!canUndo}
-              title={t.undo}
-            >
-              <Undo className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onRedo}
-              disabled={!canRedo}
-              title={t.redo}
-            >
-              <Redo className="w-4 h-4" />
-            </Button>
-          </div>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={onSettings} className="h-9 w-9 rounded-xl" title={t.settings}>
+                <Settings className="w-5 h-5 text-muted-foreground" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={onViewHistory} className="h-9 w-9 rounded-xl" title={t.viewHistory}>
+                <History className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </div>
 
-          <div className="flex-1" /> {/* Spacer */}
-
-          {/* Navigation */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              title={t.nextPage}
-            >
-              <NextIcon className="w-4 h-4" />
-            </Button>
-            <span className="text-sm min-w-[100px] text-center font-medium">
-              {t.page} {currentPage} {t.of} {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 1}
-              title={t.previousPage}
-            >
-              <PrevIcon className="w-4 h-4" />
-            </Button>
-          </div>
-
-          <Separator orientation="vertical" className="h-8" />
-
-          {/* Zoom controls */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomOut}
-              disabled={zoomLevel <= 50}
-              title={t.zoomOut}
-            >
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <span className="text-sm min-w-12 text-center font-medium">{zoomLevel}%</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleZoomIn}
-              disabled={zoomLevel >= 200}
-              title={t.zoomIn}
-            >
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* Version badge */}
-      {!hasDocument && <div className="flex-1" />}
-      <span className="text-xs text-muted-foreground font-mono">v{version}</span>
-    </div>
+            <div className="flex items-center gap-2 ml-2">
+              <Button variant="outline" size="sm" onClick={onSave} className="h-9 rounded-xl gap-2 font-bold px-4">
+                <Download className="w-4 h-4" />
+                {t.export}
+              </Button>
+              <Button onClick={onPublish} disabled={isPublishing} className="btn-primary h-9 rounded-xl px-5 flex items-center gap-2 shadow-none">
+                {isPublishing ? <Globe className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                {isPublishing ? t.publishing : t.publish}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </header>
   );
 };
+

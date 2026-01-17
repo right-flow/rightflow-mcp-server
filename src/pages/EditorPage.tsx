@@ -3,12 +3,12 @@ import { TopToolbar } from '@/components/layout/TopToolbar';
 import { ToolsBar } from '@/components/layout/ToolsBar';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageThumbnailSidebar } from '@/components/layout/PageThumbnailSidebar';
-import { Header } from '@/components/layout/Header';
 import { PDFViewer } from '@/components/pdf/PDFViewer';
 import { FieldListSidebar } from '@/components/fields/FieldListSidebar';
 import { RecoveryDialog } from '@/components/dialogs/RecoveryDialog';
 import { UploadWarningDialog } from '@/components/dialogs/UploadWarningDialog';
 import { HtmlPreviewDialog } from '@/components/dialogs/HtmlPreviewDialog';
+import { ErrorDialog } from '@/components/dialogs/ErrorDialog';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { PublishDialog } from '@/components/publish/PublishDialog';
 import { VersionHistory } from '@/components/publish/VersionHistory';
@@ -49,6 +49,9 @@ export function EditorPage() {
   const [formStatus, setFormStatus] = useState<'draft' | 'published' | 'archived'>('draft');
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [currentFormId, setCurrentFormId] = useState<string | null>(null);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorDialogTitle, setErrorDialogTitle] = useState('');
+  const [errorDialogErrors, setErrorDialogErrors] = useState<string[]>([]);
 
   // Zustand stores
   const {
@@ -328,7 +331,9 @@ export function EditorPage() {
       // Validate fields before generation
       const errors = validateFieldsForPDF(fieldsWithNames);
       if (errors.length > 0) {
-        alert(`שגיאות בשדות:\n\n${errors.join('\n')}`);
+        setErrorDialogTitle('שגיאות בשדות');
+        setErrorDialogErrors(errors);
+        setErrorDialogOpen(true);
         return;
       }
 
@@ -726,7 +731,7 @@ export function EditorPage() {
       // Step 3: Update state with URLs
       // Construct public URL from form slug
       const baseUrl = window.location.origin;
-      const publicUrl = `${baseUrl}/form/${form.slug}`;
+      const publicUrl = `${baseUrl}/f/${form.slug}`;
 
       setPublishedUrl(publicUrl);
       setShortUrl(form.short_url || null);
@@ -835,9 +840,6 @@ export function EditorPage() {
         style={{ display: 'none' }}
       />
 
-      {/* Header with title and language/theme controls */}
-      <Header />
-
       <TopToolbar
         currentPage={currentPage}
         totalPages={totalPages}
@@ -852,13 +854,8 @@ export function EditorPage() {
         onRedo={redo}
         canUndo={canUndo()}
         canRedo={canRedo()}
-        onSaveFields={handleSaveFields}
-        onLoadFields={handleLoadFields}
         onExtractFields={handleExtractFields}
         isExtractingFields={isExtractingFields}
-        hasFields={fields.length > 0}
-        onExportHtml={handleExportHtml}
-        isGeneratingHtml={isGeneratingHtml}
         onPublish={handlePublish}
         isPublishing={isPublishing}
         formStatus={formStatus}
@@ -905,6 +902,15 @@ export function EditorPage() {
         onRestore={handleRestoreVersion}
       />
 
+      {/* Error Dialog */}
+      <ErrorDialog
+        open={errorDialogOpen}
+        onOpenChange={setErrorDialogOpen}
+        title={errorDialogTitle}
+        errors={errorDialogErrors}
+        description="ניתן להעתיק את השגיאות ולתקן את השדות"
+      />
+
       <MainLayout>
         {pdfFile && totalPages > 0 && (
           <PageThumbnailSidebar
@@ -921,6 +927,7 @@ export function EditorPage() {
           file={pdfFile}
           pageNumber={currentPage}
           scale={zoomLevel}
+          userId={user?.id}
           onLoadSuccess={handlePDFLoadSuccess}
           onLoadError={handlePDFLoadError}
           onPageRender={handlePageRender}

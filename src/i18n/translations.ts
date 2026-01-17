@@ -265,15 +265,88 @@ export interface Translations {
   validators: string;
   validationMultiHint: string;
 
-  // Multi-delete confirmation
-  deleteConfirmTitle: string;
   deleteConfirmMessage: string;
+
+  // Dashboard
+  dashboard: string;
+  backToDashboard: string;
+  overview: string;
+  myForms: string;
+  responses: string;
+  helpCenter: string;
+  noFormsFound: string;
+  createNewForm: string;
+  createFirstForm: string;
+  searchFormsPlaceholder: string;
+  manageFormsDescription: string;
+  freePlan: string;
+  loadingDashboard: string;
+  noResultsFor: string;
+
+  // Additional Toolbar
+  viewHistory: string;
+  publish: string;
+  publishing: string;
+  currentDocument: string;
+  untitledForm: string;
+  draft: string;
+  published: string;
+  archived: string;
+  export: string;
+
+  // Conditional Logic
+  conditionalLogic: string;
+  addRule: string;
+  when: string;
+  equals: string;
+  notEquals: string;
+  contains: string;
+  isEmpty: string;
+  isNotEmpty: string;
+  then: string;
+  show: string;
+  hide: string;
+  require: string;
+  unrequire: string;
+  selectField: string;
+  enterValue: string;
+  and: string;
+  or: string;
+  defaultVisibility: string;
+  visible: string;
+  hidden: string;
+  noRules: string;
+
+  // Offline/PWA
+  online: string;
+  offline: string;
+  syncing: string;
+  pendingItems: string;
+  syncNow: string;
+  syncError: string;
+  lastSynced: string;
+  noConnection: string;
+  connectionRestored: string;
+  itemsWaitingToSync: string;
+
+  // Landing Page
+  heroTitle: string;
+  heroSubtitle: string;
+  getStarted: string;
+  viewDemo: string;
+  featureHebrewTitle: string;
+  featureHebrewDesc: string;
+  featureAiTitle: string;
+  featureAiDesc: string;
+  featureOfflineTitle: string;
+  featureOfflineDesc: string;
+  socialProofTitle: string;
 }
 
 const hebrewTranslations: Translations = {
   // Header
   appTitle: 'RightFlow PDF to HTML Convertor',
-  poweredBy: 'Powered by DocsFlow',
+  poweredBy: 'Powered by RightFlow',
 
   // Toolbar - File operations
   uploadPdf: 'העלה PDF',
@@ -535,15 +608,88 @@ const hebrewTranslations: Translations = {
   validators: 'חוקי אימות',
   validationMultiHint: 'אימות יוחל על כל השדות הנבחרים',
 
-  // Multi-delete confirmation
-  deleteConfirmTitle: 'מחיקת שדות',
   deleteConfirmMessage: 'האם אתה בטוח שברצונך למחוק {count} שדות?',
+
+  // Dashboard
+  dashboard: 'לוח בקרה',
+  backToDashboard: 'חזרה ללוח הבקרה',
+  overview: 'סקירה כללית',
+  myForms: 'הטפסים שלי',
+  responses: 'תגובות',
+  helpCenter: 'מרכז עזרה',
+  noFormsFound: 'לא נמצאו טפסים',
+  createNewForm: 'יצירת טופס חדש',
+  createFirstForm: 'צור את הטופס הראשון שלך',
+  searchFormsPlaceholder: 'חיפוש טפסים...',
+  manageFormsDescription: 'ניהול ומעקב אחר טפסי ה-PDF שלך.',
+  freePlan: 'תוכנית חינמית',
+  loadingDashboard: 'טוען לוח בקרה...',
+  noResultsFor: 'לא נמצאו תוצאות עבור "{query}". נסה חיפוש אחר.',
+
+  // Additional Toolbar
+  viewHistory: 'היסטוריית גרסאות',
+  publish: 'פרסם',
+  publishing: 'מפרסם...',
+  currentDocument: 'מסמך נוכחי',
+  untitledForm: 'טופס ללא שם',
+  draft: 'טיוטה',
+  published: 'מפורסם',
+  archived: 'בארכיון',
+  export: 'ייצוא',
+
+  // Conditional Logic
+  conditionalLogic: 'לוגיקה מותנית',
+  addRule: 'הוסף כלל',
+  when: 'כאשר',
+  equals: 'שווה ל',
+  notEquals: 'לא שווה ל',
+  contains: 'מכיל',
+  isEmpty: 'ריק',
+  isNotEmpty: 'לא ריק',
+  then: 'אז',
+  show: 'הצג',
+  hide: 'הסתר',
+  require: 'חובה',
+  unrequire: 'לא חובה',
+  selectField: 'בחר שדה',
+  enterValue: 'הזן ערך',
+  and: 'וגם',
+  or: 'או',
+  defaultVisibility: 'ברירת מחדל',
+  visible: 'גלוי',
+  hidden: 'מוסתר',
+  noRules: 'אין כללים מוגדרים',
+
+  // Offline/PWA
+  online: 'מחובר',
+  offline: 'לא מחובר',
+  syncing: 'מסנכרן...',
+  pendingItems: 'פריטים בהמתנה',
+  syncNow: 'סנכרן עכשיו',
+  syncError: 'שגיאת סנכרון',
+  lastSynced: 'סונכרן לאחרונה',
+  noConnection: 'אין חיבור לאינטרנט',
+  connectionRestored: 'החיבור שוחזר',
+  itemsWaitingToSync: 'פריטים ממתינים לסנכרון',
+
+  // Landing Page
+  heroTitle: 'הופכים קבצי PDF לתהליכים אינטראקטיביים',
+  heroSubtitle: 'בונה טפסי ה-PDF היחיד עם תמיכה מלאה בעברית, עבודה ללא אינטרנט ודיגיטציה מבוססת AI לצוותי שטח.',
+  getStarted: 'התחל בחינם',
+  viewDemo: 'צפה בדמו',
+  featureHebrewTitle: 'עברית שפת אם',
+  featureHebrewDesc: 'תמיכה מלאה ב-RTL עם רינדור מושלם וטיפול דו-כיווני (Bidi).',
+  featureAiTitle: 'דיגיטציה ב-AI',
+  featureAiDesc: 'הפוך טפסים פיזיים לדיגיטליים בתוך שניות באמצעות מנוע ה-OCR שלנו.',
+  featureOfflineTitle: 'מאובטח ואופליין',
+  featureOfflineDesc: 'איסוף נתונים ללא צורך בחיבור לאינטרנט. מוצפן ומאוחסן בענן ישראלי.',
+  socialProofTitle: 'הבחירה של החברות המובילות בישראל',
 };
 
 const englishTranslations: Translations = {
   // Header
   appTitle: 'RightFlow PDF to HTML Convertor',
-  poweredBy: 'Powered by DocsFlow',
+  poweredBy: 'Powered by RightFlow',
 
   // Toolbar - File operations
   uploadPdf: 'Upload PDF',
@@ -805,9 +951,82 @@ const englishTranslations: Translations = {
   validators: 'Validators',
   validationMultiHint: 'Validation will apply to all selected fields',
 
-  // Multi-delete confirmation
-  deleteConfirmTitle: 'Delete Fields',
   deleteConfirmMessage: 'Are you sure you want to delete {count} fields?',
+
+  // Dashboard
+  dashboard: 'Dashboard',
+  backToDashboard: 'Back to Dashboard',
+  overview: 'Overview',
+  myForms: 'My Forms',
+  responses: 'Responses',
+  helpCenter: 'Help Center',
+  noFormsFound: 'No forms found',
+  createNewForm: 'Create New Form',
+  createFirstForm: 'Create Your First Form',
+  searchFormsPlaceholder: 'Search your forms...',
+  manageFormsDescription: 'Manage and monitor your Hebrew PDF forms.',
+  freePlan: 'Free Plan',
+  loadingDashboard: 'Initializing Dashboard...',
+  noResultsFor: 'No results for "{query}". Try a different search.',
+
+  // Additional Toolbar
+  viewHistory: 'Version History',
+  publish: 'Publish',
+  publishing: 'Publishing...',
+  currentDocument: 'Current Document',
+  untitledForm: 'Untitled Form',
+  draft: 'Draft',
+  published: 'Published',
+  archived: 'Archived',
+  export: 'Export',
+
+  // Conditional Logic
+  conditionalLogic: 'Conditional Logic',
+  addRule: 'Add Rule',
+  when: 'When',
+  equals: 'Equals',
+  notEquals: 'Not Equals',
+  contains: 'Contains',
+  isEmpty: 'Is Empty',
+  isNotEmpty: 'Is Not Empty',
+  then: 'Then',
+  show: 'Show',
+  hide: 'Hide',
+  require: 'Require',
+  unrequire: 'Unrequire',
+  selectField: 'Select Field',
+  enterValue: 'Enter Value',
+  and: 'And',
+  or: 'Or',
+  defaultVisibility: 'Default Visibility',
+  visible: 'Visible',
+  hidden: 'Hidden',
+  noRules: 'No rules defined',
+
+  // Offline/PWA
+  online: 'Online',
+  offline: 'Offline',
+  syncing: 'Syncing...',
+  pendingItems: 'Pending items',
+  syncNow: 'Sync Now',
+  syncError: 'Sync Error',
+  lastSynced: 'Last synced',
+  noConnection: 'No internet connection',
+  connectionRestored: 'Connection restored',
+  itemsWaitingToSync: 'Items waiting to sync',
+
+  // Landing Page
+  heroTitle: 'Transform PDFs into Conversational Flows',
+  heroSubtitle: 'The only PDF form builder with native RTL support, offline-first reliability, and AI-powered digitization for Israeli field sales teams.',
+  getStarted: 'Get Started Free',
+  viewDemo: 'View Demo',
+  featureHebrewTitle: 'Native Hebrew',
+  featureHebrewDesc: 'Full RTL support with perfect rendering and bidirectional text handling.',
+  featureAiTitle: 'AI Digitization',
+  featureAiDesc: 'Turn paper forms into digital interfaces in seconds using our advanced AI engine.',
+  featureOfflineTitle: 'Secure & Offline',
+  featureOfflineDesc: 'Collect data without internet. Fully encrypted and hosted on Israeli cloud.',
+  socialProofTitle: 'Trusted by leading Israeli companies',
 };
 
 const translations: Record<Language, Translations> = {

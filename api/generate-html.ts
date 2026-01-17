@@ -129,7 +129,7 @@ export default async function handler(
     const prompt = `You are an elite frontend developer specializing in accessible, RTL (Hebrew) forms.
 Your task is to generate a professional, COMPLETE standalone HTML5 form document WITH MULTI-PAGE TAB NAVIGATION.
 
-DESIGN REFERENCE (DocsFlow/Phoenix Style):
+DESIGN REFERENCE (RightFlow/Phoenix Style):
 - Colors: Primary accent: ${primaryColor}, Text: #333, Background: #f4f4f4
 - Layout: Modern flex/grid rows, clean sections with colored legends
 - Container: max-width: 900px, white background, subtle shadow, colored top border

@@ -1,7 +1,6 @@
 /**
  * URL Shortener Service
- * Generic service for URL shortening - can be integrated with various providers
- * Currently supports: ROO.bz (to be implemented), TinyURL (fallback)
+ * Uses ROO.bz Israeli URL shortening service
  */
 
 /**
@@ -20,8 +19,7 @@ export interface ShortenResult {
 }
 
 /**
- * ROO.bz Provider (Premium Israeli service)
- * TODO: Implement when API documentation is available
+ * ROO.bz Provider (Israeli URL shortening service)
  */
 export class RooBzProvider implements UrlShortenerProvider {
   name = 'ROO.bz';
@@ -29,8 +27,19 @@ export class RooBzProvider implements UrlShortenerProvider {
   private apiEndpoint: string;
 
   constructor() {
-    this.apiKey = process.env.ROOBZ_API_KEY || '';
-    this.apiEndpoint = process.env.ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
+    // Support both browser (import.meta.env) and Node.js (process.env)
+    // Check if running in Node.js environment
+    const isNode = typeof process !== 'undefined' && process.env;
+
+    if (isNode) {
+      // Server-side (Node.js / API)
+      this.apiKey = process.env.VITE_ROOBZ_API_KEY || '';
+      this.apiEndpoint = process.env.VITE_ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
+    } else {
+      // Client-side (Browser / Vite)
+      this.apiKey = import.meta.env.VITE_ROOBZ_API_KEY || '';
+      this.apiEndpoint = import.meta.env.VITE_ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
+    }
 
     if (!this.apiKey) {
       console.warn('ROO.bz API key not configured. URL shortening will not work.');
@@ -46,8 +55,6 @@ export class RooBzProvider implements UrlShortenerProvider {
     }
 
     try {
-      // TODO: Replace with actual ROO.bz API call when documentation is available
-      // For now, this is a placeholder implementation
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
@@ -63,7 +70,6 @@ export class RooBzProvider implements UrlShortenerProvider {
 
       const data = await response.json();
 
-      // TODO: Adjust based on actual ROO.bz response format
       return {
         success: true,
         shortUrl: data.short_url || data.shortUrl || data.url,
@@ -79,64 +85,18 @@ export class RooBzProvider implements UrlShortenerProvider {
 }
 
 /**
- * TinyURL Provider (Fallback - no API key required)
- * Uses public TinyURL API
- */
-export class TinyUrlProvider implements UrlShortenerProvider {
-  name = 'TinyURL';
-
-  async shorten(url: string): Promise<ShortenResult> {
-    try {
-      const response = await fetch(
-        `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`TinyURL API error: ${response.status}`);
-      }
-
-      const shortUrl = await response.text();
-
-      return {
-        success: true,
-        shortUrl: shortUrl.trim(),
-      };
-    } catch (error) {
-      console.error('TinyURL shortening error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to shorten URL',
-      };
-    }
-  }
-}
-
-/**
  * Main URL Shortener Service
  */
 export class UrlShortenerService {
-  private providers: UrlShortenerProvider[];
-  private primaryProvider: UrlShortenerProvider;
+  private provider: RooBzProvider;
 
   constructor() {
-    // Initialize providers
-    this.providers = [
-      new RooBzProvider(),
-      new TinyUrlProvider(), // Fallback
-    ];
-
-    // Use ROO.bz as primary if configured, otherwise TinyURL
-    const roobzConfigured = !!process.env.ROOBZ_API_KEY;
-    this.primaryProvider = roobzConfigured
-      ? this.providers[0]
-      : this.providers[1];
-
-    console.log(`[URL Shortener] Using provider: ${this.primaryProvider.name}`);
+    this.provider = new RooBzProvider();
+    console.log(`[URL Shortener] Using ROO.bz service`);
   }
 
   /**
-   * Shorten a URL
-   * Tries primary provider first, falls back to alternatives on failure
+   * Shorten a URL using ROO.bz
    */
   async shorten(url: string): Promise<ShortenResult> {
     // Validate URL
@@ -149,32 +109,7 @@ export class UrlShortenerService {
       };
     }
 
-    // Try primary provider
-    const result = await this.primaryProvider.shorten(url);
-    if (result.success) {
-      return result;
-    }
-
-    // Try fallback providers
-    console.warn(
-      `Primary provider (${this.primaryProvider.name}) failed: ${result.error}. Trying fallback...`
-    );
-
-    for (const provider of this.providers) {
-      if (provider === this.primaryProvider) continue;
-
-      const fallbackResult = await provider.shorten(url);
-      if (fallbackResult.success) {
-        console.log(`Fallback provider (${provider.name}) succeeded`);
-        return fallbackResult;
-      }
-    }
-
-    // All providers failed
-    return {
-      success: false,
-      error: 'All URL shortening providers failed',
-    };
+    return this.provider.shorten(url);
   }
 
   /**
@@ -182,7 +117,7 @@ export class UrlShortenerService {
    */
   getPublicFormUrl(slug: string): string {
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
-    return `${appUrl}/form/${slug}`;
+    return `${appUrl}/f/${slug}`;
   }
 
   /**

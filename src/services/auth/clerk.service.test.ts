@@ -121,7 +121,7 @@ describe('ClerkService (Authentication)', () => {
     });
   });
 
-  describe('Multi-Tenant Support (DocsFlow-Ready)', () => {
+  describe('Multi-Tenant Support (RightFlow-Ready)', () => {
     it('creates RightFlow users with correct tenant_type', async () => {
       const webhookData = {
         type: 'user.created',
@@ -138,7 +138,7 @@ describe('ClerkService (Authentication)', () => {
       expect(result.tenantType).toBe('rightflow');
     });
 
-    it('supports DocsFlow tenant type for future integration', async () => {
+    it('supports RightFlow tenant type for future integration', async () => {
       const webhookData = {
         type: 'user.created',
         data: {

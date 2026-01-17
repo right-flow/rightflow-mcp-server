@@ -18,7 +18,7 @@ import {
   detectFormDirection,
   groupFieldsIntoRows,
 } from './field-mapper';
-import { generateDocsFlowCSS, generateFormJS } from './html-generator-css';
+import { generateRightFlowCSS, generateFormJS } from './html-generator-css';
 import {
   sanitizeHexColor,
   sanitizeFontSize,
@@ -278,14 +278,16 @@ function generateInputHtml(field: HtmlFormField): string {
       return `<input type="tel" class="form-control" ${baseAttrs}>`;
 
     case 'date': {
-      // Get date format from validators or use default
-      const dateFormat = 'dd/mm/yyyy';
-      const formatHint = field.direction === 'rtl' ? `פורמט: ${dateFormat}` : `Format: ${dateFormat}`;
+      // Get date format based on direction: DD/MM/YYYY for RTL, MM/DD/YYYY for LTR
+      const isRtl = field.direction === 'rtl';
+      const dateFormat = isRtl ? 'DD/MM/YYYY' : 'MM/DD/YYYY';
+      const formatHint = isRtl ? `פורמט: ${dateFormat}` : `Format: ${dateFormat}`;
+      const placeholder = isRtl ? 'יום/חודש/שנה' : 'Month/Day/Year';
       return `
         <div class="date-picker-wrapper" data-field-id="${escapeHtml(field.id)}">
           <input type="text" class="form-control date-input" ${baseAttrs}
-                 placeholder="${dateFormat}" pattern="\\d{2}/\\d{2}/\\d{4}">
-          <button type="button" class="date-picker-btn" aria-label="${field.direction === 'rtl' ? 'בחר תאריך' : 'Select date'}">📅</button>
+                 placeholder="${placeholder}" pattern="\\d{2}/\\d{2}/\\d{4}">
+          <button type="button" class="date-picker-btn" aria-label="${isRtl ? 'בחר תאריך' : 'Select date'}">📅</button>
           <div class="date-picker-calendar" style="display: none;"></div>
         </div>
         <div class="field-format-hint">${escapeHtml(formatHint)}</div>`;
@@ -518,7 +520,7 @@ export async function generateHtmlFormTemplate(
   const totalPages = pageNumbers.length || 1;
 
   // Generate CSS and JS with page count (including welcome page)
-  const cssContent = generateDocsFlowCSS(finalOptions.rtl, finalOptions.theme);
+  const cssContent = generateRightFlowCSS(finalOptions.rtl, finalOptions.theme);
   const jsContent = generateFormJS(formId, finalOptions.rtl, totalPages, includeWelcome, finalOptions.userRole || 'client');
 
   // Build HTML document

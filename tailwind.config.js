@@ -58,6 +58,8 @@ export default {
         'sidebar-bg': "hsl(var(--sidebar-bg))",
         'toolbar-bg': "hsl(var(--toolbar-bg))",
         'canvas-bg': "hsl(var(--canvas-bg))",
+        'highlight-orange': "hsl(var(--highlight-orange))",
+        'highlight-blue': "hsl(var(--highlight-blue))",
       },
       borderRadius: {
         lg: "var(--radius)",

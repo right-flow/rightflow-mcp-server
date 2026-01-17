@@ -119,7 +119,7 @@ describe('PremiumFeaturesService', () => {
     it('filters by tenant_type', async () => {
       const planInfo = await service.getUserPlan(testUserId);
 
-      // Should work for both RightFlow and DocsFlow users
+      // Should work for both RightFlow and future multi-tenant users
       if (planInfo) {
         expect(['rightflow', 'docsflow']).toContain(planInfo.tenant_type || 'rightflow');
       }

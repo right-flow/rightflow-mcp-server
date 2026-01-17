@@ -2,7 +2,7 @@
  * Clerk Authentication Service (Phase 0)
  * Handles user authentication and webhook events from Clerk
  *
- * DocsFlow-ready: Supports multi-tenant architecture
+ * RightFlow-ready: Supports multi-tenant architecture
  */
 
 import { getDb } from '../../lib/db';

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { X, Plus, Trash2, PenTool, Shield, ChevronDown } from 'lucide-react';
+import { X, Plus, Trash2, PenTool, Shield, ChevronDown, GitBranch } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,8 @@ import { FieldDefinition } from '@/types/fields';
 import { cn } from '@/utils/cn';
 import { sanitizeUserInput, validateFieldName, sanitizeFontSize } from '@/utils/inputSanitization';
 import { SignatureModal } from './SignatureModal';
+import { ConditionalRulesPanel } from './ConditionalRulesPanel';
+import { DataSourceSelector } from './DataSourceSelector';
 import { useTranslation, useDirection } from '@/i18n';
 import {
   detectFieldType,
@@ -18,12 +20,16 @@ import {
 
 interface FieldPropertiesPanelProps {
   field: FieldDefinition;
+  allFields?: FieldDefinition[]; // All fields for conditional logic source selection
+  userId?: string; // User ID for data source management
   onUpdate: (updates: Partial<FieldDefinition>) => void;
   onClose: () => void;
 }
 
 export const FieldPropertiesPanel = ({
   field,
+  allFields = [],
+  userId,
   onUpdate,
   onClose,
 }: FieldPropertiesPanelProps) => {
@@ -33,6 +39,7 @@ export const FieldPropertiesPanel = ({
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [isValidationExpanded, setIsValidationExpanded] = useState(false);
+  const [isConditionalExpanded, setIsConditionalExpanded] = useState(false);
 
   // Get available field types for this field type
   const availableFieldTypes = useMemo(
@@ -326,6 +333,46 @@ export const FieldPropertiesPanel = ({
           </div>
         )}
 
+        {/* Conditional Logic Section */}
+        {allFields.length > 1 && (
+          <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border">
+            <button
+              type="button"
+              onClick={() => setIsConditionalExpanded(!isConditionalExpanded)}
+              className="flex items-center justify-between w-full text-sm font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <GitBranch className="w-4 h-4 text-primary" />
+                <span>{t.conditionalLogic}</span>
+                {field.conditionalRules && field.conditionalRules.length > 0 && (
+                  <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">
+                    {field.conditionalRules.length}
+                  </span>
+                )}
+              </div>
+              <ChevronDown
+                className={cn(
+                  'w-4 h-4 transition-transform',
+                  isConditionalExpanded && 'rotate-180',
+                )}
+              />
+            </button>
+
+            {isConditionalExpanded && (
+              <ConditionalRulesPanel
+                fieldId={field.id}
+                allFields={allFields}
+                currentRules={field.conditionalRules || []}
+                defaultVisibility={field.defaultVisibility || 'visible'}
+                onRulesChange={(rules) => onUpdate({ conditionalRules: rules })}
+                onDefaultVisibilityChange={(visibility) =>
+                  onUpdate({ defaultVisibility: visibility })
+                }
+              />
+            )}
+          </div>
+        )}
+
         {/* Field Index (Read-only) */}
         {field.index !== undefined && (
           <div className="space-y-2">
@@ -493,23 +540,39 @@ export const FieldPropertiesPanel = ({
 
         {/* Dropdown Options (dropdown fields only) */}
         {field.type === 'dropdown' && (
-          <div className="space-y-2">
-            <Label htmlFor="field-options">{t.options}</Label>
-            <textarea
-              id="field-options"
-              value={field.options?.join('\n') || ''}
-              onChange={(e) => {
-                const options = e.target.value.split('\n').map(opt => sanitizeUserInput(opt)).filter(opt => opt.length > 0);
-                onUpdate({ options });
-              }}
-              placeholder="Option 1&#10;Option 2&#10;Option 3"
-              dir={direction}
-              rows={5}
-              className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm resize-none"
-            />
-            <p className="text-xs text-muted-foreground">
-              {t.dropdownOptionsHint}
-            </p>
+          <div className="space-y-4">
+            {/* Dynamic Data Source Selector (if userId available) */}
+            {userId && (
+              <DataSourceSelector
+                value={field.dataSourceId}
+                onChange={(dataSourceId) => {
+                  onUpdate({ dataSourceId });
+                }}
+                userId={userId}
+              />
+            )}
+
+            {/* Static Options (shown when no data source selected or userId not available) */}
+            {(!field.dataSourceId || !userId) && (
+              <div className="space-y-2">
+                <Label htmlFor="field-options">{t.options}</Label>
+                <textarea
+                  id="field-options"
+                  value={field.options?.join('\n') || ''}
+                  onChange={(e) => {
+                    const options = e.target.value.split('\n').map(opt => sanitizeUserInput(opt)).filter(opt => opt.length > 0);
+                    onUpdate({ options });
+                  }}
+                  placeholder="Option 1&#10;Option 2&#10;Option 3"
+                  dir={direction}
+                  rows={5}
+                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t.dropdownOptionsHint}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

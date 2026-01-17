@@ -2,9 +2,39 @@
  * Field type definitions for PDF form fields
  */
 
-export type FieldType = 'text' | 'checkbox' | 'radio' | 'dropdown' | 'signature' | 'static-text';
+import type { ConditionalRule, FieldVisibility } from '@/services/conditional/conditional-types';
 
-export type ToolMode = 'select' | 'text-field' | 'checkbox-field' | 'radio-field' | 'dropdown-field' | 'signature-field' | 'static-text-field';
+export type FieldType =
+  | 'text'
+  | 'checkbox'
+  | 'radio'
+  | 'dropdown'
+  | 'signature'
+  | 'static-text'
+  // Mobile-specific field types
+  | 'qr-scan'       // QR code scanner
+  | 'barcode-scan'  // Barcode scanner
+  | 'camera'        // Photo capture
+  | 'gps-location'  // GPS coordinates
+  | 'file-upload';  // File upload
+
+// Re-export conditional types for convenience
+export type { ConditionalRule, FieldVisibility };
+
+export type ToolMode =
+  | 'select'
+  | 'text-field'
+  | 'checkbox-field'
+  | 'radio-field'
+  | 'dropdown-field'
+  | 'signature-field'
+  | 'static-text-field'
+  // Mobile-specific tool modes
+  | 'qr-scan-field'
+  | 'barcode-scan-field'
+  | 'camera-field'
+  | 'gps-location-field'
+  | 'file-upload-field';
 
 /**
  * Validator configuration for field validation
@@ -41,7 +71,8 @@ export interface FieldDefinition {
   fontSize?: number;
 
   // Radio and dropdown specific
-  options?: string[]; // For dropdown and radio fields - array of option labels
+  options?: string[]; // For dropdown and radio fields - array of option labels (static)
+  dataSourceId?: string; // For dropdown fields - dynamic data source ID (replaces static options)
   radioGroup?: string; // For radio buttons - group name (radio only)
   spacing?: number; // Spacing between radio buttons (radio only) - legacy field
   orientation?: 'vertical' | 'horizontal'; // Radio button layout direction (radio only)
@@ -62,12 +93,31 @@ export interface FieldDefinition {
   borderColor?: string; // Border color (static-text only)
   borderWidth?: number; // Border width in pixels (static-text only)
 
+  // Mobile field specific properties
+  scannedData?: string; // Scanned QR code or barcode data (qr-scan, barcode-scan only)
+  capturedImage?: string; // Base64 encoded captured image (camera only)
+  captureTimestamp?: string; // ISO timestamp when photo was captured (camera only)
+  latitude?: number; // GPS latitude (gps-location only)
+  longitude?: number; // GPS longitude (gps-location only)
+  accuracy?: number; // GPS accuracy in meters (gps-location only)
+  locationTimestamp?: string; // ISO timestamp when location was captured (gps-location only)
+  uploadedFile?: string; // Base64 encoded file data (file-upload only)
+  fileName?: string; // Original file name (file-upload only)
+  fileType?: string; // MIME type (file-upload only)
+  fileSize?: number; // File size in bytes (file-upload only)
+  maxFileSize?: number; // Maximum file size in MB (file-upload only)
+  acceptedFileTypes?: string[]; // Accepted MIME types (file-upload only)
+
   // Validation
   validationType?: string; // Field type ID from validation rules (e.g., "identity.israeli_id")
   validation?: {
     enabled: boolean;              // Whether validation is active for this field
     validators?: ValidatorConfig[]; // Array of validators to apply
   };
+
+  // Conditional logic
+  conditionalRules?: ConditionalRule[]; // Rules for showing/hiding/requiring this field
+  defaultVisibility?: FieldVisibility;   // Default visibility state ('visible' or 'hidden')
 }
 
 export interface TemplateDefinition {

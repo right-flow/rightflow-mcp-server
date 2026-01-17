@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { generateDocsFlowCSS, generateFormJS } from './html-generator-css';
+import { generateRightFlowCSS, generateFormJS } from './html-generator-css';
 
 describe('html-generator-css', () => {
-  describe('generateDocsFlowCSS', () => {
+  describe('generateRightFlowCSS', () => {
     const defaultTheme = {
       primaryColor: '#003399',
       fontFamily: "'Segoe UI', Tahoma, sans-serif",
@@ -11,7 +11,7 @@ describe('html-generator-css', () => {
     };
 
     it('should generate valid CSS', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain(':root');
       expect(css).toContain('body');
@@ -19,19 +19,19 @@ describe('html-generator-css', () => {
     });
 
     it('should set RTL direction when rtl is true', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('direction: rtl');
     });
 
     it('should set LTR direction when rtl is false', () => {
-      const css = generateDocsFlowCSS(false, defaultTheme);
+      const css = generateRightFlowCSS(false, defaultTheme);
 
       expect(css).toContain('direction: ltr');
     });
 
     it('should include the primary color', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         primaryColor: '#ff5500',
       });
@@ -40,7 +40,7 @@ describe('html-generator-css', () => {
     });
 
     it('should include the font family', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         fontFamily: 'Arial, sans-serif',
       });
@@ -49,7 +49,7 @@ describe('html-generator-css', () => {
     });
 
     it('should apply compact spacing', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         spacing: 'compact',
       });
@@ -59,7 +59,7 @@ describe('html-generator-css', () => {
     });
 
     it('should apply spacious spacing', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         spacing: 'spacious',
       });
@@ -69,7 +69,7 @@ describe('html-generator-css', () => {
     });
 
     it('should apply modern style with rounded corners', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         style: 'modern',
       });
@@ -79,7 +79,7 @@ describe('html-generator-css', () => {
     });
 
     it('should apply classic style with no rounded corners', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         style: 'classic',
       });
@@ -88,7 +88,7 @@ describe('html-generator-css', () => {
     });
 
     it('should apply minimal style', () => {
-      const css = generateDocsFlowCSS(true, {
+      const css = generateRightFlowCSS(true, {
         ...defaultTheme,
         style: 'minimal',
       });
@@ -97,20 +97,20 @@ describe('html-generator-css', () => {
     });
 
     it('should include responsive media queries', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('@media (max-width: 768px)');
       expect(css).toContain('@media (max-width: 480px)');
     });
 
     it('should include print styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('@media print');
     });
 
     it('should include form element styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('input[type="text"]');
       expect(css).toContain('select');
@@ -120,27 +120,27 @@ describe('html-generator-css', () => {
     });
 
     it('should include checkbox and radio styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.checkbox-item');
       expect(css).toContain('.radio-group');
     });
 
     it('should include submit button styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('button[type="submit"]');
       expect(css).toContain('.btn-submit');
     });
 
     it('should include signature box styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.signature-box');
     });
 
     it('should include signature pad container styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.signature-pad-container');
       expect(css).toContain('.signature-canvas');
@@ -149,7 +149,7 @@ describe('html-generator-css', () => {
     });
 
     it('should include signature canvas interaction styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.signature-canvas.signing');
       expect(css).toContain('.signature-canvas.has-signature');
@@ -157,7 +157,7 @@ describe('html-generator-css', () => {
     });
 
     it('should include welcome page styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.welcome-page');
       expect(css).toContain('.welcome-section-title');
@@ -168,27 +168,27 @@ describe('html-generator-css', () => {
     });
 
     it('should apply RTL border for welcome elements when rtl is true', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('border-right');
       expect(css).toContain('padding-right');
     });
 
     it('should apply LTR border for welcome elements when rtl is false', () => {
-      const css = generateDocsFlowCSS(false, defaultTheme);
+      const css = generateRightFlowCSS(false, defaultTheme);
 
       expect(css).toContain('border-left');
       expect(css).toContain('padding-left');
     });
 
     it('should include validation styles', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain('.field-validation');
     });
 
     it('should include focus states', () => {
-      const css = generateDocsFlowCSS(true, defaultTheme);
+      const css = generateRightFlowCSS(true, defaultTheme);
 
       expect(css).toContain(':focus');
       expect(css).toContain('outline');
@@ -394,8 +394,12 @@ describe('html-generator-css', () => {
     // Date validation tests (parseDate function)
     describe('date validation in parseDate function', () => {
       // Helper to extract and test parseDate function
-      const testParseDate = (dateString: string): Date | null => {
-        const js = generateFormJS('myForm', true);
+      const testParseDate = (dateString: string, rtl: boolean = true): Date | null => {
+        const js = generateFormJS('myForm', rtl);
+
+        // Extract IS_RTL constant
+        const isRtlMatch = js.match(/const IS_RTL = (true|false);/);
+        const isRtlValue = isRtlMatch ? isRtlMatch[1] : 'true';
 
         // Extract parseDate function from generated JS
         const parseDateMatch = js.match(/function parseDate\(str\) \{[\s\S]*?\n {4}\}/);
@@ -403,8 +407,9 @@ describe('html-generator-css', () => {
           throw new Error('parseDate function not found in generated JS');
         }
 
-        // Create a safe eval context with the function
+        // Create a safe eval context with the function and required constants
         const testCode = `
+          const IS_RTL = ${isRtlValue};
           ${parseDateMatch[0]}
           return parseDate('${dateString}');
         `;

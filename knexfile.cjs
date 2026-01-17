@@ -2,7 +2,7 @@
  * Knex Configuration File (JavaScript version for migrations)
  * Database migrations and seeds configuration
  *
- * Aligned with DocsFlow backend patterns
+ * Aligned with RightFlow backend patterns
  */
 
 require('dotenv').config();

@@ -82,10 +82,10 @@ describe('Database Connection (Railway PostgreSQL)', () => {
     expect(typeof db.raw).toBe('function');
   });
 
-  it('supports DocsFlow multi-tenant queries', async () => {
+  it('supports RightFlow multi-tenant queries', async () => {
     const db = getDb();
 
-    // Future-proofing for DocsFlow integration
+    // Future-proofing for RightFlow integration
     // Should be able to filter by tenant_type
     const query = db('users').where({ tenant_type: 'rightflow' });
 

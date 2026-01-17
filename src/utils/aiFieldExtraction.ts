@@ -306,6 +306,33 @@ export async function extractFieldsWithAI(
 
   onProgress?.(`עיבוד ${allFields.length} שדות שזוהו...`);
 
+  // Define minimum dimensions for fields (in PDF points)
+  const MIN_DIMENSIONS = {
+    text: { width: 20, height: 10 },
+    checkbox: { width: 8, height: 8 },
+    radio: { width: 8, height: 8 },
+    dropdown: { width: 30, height: 12 },
+    signature: { width: 40, height: 20 },
+  };
+
+  // Filter out fields that are too small (likely detection errors)
+  const beforeFilterCount = allFields.length;
+  allFields = allFields.filter((f) => {
+    const minDims = MIN_DIMENSIONS[f.type as keyof typeof MIN_DIMENSIONS];
+    if (!minDims) return true; // Unknown type, keep it
+
+    const isValid = f.width >= minDims.width && f.height >= minDims.height;
+    if (!isValid) {
+      console.warn(`[AI Validation] Filtered out ${f.type} field "${f.name || f.label}" - too small (${f.width.toFixed(1)}×${f.height.toFixed(1)}pt, min: ${minDims.width}×${minDims.height}pt)`);
+    }
+    return isValid;
+  });
+
+  const filteredCount = beforeFilterCount - allFields.length;
+  if (filteredCount > 0) {
+    console.log(`[AI Validation] Filtered out ${filteredCount} invalid fields (too small dimensions)`);
+  }
+
   // Log radio fields before conversion for debugging
   const radioFieldsBeforeConvert = allFields.filter(f => f.type === 'radio');
   if (radioFieldsBeforeConvert.length > 0) {
@@ -449,6 +476,33 @@ export async function reprocessSinglePage(
   }
 
   onProgress?.(`עיבוד ${result.fields.length} שדות מעמוד ${pageNumber}...`);
+
+  // Define minimum dimensions for fields (in PDF points)
+  const MIN_DIMENSIONS = {
+    text: { width: 20, height: 10 },
+    checkbox: { width: 8, height: 8 },
+    radio: { width: 8, height: 8 },
+    dropdown: { width: 30, height: 12 },
+    signature: { width: 40, height: 20 },
+  };
+
+  // Filter out fields that are too small (likely detection errors)
+  const beforeFilterCount = result.fields.length;
+  result.fields = result.fields.filter((f) => {
+    const minDims = MIN_DIMENSIONS[f.type as keyof typeof MIN_DIMENSIONS];
+    if (!minDims) return true; // Unknown type, keep it
+
+    const isValid = f.width >= minDims.width && f.height >= minDims.height;
+    if (!isValid) {
+      console.warn(`[Reprocess Validation] Filtered out ${f.type} field "${f.name || f.label}" - too small (${f.width.toFixed(1)}×${f.height.toFixed(1)}pt, min: ${minDims.width}×${minDims.height}pt)`);
+    }
+    return isValid;
+  });
+
+  const filteredCount = beforeFilterCount - result.fields.length;
+  if (filteredCount > 0) {
+    console.log(`[Reprocess Validation] Filtered out ${filteredCount} invalid fields from page ${pageNumber}`);
+  }
 
   // Convert to FieldDefinition[]
   const fields: FieldDefinition[] = result.fields.map(

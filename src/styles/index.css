@@ -1,89 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 33% 98%;
+    --foreground: 224 71% 4%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71% 4%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 224 71% 4%;
 
-    /* Field marker colors */
-    --field-text: 217.2 91.2% 59.8%;
-    --field-checkbox: 142.1 76.2% 36.3%;
-    --field-radio: 262.1 83.3% 57.8%;
-    --field-dropdown: 24.6 95% 53.1%;
-    --signature-border: 280 100% 60%;
-    --signature-bg: 280 100% 60%;
-    --field-selected: 24.6 95% 53.1%;
-    --field-hover: 262.1 83.3% 57.8%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 20% 98%;
 
-    /* Station-based colors */
-    --field-station-client: 217.2 91.2% 59.8%; /* Blue for client */
-    --field-station-agent: 24.6 95% 53.1%; /* Orange for agent */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
 
-    /* Layout colors */
-    --sidebar-bg: 210 40% 98%;
-    --toolbar-bg: 0 0% 100%;
-    --canvas-bg: 220 14.3% 95.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.75rem;
+
+    /* Highlight colors for forms */
+    --highlight-orange: 24 95% 53%;
+    --highlight-blue: 217 91% 60%;
+
+    --sidebar-bg: 220 33% 98%;
+    --canvas-bg: 220 14% 94%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
 
-    /* Field marker colors - slightly brighter for dark mode */
-    --field-text: 217.2 91.2% 69.8%;
-    --field-checkbox: 142.1 76.2% 46.3%;
-    --field-radio: 262.1 83.3% 67.8%;
-    --field-dropdown: 24.6 95% 63.1%;
-    --signature-border: 280 100% 70%;
-    --signature-bg: 280 100% 70%;
-    --field-selected: 24.6 95% 63.1%;
-    --field-hover: 262.1 83.3% 67.8%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
 
-    /* Station-based colors - brighter for dark mode */
-    --field-station-client: 217.2 91.2% 69.8%; /* Blue for client */
-    --field-station-agent: 24.6 95% 63.1%; /* Orange for agent */
+    --popover: 224 71% 4%;
+    --popover-foreground: 213 31% 91%;
 
-    /* Layout colors - dark variants */
-    --sidebar-bg: 222.2 47.4% 8.2%;
-    --toolbar-bg: 222.2 47.4% 6.2%;
-    --canvas-bg: 222.2 47.4% 11.2%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 243 75% 59%;
+
+    --sidebar-bg: 224 71% 2%;
+    --canvas-bg: 224 71% 6%;
   }
 }
 
@@ -91,59 +82,150 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
   }
 }
 
-/* PDF canvas specific styles */
-.pdf-viewer-container {
-  @apply relative overflow-auto;
-  background: hsl(var(--canvas-bg));
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .glass-card {
+    @apply glass shadow-xl rounded-2xl transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-white/40 dark:bg-black/20 backdrop-blur-3xl border-r border-white/10 dark:border-white/5;
+  }
+
+  .glass-border {
+    @apply border border-white/20 dark:border-white/10;
+  }
+
+  .premium-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .premium-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 rounded-xl px-6 py-2.5 font-bold transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply glass hover:bg-white/80 dark:hover:bg-white/10 rounded-xl px-6 py-2.5 font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-highlight-blue font-bold;
+  }
+
+  .input-premium {
+    @apply bg-white/50 dark:bg-black/20 border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-2 transition-all outline-none;
+  }
 }
 
-.pdf-page {
-  @apply shadow-lg mx-auto my-4 bg-white;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Field marker styles */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+}
+
+/* Layout Specifics */
+.forms-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+.dashboard-grid {
+  @apply grid min-h-screen;
+  grid-template-columns: 260px 1fr;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animations */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+/* Field Markers - PDF Canvas Fields */
+:root {
+  --field-station-agent: 217 91% 60%; /* Blue for agent fields */
+  --field-station-client: 24 95% 53%; /* Orange for client fields */
+  --field-text: 220 9% 46%;
+  --field-checkbox: 142 71% 45%;
+  --field-radio: 262 83% 58%;
+  --field-dropdown: 199 89% 48%;
+  --signature-bg: 220 14% 96%;
+}
+
+.dark {
+  --field-station-agent: 217 91% 65%;
+  --field-station-client: 24 95% 58%;
+  --field-text: 220 9% 70%;
+  --field-checkbox: 142 71% 50%;
+  --field-radio: 262 83% 65%;
+  --field-dropdown: 199 89% 55%;
+  --signature-bg: 215 28% 17%;
+}
+
 .field-marker {
-  @apply absolute border-2 rounded cursor-move transition-colors;
-}
-
-.field-marker-text {
-  @apply border-[hsl(var(--field-text))] bg-[hsl(var(--field-text))]/5;
-}
-
-.field-marker-checkbox {
-  @apply border-[hsl(var(--field-checkbox))] bg-[hsl(var(--field-checkbox))]/5;
-}
-
-.field-marker-radio {
-  @apply border-[hsl(var(--field-radio))] bg-[hsl(var(--field-radio))]/5;
-}
-
-.field-marker-dropdown {
-  @apply border-[hsl(var(--field-dropdown))] bg-[hsl(var(--field-dropdown))]/5;
-}
-
-.field-marker-signature {
-  @apply border-[hsl(var(--signature-border))] bg-[hsl(var(--signature-bg))]/5;
-}
-
-/* Station-based field marker styles */
-.field-marker-station-client {
-  @apply border-[hsl(var(--field-station-client))] bg-[hsl(var(--field-station-client))]/5;
+  @apply rounded-sm transition-all duration-150;
+  border: 1.5px solid transparent;
 }
 
 .field-marker-station-agent {
-  @apply border-[hsl(var(--field-station-agent))] bg-[hsl(var(--field-station-agent))]/5;
+  border-color: hsl(var(--field-station-agent) / 0.6);
+  background-color: hsl(var(--field-station-agent) / 0.08);
+}
+
+.field-marker-station-client {
+  border-color: hsl(var(--field-station-client) / 0.6);
+  background-color: hsl(var(--field-station-client) / 0.08);
 }
 
 .field-marker-selected {
-  @apply border-[hsl(var(--field-selected))] bg-[hsl(var(--field-selected))]/10;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }
 
-.field-marker:hover {
-  @apply border-[hsl(var(--field-hover))];
+.field-marker-station-agent.field-marker-selected {
+  border-color: hsl(var(--field-station-agent));
+}
+
+.field-marker-station-client.field-marker-selected {
+  border-color: hsl(var(--field-station-client));
+}
+
+.field-marker:hover,
+.field-marker-hovered {
+  border-color: hsl(var(--primary) / 0.8);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
 }

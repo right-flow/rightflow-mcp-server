@@ -71,7 +71,7 @@ describe('FormsService (Form CRUD)', () => {
       expect(result.error).toContain('title');
     });
 
-    it('supports DocsFlow stations field', async () => {
+    it('supports RightFlow stations field', async () => {
       const formData = {
         userId: testUserId,
         title: 'Form with Stations',

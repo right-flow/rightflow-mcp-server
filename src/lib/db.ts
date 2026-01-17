@@ -2,7 +2,7 @@
  * Database Connection Module (Phase 0)
  * Railway PostgreSQL connection using Knex.js
  *
- * Aligned with DocsFlow backend architecture for future integration
+ * Aligned with RightFlow backend architecture for future integration
  */
 
 import knex, { Knex } from 'knex';
@@ -98,7 +98,7 @@ export async function rollbackMigrations(): Promise<void> {
 
 /**
  * Helper to filter queries by tenant type
- * DocsFlow-ready: supports multi-tenant architecture
+ * RightFlow-ready: supports multi-tenant architecture
  *
  * @param table - Table name
  * @param tenantType - 'rightflow' | 'docsflow'
@@ -112,3 +112,8 @@ export function getTenantQuery(table: string, tenantType: 'rightflow' | 'docsflo
  * Export the database instance type for use in other modules
  */
 export type Database = Knex;
+
+/**
+ * Default export for convenience in tests and direct usage
+ */
+export default getDb();

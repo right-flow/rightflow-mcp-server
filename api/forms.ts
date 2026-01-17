@@ -32,14 +32,21 @@ export default async function handler(
   }
 
   try {
-    // Authenticate user
-    const userId = await getUserFromAuth(req);
+    // Check if it's a public GET request with a slug
+    const { slug } = req.query;
+    const isPublicGet = req.method === 'GET' && slug && typeof slug === 'string';
 
-    if (!userId) {
-      return res.status(401).json({
-        error: 'Unauthorized',
-        message: 'Valid authentication required',
-      });
+    // Authenticate user if not a public GET
+    let userId: string | null = null;
+    if (!isPublicGet) {
+      userId = await getUserFromAuth(req);
+
+      if (!userId) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'Valid authentication required',
+        });
+      }
     }
 
     // Route based on HTTP method
@@ -48,13 +55,13 @@ export default async function handler(
         return await handleGetForms(req, res, userId);
 
       case 'POST':
-        return await handleCreateForm(req, res, userId);
+        return await handleCreateForm(req, res, userId as string);
 
       case 'PUT':
-        return await handleUpdateForm(req, res, userId);
+        return await handleUpdateForm(req, res, userId as string);
 
       case 'DELETE':
-        return await handleDeleteForm(req, res, userId);
+        return await handleDeleteForm(req, res, userId as string);
 
       default:
         return res.status(405).json({
@@ -78,7 +85,7 @@ export default async function handler(
 async function handleGetForms(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  userId: string | null,
 ) {
   const { id, slug } = req.query;
 
@@ -94,7 +101,7 @@ async function handleGetForms(
     }
 
     // Check ownership
-    if (form.user_id !== userId) {
+    if (!userId || form.user_id !== userId) {
       return res.status(403).json({
         error: 'Forbidden',
         message: 'You do not have access to this form',
@@ -119,6 +126,9 @@ async function handleGetForms(
   }
 
   // List all user forms
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   const forms = await formsService.getUserForms(userId);
 
   return res.status(200).json({ forms });

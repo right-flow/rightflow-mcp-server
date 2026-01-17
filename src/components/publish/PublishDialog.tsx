@@ -69,7 +69,7 @@ export function PublishDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]" dir="rtl">
+      <DialogContent className="sm:max-w-[600px] !bg-white dark:!bg-gray-900" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-right">
             {isPublished ? 'הטופס פורסם בהצלחה! 🎉' : 'פרסם טופס'}

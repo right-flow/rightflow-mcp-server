@@ -1,7 +1,16 @@
-import { Type, CheckSquare, Circle, ChevronDown, PenTool, FileText, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  Type,
+  CheckSquare,
+  Circle,
+  ChevronDown,
+  PenTool,
+  FileText,
+  MousePointer2,
+  Plus
+} from 'lucide-react';
 import { ToolMode } from '@/types/fields';
 import { useTranslation, useDirection } from '@/i18n';
+import { motion } from 'framer-motion';
 
 interface ToolsBarProps {
   activeTool: ToolMode;
@@ -11,103 +20,62 @@ interface ToolsBarProps {
 export const ToolsBar = ({ activeTool, onToolChange }: ToolsBarProps) => {
   const t = useTranslation();
   const direction = useDirection();
-  const isFieldToolActive = activeTool !== 'select';
+  const isRTL = direction === 'rtl';
+
+  const tools = [
+    { id: 'select', icon: MousePointer2, label: t.selectTool },
+    { id: 'text-field', icon: Type, label: t.textFieldTool },
+    { id: 'checkbox-field', icon: CheckSquare, label: t.checkboxFieldTool },
+    { id: 'radio-field', icon: Circle, label: t.radioFieldTool },
+    { id: 'dropdown-field', icon: ChevronDown, label: t.dropdownFieldTool },
+    { id: 'signature-field', icon: PenTool, label: t.signatureFieldTool },
+    { id: 'static-text-field', icon: FileText, label: t.staticTextFieldTool },
+  ] as const;
 
   return (
-    <div
-      className="w-full h-16 bg-gradient-to-b from-secondary to-background border-b border-border
-                 flex items-center justify-center px-4 gap-3"
+    <motion.div
+      initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className={`fixed ${isRTL ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 glass p-2 rounded-2xl shadow-2xl border-white/10`}
       dir={direction}
     >
-      <Button
-        variant={activeTool === 'text-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('text-field')}
-        title={t.textFieldTool}
-        className="gap-2"
-      >
-        <Type className="w-5 h-5" />
-        {t.textFieldTool}
-      </Button>
+      <div className="p-2 mb-1 flex items-center justify-center border-b border-border/50">
+        <Plus className="w-4 h-4 text-primary" />
+      </div>
 
-      <Button
-        variant={activeTool === 'checkbox-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('checkbox-field')}
-        title={t.checkboxFieldTool}
-        className="gap-2"
-      >
-        <CheckSquare className="w-5 h-5" />
-        {t.checkboxFieldTool}
-      </Button>
+      {tools.map((tool) => {
+        const isActive = activeTool === tool.id;
+        return (
+          <button
+            key={tool.id}
+            onClick={() => onToolChange(tool.id as ToolMode)}
+            className={`
+              w-12 h-12 flex items-center justify-center rounded-xl transition-all relative group
+              ${isActive
+                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'}
+            `}
+            title={tool.label}
+          >
+            <tool.icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
 
-      <Button
-        variant={activeTool === 'radio-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('radio-field')}
-        title={t.radioFieldTool}
-        className="gap-2"
-      >
-        <Circle className="w-5 h-5" />
-        {t.radioFieldTool}
-      </Button>
+            {/* Tooltip (pseudo) */}
+            <div className={`
+              absolute ${isRTL ? 'right-full mr-4' : 'left-full ml-4'} px-3 py-1.5 bg-foreground text-background text-xs font-bold rounded-lg 
+              opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50
+            `}>
+              {tool.label}
+            </div>
 
-      <Button
-        variant={activeTool === 'dropdown-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('dropdown-field')}
-        title={t.dropdownFieldTool}
-        className="gap-2"
-      >
-        <ChevronDown className="w-5 h-5" />
-        {t.dropdownFieldTool}
-      </Button>
-
-      <Button
-        variant={activeTool === 'signature-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('signature-field')}
-        title={t.signatureFieldTool}
-        className="gap-2"
-      >
-        <PenTool className="w-5 h-5" />
-        {t.signatureFieldTool}
-      </Button>
-
-      <Button
-        variant={activeTool === 'static-text-field' ? 'default' : 'outline'}
-        size="default"
-        onClick={() => onToolChange('static-text-field')}
-        title={t.staticTextFieldTool}
-        className="gap-2"
-      >
-        <FileText className="w-5 h-5" />
-        {t.staticTextFieldTool}
-      </Button>
-
-      {/* Release button - only visible when a field tool is active */}
-      {isFieldToolActive && (
-        <Button
-          variant="destructive"
-          size="icon"
-          onClick={() => onToolChange('select')}
-          title={t.selectTool}
-          className="h-10 w-10"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-      )}
-
-      <Button
-        variant="ghost"
-        size="default"
-        onClick={() => onToolChange('select')}
-        disabled={activeTool === 'select'}
-        title={t.selectTool}
-        className={direction === 'rtl' ? 'mr-auto' : 'ml-auto'}
-      >
-        {t.selectTool}
-      </Button>
-    </div>
+            {isActive && (
+              <motion.div
+                layoutId="activeTool"
+                className={`absolute ${isRTL ? '-right-1' : '-left-1'} w-1 h-6 bg-white rounded-full`}
+              />
+            )}
+          </button>
+        );
+      })}
+    </motion.div>
   );
 };

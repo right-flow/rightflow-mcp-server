@@ -4,6 +4,7 @@ interface PDFViewerProps {
   file: File | null;
   pageNumber: number;
   scale: number;
+  userId?: string; // User ID for data source management
   onLoadSuccess: (pdf: any) => void;
   onLoadError: (error: Error) => void;
   onPageRender: (page: any) => void;
@@ -13,6 +14,7 @@ export const PDFViewer = ({
   file,
   pageNumber,
   scale,
+  userId,
   onLoadSuccess,
   onLoadError,
   onPageRender,
@@ -24,6 +26,7 @@ export const PDFViewer = ({
           file={file}
           pageNumber={pageNumber}
           scale={scale}
+          userId={userId}
           onLoadSuccess={onLoadSuccess}
           onLoadError={onLoadError}
           onPageRender={onPageRender}

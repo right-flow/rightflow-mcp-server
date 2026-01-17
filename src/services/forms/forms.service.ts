@@ -16,7 +16,7 @@ export interface FormField {
   type: string;
   label: string;
   required?: boolean;
-  station?: string;  // DocsFlow support
+  station?: string;  // RightFlow support
   [key: string]: any;
 }
 

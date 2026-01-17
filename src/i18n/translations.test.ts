@@ -84,8 +84,8 @@ describe('translations', () => {
       });
 
       it('should have powered by text', () => {
-        expect(t('he', 'poweredBy')).toBe('Powered by DocsFlow');
-        expect(t('en', 'poweredBy')).toBe('Powered by DocsFlow');
+        expect(t('he', 'poweredBy')).toBe('Powered by RightFlow');
+        expect(t('en', 'poweredBy')).toBe('Powered by RightFlow');
       });
     });
 

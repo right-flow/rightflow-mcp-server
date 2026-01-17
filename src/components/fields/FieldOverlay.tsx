@@ -47,9 +47,23 @@ export const FieldOverlay = ({
   // Scale factor for converting between PDF points and pixels
   const scaleFactor = scale / 100;
 
+  // Calculate canvas height based on aspect ratio
+  const canvasHeight = (pageDimensions.height / pageDimensions.width) * canvasWidth;
+
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      <div className="relative w-full h-full pointer-events-auto">
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        top: 0,
+        left: 0,
+        width: `${canvasWidth}px`,
+        height: `${canvasHeight}px`,
+      }}
+    >
+      <div
+        className="relative pointer-events-auto"
+        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+      >
         {fields.map((field) => {
           const isSelected = field.id === selectedFieldId || selectedFieldIds.includes(field.id);
           const isHovered = field.id === hoveredFieldId;

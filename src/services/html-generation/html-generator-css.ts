@@ -1,5 +1,5 @@
 /**
- * DocsFlow Design System CSS Template
+ * RightFlow Design System CSS Template
  * Main orchestrator that combines CSS and JS from split modules
  * Adapted from FormFlowAI for RightFlow
  * Full RTL/Hebrew support
@@ -18,10 +18,10 @@ import { generateValidationJs } from './js/js-validation';
 export { adjustColor } from './css/css-utils';
 
 /**
- * Generates RTL-aware CSS based on DocsFlow design system
+ * Generates RTL-aware CSS based on RightFlow design system
  * Combines base, components, and navigation CSS
  */
-export function generateDocsFlowCSS(
+export function generateRightFlowCSS(
   rtl: boolean,
   theme: HtmlFormTheme,
 ): string {
@@ -55,9 +55,15 @@ export function generateFormJS(
     includeWelcome,
     userRole,
   );
-  const datePickerJs = generateDatePickerJs();
+  const datePickerJs = generateDatePickerJs(rtl);
   const signatureJs = generateSignatureJs();
   const validationJs = generateValidationJs(formId);
 
-  return navigationJs + datePickerJs + signatureJs + validationJs;
+  // Insert additional modules into the navigation IIFE
+  const combinedJs = navigationJs.replace(
+    '// PLACEHOLDER_FOR_ADDITIONAL_MODULES',
+    datePickerJs + '\n' + signatureJs + '\n' + validationJs
+  );
+
+  return combinedJs;
 }

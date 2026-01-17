@@ -103,11 +103,10 @@ export const RadioField = ({
   return (
     <>
       <Rnd
-        position={{
+        key={`${field.id}-${field.x}-${field.y}-${field.width}-${field.height}`}
+        default={{
           x: viewportTopCoords.x,
-          y: viewportTopCoords.y, // Use TOP-LEFT for Rnd positioning
-        }}
-        size={{
+          y: viewportTopCoords.y,
           width: viewportWidth,
           height: viewportHeight,
         }}
@@ -119,7 +118,7 @@ export const RadioField = ({
           'field-marker field-marker-radio',
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
-          isHovered && 'field-marker-hovered border-2 border-primary ring-2 ring-primary/20',
+          isHovered && 'field-marker-hovered',
           'group',
         )}
         style={{

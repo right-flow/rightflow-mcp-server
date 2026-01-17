@@ -2,7 +2,7 @@
  * Initial Database Schema Migration
  * Creates foundational tables for RightFlow self-serve platform
  *
- * DocsFlow-ready: Includes tenant_type for future integration
+ * RightFlow-ready: Includes tenant_type for future integration
  */
 
 import { Knex } from 'knex';
@@ -74,7 +74,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text('description').nullable();
     table.string('status', 50).defaultTo('draft').notNullable();  // 'draft', 'published', 'archived'
     table.jsonb('fields').defaultTo('[]').notNullable();
-    table.jsonb('stations').defaultTo('[]').notNullable();  // DocsFlow station support
+    table.jsonb('stations').defaultTo('[]').notNullable();  // RightFlow station support
     table.jsonb('settings').defaultTo('{}').notNullable();
     table.string('pdf_storage_path', 500).nullable();
     table.timestamp('published_at').nullable();
