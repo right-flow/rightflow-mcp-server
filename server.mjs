@@ -176,14 +176,15 @@ app.use(express.static(distPath, {
 /**
  * Fallback to index.html for all non-API routes
  * This enables React Router to handle client-side routing
+ * Using middleware instead of route to avoid Express 5 path-to-regexp issues
  */
-app.get('/*', (req, res) => {
+app.use((req, res) => {
   // Don't fallback for API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
 
-  // Serve index.html for all other routes
+  // Serve index.html for all other routes (SPA fallback)
   res.sendFile(join(distPath, 'index.html'));
 });
 
