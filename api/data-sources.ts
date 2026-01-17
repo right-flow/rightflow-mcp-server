@@ -12,7 +12,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { DataSourcesService } from '../src/services/data-sources/data-sources.service';
+import { DataSourcesService, type DataSourceType } from '../src/services/data-sources/data-sources.service';
 import { getUserFromAuth } from './lib/auth';
 
 const dataSourcesService = new DataSourcesService();
@@ -172,6 +172,15 @@ async function handleCreateDataSource(
     });
   }
 
+  // Validate source_type is valid
+  const validSourceTypes: DataSourceType[] = ['static', 'csv_import', 'json_import', 'table', 'custom_query'];
+  if (!validSourceTypes.includes(source_type as DataSourceType)) {
+    return res.status(400).json({
+      error: 'Bad request',
+      message: `source_type must be one of: ${validSourceTypes.join(', ')}`,
+    });
+  }
+
   if (!config || typeof config !== 'object') {
     return res.status(400).json({
       error: 'Bad request',
@@ -184,7 +193,7 @@ async function handleCreateDataSource(
       user_id: userId,
       name,
       description,
-      source_type,
+      source_type: source_type as DataSourceType,
       config,
       cache_ttl,
       is_active,

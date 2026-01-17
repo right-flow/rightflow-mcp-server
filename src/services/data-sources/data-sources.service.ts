@@ -25,9 +25,11 @@ export interface DataSourceConfig {
 
   // For 'csv_import' and 'json_import'
   file_path?: string;
+  file_url?: string;
   file_size?: number;
   row_count?: number;
   item_count?: number;
+  original_file_name?: string;
 
   // For 'table' (future)
   table_name?: string;
