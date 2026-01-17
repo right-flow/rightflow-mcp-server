@@ -82,7 +82,6 @@ export function BarcodeScannerField({ field, value, onChange }: BarcodeScannerFi
         {
           fps: 10, // Frames per second for scanning
           qrbox: { width: 300, height: 150 }, // Wider box for barcodes
-          formatsToSupport: barcodeFormats,
         },
         (decodedText) => {
           // Success callback - barcode scanned

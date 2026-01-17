@@ -358,7 +358,7 @@ export function EditorPage() {
     }
   };
 
-  const handleSaveFields = async () => {
+  const _handleSaveFields = async () => {
     if (fields.length === 0) {
       alert('אין שדות לשמירה. אנא הוסף לפחות שדה אחד.');
       return;
@@ -476,7 +476,7 @@ export function EditorPage() {
     }
   };
 
-  const handleLoadFields = () => {
+  const _handleLoadFields = () => {
     fieldTemplateInputRef.current?.click();
   };
 
@@ -605,7 +605,7 @@ export function EditorPage() {
     }
   };
 
-  const handleExportHtml = async () => {
+  const _handleExportHtml = async () => {
     if (fields.length === 0) {
       alert('אין שדות לייצוא. אנא הוסף לפחות שדה אחד.');
       return;
