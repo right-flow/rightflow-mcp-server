@@ -47,7 +47,7 @@ export interface WebhookResult {
 export interface SessionClaims {
   sub: string;
   org_id: string | null;
-  org_role: 'admin' | 'member' | 'viewer' | null;
+  org_role: 'admin' | 'basic_member' | null;
 }
 
 export class ClerkService {
@@ -418,10 +418,22 @@ export class ClerkService {
     try {
       const sessionToken = await this.clerkClient.verifyToken(token);
 
+      // Map Clerk roles to our free tier roles
+      let orgRole: 'admin' | 'basic_member' | null = null;
+      if (sessionToken.org_role) {
+        const clerkRole = sessionToken.org_role as string;
+        if (clerkRole === 'admin') {
+          orgRole = 'admin';
+        } else if (clerkRole === 'basic_member' || clerkRole === 'member') {
+          // Map 'member' to 'basic_member' for consistency
+          orgRole = 'basic_member';
+        }
+      }
+
       return {
         sub: sessionToken.sub || '',
         org_id: sessionToken.org_id || null,
-        org_role: sessionToken.org_role as 'admin' | 'member' | 'viewer' | null || null,
+        org_role: orgRole,
       };
     } catch (error) {
       console.error('Token verification failed:', error);

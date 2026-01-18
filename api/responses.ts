@@ -33,7 +33,7 @@ async function verifyFormAccess(
 
   // Check access: personal ownership OR org membership
   const hasPersonalAccess = form.user_id === authContext.userId && !form.org_id;
-  const hasOrgAccess = form.org_id && form.org_id === authContext.orgId;
+  const hasOrgAccess = !!(form.org_id && form.org_id === authContext.orgId);
 
   return {
     hasAccess: hasPersonalAccess || hasOrgAccess,

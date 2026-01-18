@@ -2,4 +2,4 @@
 cmds = ["npm run build:railway"]
 
 [phases.start]
-cmd = "npm run start:railway"
+cmd = "npm run railway:migrate && npm run start:railway"
