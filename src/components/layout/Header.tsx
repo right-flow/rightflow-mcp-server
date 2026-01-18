@@ -1,6 +1,7 @@
 import { useTranslation, useDirection } from '@/i18n';
 import { LanguageSelector } from './LanguageSelector';
 import { DarkModeToggle } from './DarkModeToggle';
+import { UserButton, OrganizationSwitcher } from '@clerk/clerk-react';
 
 export const Header = () => {
   const t = useTranslation();
@@ -22,6 +23,22 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        <OrganizationSwitcher
+          afterCreateOrganizationUrl="/dashboard"
+          afterSelectOrganizationUrl="/dashboard"
+          appearance={{
+            elements: {
+              rootBox: direction === 'rtl' ? 'ml-4' : 'mr-4',
+            },
+          }}
+        />
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: 'h-9 w-9',
+            },
+          }}
+        />
         <LanguageSelector />
         <DarkModeToggle />
       </div>

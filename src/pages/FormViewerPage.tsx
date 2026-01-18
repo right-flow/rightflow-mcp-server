@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout, Home, ChevronLeft, ChevronRight, Check } from 'lucide-react';
@@ -87,7 +87,7 @@ export function FormViewerPage() {
       });
 
       // Sort fields within each page by y position
-      pageMap.forEach((fields, page) => {
+      pageMap.forEach((fields) => {
         fields.sort((a, b) => (b.y || 0) - (a.y || 0)); // Higher y = higher on page
       });
 

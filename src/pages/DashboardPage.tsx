@@ -20,7 +20,7 @@ import { useTranslation, useDirection } from '../i18n';
 
 export function DashboardPage() {
   const { isSignedIn, isLoaded, user } = useUser();
-  const { getToken } = useAuth();
+  const { getToken, orgId, orgRole } = useAuth();
   const navigate = useNavigate();
   const t = useTranslation();
   const direction = useDirection();
@@ -28,6 +28,12 @@ export function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Simplified role-based access (Clerk free tier)
+  // Both admin and basic_member can create forms
+  // Only admin can delete forms
+  const canCreateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
+  const canDeleteForm = !orgId || orgRole === 'admin';
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -220,13 +226,15 @@ export function DashboardPage() {
               <h1 className="text-3xl font-extrabold tracking-tight">{t.dashboard}</h1>
               <p className="text-muted-foreground font-medium mt-1">{t.manageFormsDescription}</p>
             </div>
-            <button
-              onClick={handleCreateForm}
-              className="btn-primary flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              {t.createNewForm}
-            </button>
+            {canCreateForm && (
+              <button
+                onClick={handleCreateForm}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                {t.createNewForm}
+              </button>
+            )}
           </div>
 
           {isLoading ? (
@@ -248,7 +256,7 @@ export function DashboardPage() {
               <p className="text-muted-foreground mb-8 max-w-sm">
                 {searchQuery ? t.noResultsFor.replace('{query}', searchQuery) : "עדיין לא יצרת טפסים. התחל את המסע שלך על ידי יצירת ה-flow הראשון שלך בעברית."}
               </p>
-              {!searchQuery && (
+              {!searchQuery && canCreateForm && (
                 <button
                   onClick={handleCreateForm}
                   className="btn-primary px-8"
@@ -266,6 +274,7 @@ export function DashboardPage() {
                   onDelete={() => handleDeleteForm(form.id)}
                   onEdit={() => navigate(`/editor/${form.id}`)}
                   onViewResponses={() => navigate(`/responses/${form.id}`)}
+                  canDelete={canDeleteForm}
                 />
               ))}
             </div>

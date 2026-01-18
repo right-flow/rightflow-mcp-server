@@ -14,7 +14,14 @@ if (!CLERK_PUBLISHABLE_KEY) {
 
 function App() {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY || ''}>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY || ''}
+      appearance={{
+        layout: {
+          socialButtonsPlacement: 'bottom',
+        },
+      }}
+    >
       <Router />
     </ClerkProvider>
   );

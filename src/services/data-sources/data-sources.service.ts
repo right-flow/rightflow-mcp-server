@@ -25,9 +25,11 @@ export interface DataSourceConfig {
 
   // For 'csv_import' and 'json_import'
   file_path?: string;
+  file_url?: string;
   file_size?: number;
   row_count?: number;
   item_count?: number;
+  original_file_name?: string;
 
   // For 'table' (future)
   table_name?: string;
@@ -60,6 +62,7 @@ export type DataSourceType =
 
 export interface CreateDataSourceDto {
   user_id: string;
+  org_id?: string | null;
   name: string;
   description?: string;
   source_type: DataSourceType;
@@ -80,6 +83,7 @@ export interface UpdateDataSourceDto {
 export interface DataSourceRecord {
   id: string;
   user_id: string;
+  org_id?: string | null;
   name: string;
   description: string | null;
   source_type: DataSourceType;
@@ -117,6 +121,7 @@ export class DataSourcesService {
     const dataSource = {
       id,
       user_id: dto.user_id,
+      org_id: dto.org_id || null,
       name: dto.name,
       description: dto.description || null,
       source_type: dto.source_type,
@@ -139,23 +144,31 @@ export class DataSourcesService {
   /**
    * Find data source by ID with multi-tenant isolation
    * Returns null if not found or user doesn't have access
+   * Supports both personal (user_id) and organization (org_id) ownership
    */
   async findById(
     id: string,
-    userId: string
+    userId: string,
+    orgId?: string | null
   ): Promise<DataSourceRecord | null> {
     const db = getDb();
 
+    // First, fetch the data source
     const record = await db(this.tableName)
-      .where({
-        id,
-        user_id: userId,
-      })
+      .where({ id })
       .whereNull('deleted_at')
       .first();
 
     if (!record) {
       return null;
+    }
+
+    // Check access: personal ownership OR org membership
+    const hasPersonalAccess = record.user_id === userId && !record.org_id;
+    const hasOrgAccess = record.org_id && record.org_id === orgId;
+
+    if (!hasPersonalAccess && !hasOrgAccess) {
+      return null; // No access
     }
 
     return {
@@ -167,18 +180,26 @@ export class DataSourcesService {
   }
 
   /**
-   * Find all data sources for a user
+   * Find all data sources for a user or organization
    * Supports filtering by source_type and is_active
+   * Returns personal data sources if orgId is null, org data sources if orgId is provided
    */
   async findAll(
     userId: string,
-    filters?: FindAllFilters
+    filters?: FindAllFilters,
+    orgId?: string | null
   ): Promise<DataSourceRecord[]> {
     const db = getDb();
 
-    let query = db(this.tableName)
-      .where({ user_id: userId })
-      .whereNull('deleted_at');
+    let query = db(this.tableName).whereNull('deleted_at');
+
+    if (orgId) {
+      // Return only org data sources
+      query = query.where({ org_id: orgId });
+    } else {
+      // Return only personal data sources
+      query = query.where({ user_id: userId }).whereNull('org_id');
+    }
 
     if (filters?.source_type) {
       query = query.where({ source_type: filters.source_type });
@@ -203,16 +224,18 @@ export class DataSourcesService {
   /**
    * Update a data source
    * Enforces multi-tenant isolation
+   * Supports both personal and organization ownership
    */
   async update(
     id: string,
     userId: string,
-    dto: UpdateDataSourceDto
+    dto: UpdateDataSourceDto,
+    orgId?: string | null
   ): Promise<DataSourceRecord> {
     const db = getDb();
 
     // Verify ownership
-    const existing = await this.findById(id, userId);
+    const existing = await this.findById(id, userId, orgId);
     if (!existing) {
       throw new Error('Data source not found or access denied');
     }
@@ -245,11 +268,11 @@ export class DataSourcesService {
 
     // Perform update
     await db(this.tableName)
-      .where({ id, user_id: userId })
+      .where({ id })
       .update(updateData);
 
     // Return updated record
-    const updated = await this.findById(id, userId);
+    const updated = await this.findById(id, userId, orgId);
     if (!updated) {
       throw new Error('Failed to retrieve updated data source');
     }
@@ -260,19 +283,20 @@ export class DataSourcesService {
   /**
    * Soft delete a data source
    * Sets deleted_at timestamp instead of removing from database
+   * Supports both personal and organization ownership
    */
-  async delete(id: string, userId: string): Promise<void> {
+  async delete(id: string, userId: string, orgId?: string | null): Promise<void> {
     const db = getDb();
 
     // Verify ownership
-    const existing = await this.findById(id, userId);
+    const existing = await this.findById(id, userId, orgId);
     if (!existing) {
       throw new Error('Data source not found or access denied');
     }
 
     // Soft delete
     await db(this.tableName)
-      .where({ id, user_id: userId })
+      .where({ id })
       .update({
         deleted_at: new Date(),
       });
@@ -281,12 +305,14 @@ export class DataSourcesService {
   /**
    * Get options from a data source
    * Returns array of {label, value} objects
+   * Supports both personal and organization ownership
    */
   async getOptions(
     id: string,
-    userId: string
+    userId: string,
+    orgId?: string | null
   ): Promise<DataSourceOption[]> {
-    const dataSource = await this.findById(id, userId);
+    const dataSource = await this.findById(id, userId, orgId);
 
     if (!dataSource) {
       throw new Error('Data source not found or access denied');

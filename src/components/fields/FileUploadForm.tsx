@@ -21,7 +21,7 @@ interface UploadStatus {
   message?: string;
 }
 
-export function FileUploadForm({ userId, onSuccess, onCancel }: FileUploadFormProps) {
+export function FileUploadForm({ userId: _userId, onSuccess, onCancel }: FileUploadFormProps) {
   const { getToken } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');

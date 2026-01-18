@@ -32,12 +32,12 @@
     "dev": "node dev-server.mjs",
     "dev:vite": "vite",
     "dev:vercel": "vercel dev",
-    "build": "tsc && vite build",
+    "build": "tsc --project tsconfig.build.json && vite build",
     "build:api": "tsc --project tsconfig.api.json",
     "build:railway": "npm run build:api && npm run build",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server.mjs",
-    "start:railway": "npm run db:migrate:production && npm run start",
+    "start:railway": "npm run build:railway && npm run db:migrate:production && npm run start",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 30",
     "test": "vitest",
     "test:run": "vitest run",
@@ -55,7 +55,8 @@
     "docker:logs": "docker-compose logs -f",
     "docker:db:reset": "docker-compose down -v && docker-compose up -d && npm run db:migrate",
     "deploy": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy:preview": "vercel",
+    "railway:build": "npm run build:railway"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.59.3",

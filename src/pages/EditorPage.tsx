@@ -90,7 +90,12 @@ export function EditorPage() {
   const { settings } = useSettingsStore();
   const direction = useDirection();
   const { user } = useUser();
-  const { getToken } = useAuth();
+  const { getToken, orgId, orgRole } = useAuth();
+
+  // Simplified role-based access (Clerk free tier)
+  // Both admin and basic_member can create and update forms
+  const canCreateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
+  const canUpdateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
 
   // Calculate field validation errors
   const errorFieldIds = useMemo(() => {
@@ -358,7 +363,7 @@ export function EditorPage() {
     }
   };
 
-  const handleSaveFields = async () => {
+  const _handleSaveFields = async () => {
     if (fields.length === 0) {
       alert('אין שדות לשמירה. אנא הוסף לפחות שדה אחד.');
       return;
@@ -476,7 +481,7 @@ export function EditorPage() {
     }
   };
 
-  const handleLoadFields = () => {
+  const _handleLoadFields = () => {
     fieldTemplateInputRef.current?.click();
   };
 
@@ -605,7 +610,7 @@ export function EditorPage() {
     }
   };
 
-  const handleExportHtml = async () => {
+  const _handleExportHtml = async () => {
     if (fields.length === 0) {
       alert('אין שדות לייצוא. אנא הוסף לפחות שדה אחד.');
       return;
@@ -656,6 +661,17 @@ export function EditorPage() {
   const handlePublish = () => {
     if (!user) {
       alert('יש להתחבר כדי לפרסם טפסים.');
+      return;
+    }
+
+    // Check permissions in organization context
+    if (orgId && !currentFormId && !canCreateForm) {
+      alert('אין לך הרשאה ליצור טפסים בארגון זה.');
+      return;
+    }
+
+    if (orgId && currentFormId && !canUpdateForm) {
+      alert('אין לך הרשאה לעדכן טפסים בארגון זה.');
       return;
     }
 

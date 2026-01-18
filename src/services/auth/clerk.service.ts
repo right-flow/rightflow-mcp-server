@@ -8,6 +8,7 @@
 import { getDb } from '../../lib/db';
 import crypto from 'crypto';
 import { createClerkClient } from '@clerk/clerk-sdk-node';
+import { OrganizationsService } from '../organizations/organizations.service';
 
 export interface ClerkWebhookData {
   type: string;
@@ -20,18 +21,38 @@ export interface ClerkWebhookData {
     created_at?: number;
     updated_at?: number;
     deleted?: boolean;
+    // Organization fields
+    name?: string;
+    slug?: string;
+    created_by?: string;
+    // Membership fields
+    organization?: {
+      id: string;
+    };
+    public_user_data?: {
+      user_id: string;
+    };
+    role?: string;
   };
 }
 
 export interface WebhookResult {
   success: boolean;
   userId?: string;
+  organizationId?: string;
   tenantType?: 'rightflow' | 'docsflow';
   error?: string;
 }
 
+export interface SessionClaims {
+  sub: string;
+  org_id: string | null;
+  org_role: 'admin' | 'member' | 'viewer' | null;
+}
+
 export class ClerkService {
   private clerkClient: ReturnType<typeof createClerkClient> | null = null;
+  private organizationsService: OrganizationsService;
 
   constructor() {
     // Initialize Clerk client if secret key is available
@@ -39,6 +60,9 @@ export class ClerkService {
     if (secretKey) {
       this.clerkClient = createClerkClient({ secretKey });
     }
+
+    // Initialize Organizations Service
+    this.organizationsService = new OrganizationsService();
   }
 
   /**
@@ -50,6 +74,7 @@ export class ClerkService {
       const { type, data } = webhookData;
 
       switch (type) {
+        // User events
         case 'user.created':
           return await this.handleUserCreated(data);
 
@@ -58,6 +83,26 @@ export class ClerkService {
 
         case 'user.deleted':
           return await this.handleUserDeleted(data);
+
+        // Organization events
+        case 'organization.created':
+          return await this.handleOrganizationCreated(data);
+
+        case 'organization.updated':
+          return await this.handleOrganizationUpdated(data);
+
+        case 'organization.deleted':
+          return await this.handleOrganizationDeleted(data);
+
+        // Organization membership events
+        case 'organizationMembership.created':
+          return await this.handleOrganizationMembershipCreated(data);
+
+        case 'organizationMembership.updated':
+          return await this.handleOrganizationMembershipUpdated(data);
+
+        case 'organizationMembership.deleted':
+          return await this.handleOrganizationMembershipDeleted(data);
 
         default:
           return { success: false, error: `Unknown webhook type: ${type}` };
@@ -211,6 +256,148 @@ export class ClerkService {
   }
 
   /**
+   * Handle organization.created webhook
+   * Creates organization record in database
+   */
+  private async handleOrganizationCreated(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id, name, created_by } = data;
+
+    if (!name || !created_by) {
+      return { success: false, error: 'Missing required fields: name or created_by' };
+    }
+
+    // Map Clerk user ID to database user ID
+    const db = getDb();
+    const owner = await db('users')
+      .where('clerk_id', created_by)
+      .whereNull('deleted_at')
+      .first('id');
+
+    if (!owner) {
+      return { success: false, error: 'Owner user not found in database' };
+    }
+
+    const result = await this.organizationsService.createOrganization(id, name, owner.id);
+
+    if (!result.success) {
+      return { success: false, error: result.error };
+    }
+
+    return {
+      success: true,
+      organizationId: result.organizationId,
+    };
+  }
+
+  /**
+   * Handle organization.updated webhook
+   * Updates organization record in database
+   */
+  private async handleOrganizationUpdated(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id, name } = data;
+
+    if (!id) {
+      return { success: false, error: 'Missing required field: id' };
+    }
+
+    const updates: { name?: string } = {};
+    if (name) updates.name = name;
+
+    if (Object.keys(updates).length === 0) {
+      return { success: false, error: 'No updates provided' };
+    }
+
+    const result = await this.organizationsService.updateOrganization(id, updates);
+
+    return result;
+  }
+
+  /**
+   * Handle organization.deleted webhook
+   * Deletes organization record from database
+   */
+  private async handleOrganizationDeleted(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id } = data;
+
+    if (!id) {
+      return { success: false, error: 'Missing required field: id' };
+    }
+
+    const result = await this.organizationsService.deleteOrganization(id);
+
+    return result;
+  }
+
+  /**
+   * Handle organizationMembership.created webhook
+   * Adds member to organization
+   */
+  private async handleOrganizationMembershipCreated(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id, organization, public_user_data, role } = data;
+
+    if (!organization?.id || !public_user_data?.user_id || !role) {
+      return { success: false, error: 'Missing required fields: organization, user, or role' };
+    }
+
+    // Map Clerk org ID to database org ID
+    const org = await this.organizationsService.getOrganizationByClerkId(organization.id);
+    if (!org) {
+      return { success: false, error: 'Organization not found in database' };
+    }
+
+    // Map Clerk user ID to database user ID
+    const db = getDb();
+    const user = await db('users')
+      .where('clerk_id', public_user_data.user_id)
+      .whereNull('deleted_at')
+      .first('id');
+
+    if (!user) {
+      return { success: false, error: 'User not found in database' };
+    }
+
+    const result = await this.organizationsService.addMember(id, org.id, user.id, role);
+
+    return result;
+  }
+
+  /**
+   * Handle organizationMembership.updated webhook
+   * Updates member role
+   */
+  private async handleOrganizationMembershipUpdated(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id, role } = data;
+
+    if (!id) {
+      return { success: false, error: 'Missing required field: id' };
+    }
+
+    if (!role) {
+      return { success: false, error: 'Missing required field: role' };
+    }
+
+    const result = await this.organizationsService.updateMemberRole(id, role);
+
+    return result;
+  }
+
+  /**
+   * Handle organizationMembership.deleted webhook
+   * Removes member from organization
+   */
+  private async handleOrganizationMembershipDeleted(data: ClerkWebhookData['data']): Promise<WebhookResult> {
+    const { id } = data;
+
+    if (!id) {
+      return { success: false, error: 'Missing required field: id' };
+    }
+
+    const result = await this.organizationsService.removeMember(id);
+
+    return result;
+  }
+
+  /**
    * Get Clerk client instance
    * For advanced Clerk API operations
    */
@@ -220,9 +407,9 @@ export class ClerkService {
 
   /**
    * Verify JWT session token from Clerk
-   * Returns userId if valid, null otherwise
+   * Returns session claims including org_id and org_role if user is in org context
    */
-  async verifySessionToken(token: string): Promise<string | null> {
+  async verifySessionToken(token: string): Promise<SessionClaims | null> {
     if (!this.clerkClient) {
       console.error('Clerk client not initialized. Check CLERK_SECRET_KEY environment variable.');
       return null;
@@ -230,7 +417,12 @@ export class ClerkService {
 
     try {
       const sessionToken = await this.clerkClient.verifyToken(token);
-      return sessionToken.sub || null;
+
+      return {
+        sub: sessionToken.sub || '',
+        org_id: sessionToken.org_id || null,
+        org_role: sessionToken.org_role as 'admin' | 'member' | 'viewer' | null || null,
+      };
     } catch (error) {
       console.error('Token verification failed:', error);
       return null;

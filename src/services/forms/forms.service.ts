@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { UsageService } from '../billing/usage.service';
 import { premiumFeaturesService } from '../premium/premium-features.service';
 import { urlShortenerService } from '../url-shortener/url-shortener.service';
+import { OrganizationsService } from '../organizations/organizations.service';
 
 export interface FormField {
   id: string;
@@ -22,6 +23,7 @@ export interface FormField {
 
 export interface CreateFormData {
   userId: string;
+  orgId?: string | null;
   title: string;
   description?: string;
   fields: FormField[];
@@ -113,7 +115,7 @@ export class FormsService {
       const formRecord = {
         id: formId,
         user_id: data.userId,
-        org_id: null,
+        org_id: data.orgId || null,
         tenant_type: 'rightflow',
         slug,
         title: data.title,
@@ -200,6 +202,44 @@ export class FormsService {
 
       return forms.map(form => this.parseFormRecord(form));
     } catch (error) {
+      return [];
+    }
+  }
+
+  /**
+   * Get accessible forms based on organization context
+   * Returns personal forms when orgId is null, org forms when orgId is provided
+   */
+  async getAccessibleForms(userId: string, orgId: string | null): Promise<FormRecord[]> {
+    try {
+      const db = getDb();
+      let query = db('forms').whereNull('deleted_at');
+
+      if (orgId) {
+        // Verify user is member of this organization
+        const organizationsService = new OrganizationsService();
+        const isMember = await organizationsService.isUserMember(userId, orgId);
+        if (!isMember) {
+          console.warn(
+            `User ${userId} attempted to access forms for org ${orgId} without membership`,
+          );
+          return [];  // User not authorized to view org forms
+        }
+
+        // User is in organization context - return only org forms
+        query = query.where({ org_id: orgId });
+      } else {
+        // User is in personal context - return only personal forms
+        query = query
+          .where({ user_id: userId })
+          .whereNull('org_id');
+      }
+
+      const forms = await query.orderBy('created_at', 'desc');
+
+      return forms.map(form => this.parseFormRecord(form));
+    } catch (error) {
+      console.error('Error getting accessible forms:', error);
       return [];
     }
   }

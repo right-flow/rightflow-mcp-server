@@ -19,9 +19,10 @@ interface FormCardProps {
   onDelete: () => void;
   onEdit: () => void;
   onViewResponses: () => void;
+  canDelete?: boolean;
 }
 
-export function FormCard({ form, onDelete, onEdit, onViewResponses }: FormCardProps) {
+export function FormCard({ form, onDelete, onEdit, onViewResponses, canDelete = true }: FormCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -118,13 +119,17 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses }: FormCardPr
                         העתק קישור <Copy className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    <div className="h-px bg-border my-1" />
-                    <button
-                      onClick={() => { setIsMenuOpen(false); onDelete(); }}
-                      className="w-full flex items-center justify-end gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      מחק <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {canDelete && (
+                      <>
+                        <div className="h-px bg-border my-1" />
+                        <button
+                          onClick={() => { setIsMenuOpen(false); onDelete(); }}
+                          className="w-full flex items-center justify-end gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          מחק <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
                   </motion.div>
                 </>
               )}

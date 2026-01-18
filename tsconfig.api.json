@@ -19,7 +19,8 @@
   "include": [
     "api/**/*",
     "src/lib/**/*",
-    "src/services/**/*"
+    "src/services/**/*",
+    "src/vite-env.d.ts"
   ],
   "exclude": [
     "**/*.test.ts",

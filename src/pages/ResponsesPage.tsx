@@ -18,13 +18,17 @@ interface Response {
 export function ResponsesPage() {
   const { formId } = useParams<{ formId: string }>();
   const { isSignedIn, isLoaded, user } = useUser();
-  const { getToken } = useAuth();
+  const { getToken, orgId, orgRole } = useAuth();
   const navigate = useNavigate();
   const t = useTranslation();
   const direction = useDirection();
   const [responses, setResponses] = useState<Response[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Simplified role-based access (Clerk free tier)
+  // Both admin and basic_member can view responses
+  const canViewResponses = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -36,6 +40,15 @@ export function ResponsesPage() {
     try {
       setIsLoading(true);
       setError(null);
+
+      // Check permissions in organization context
+      if (orgId && !canViewResponses) {
+        setError(direction === 'rtl'
+          ? 'אין לך הרשאה לצפות בתגובות בארגון זה.'
+          : 'You do not have permission to view responses in this organization.');
+        setIsLoading(false);
+        return;
+      }
 
       const token = await getToken();
 
@@ -60,7 +73,7 @@ export function ResponsesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [formId, getToken]);
+  }, [formId, getToken, orgId, canViewResponses, direction]);
 
   useEffect(() => {
     if (!isSignedIn || !formId) {

@@ -10,6 +10,7 @@ import { FormViewerPage } from './pages/FormViewerPage';
 import { LandingPage } from './pages/LandingPage';
 import { ResponsesPage } from './pages/ResponsesPage';
 import { ResponsesListPage } from './pages/ResponsesListPage';
+import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage';
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
   {
     path: '/responses/:formId',
     element: <ResponsesPage />,
+  },
+  {
+    path: '/organization',
+    element: <OrganizationSettingsPage />,
   },
   {
     path: '*',

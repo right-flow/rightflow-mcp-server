@@ -12,21 +12,33 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { ResponsesService } from '../src/services/responses/responses.service';
-import { getDb } from '../src/lib/db';
-import { getUserFromAuth } from './lib/auth';
+import { FormsService } from '../src/services/forms/forms.service';
+import { getAuthContext, checkAccess } from './lib/auth';
 
 const responsesService = new ResponsesService();
+const formsService = new FormsService();
 
 /**
- * Verify user owns the form
+ * Verify user has access to the form (personal ownership OR org membership)
  */
-async function verifyFormOwnership(formId: string, userId: string): Promise<boolean> {
-  const form = await getDb()('forms')
-    .where({ id: formId, user_id: userId })
-    .whereNull('deleted_at')
-    .first();
+async function verifyFormAccess(
+  formId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
+): Promise<{ hasAccess: boolean; form: any }> {
+  const form = await formsService.getFormById(formId);
 
-  return !!form;
+  if (!form) {
+    return { hasAccess: false, form: null };
+  }
+
+  // Check access: personal ownership OR org membership
+  const hasPersonalAccess = form.user_id === authContext.userId && !form.org_id;
+  const hasOrgAccess = form.org_id && form.org_id === authContext.orgId;
+
+  return {
+    hasAccess: hasPersonalAccess || hasOrgAccess,
+    form,
+  };
 }
 
 export default async function handler(
@@ -101,21 +113,32 @@ async function handleGetResponses(
   }
 
   // Authenticate user for form responses
-  const userId = await getUserFromAuth(req);
-  if (!userId) {
+  const authContext = await getAuthContext(req);
+  if (!authContext) {
     return res.status(401).json({
       error: 'Unauthorized',
       message: 'Valid authentication required',
     });
   }
 
-  // Verify ownership
-  const ownsForm = await verifyFormOwnership(formId, userId);
-  if (!ownsForm) {
+  // Verify access
+  const { hasAccess, form } = await verifyFormAccess(formId, authContext);
+  if (!hasAccess) {
     return res.status(403).json({
       error: 'Forbidden',
       message: 'You do not have access to this form',
     });
+  }
+
+  // Check access if org form (admin and basic_member can read)
+  if (form.org_id) {
+    const canRead = await checkAccess(req, 'read');
+    if (!canRead) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to view responses in this organization',
+      });
+    }
   }
 
   // Handle export formats
@@ -212,8 +235,8 @@ async function handleDeleteResponse(
   }
 
   // Authenticate user
-  const userId = await getUserFromAuth(req);
-  if (!userId) {
+  const authContext = await getAuthContext(req);
+  if (!authContext) {
     return res.status(401).json({
       error: 'Unauthorized',
       message: 'Valid authentication required',
@@ -224,16 +247,24 @@ async function handleDeleteResponse(
     // Get response to check ownership
     const response = await responsesService.getResponse(id);
 
-    // Get form to verify ownership
-    const form = await getDb()('forms')
-      .where({ id: response.formId })
-      .first();
-
-    if (!form || form.user_id !== userId) {
+    // Verify access to the form
+    const { hasAccess, form } = await verifyFormAccess(response.formId, authContext);
+    if (!hasAccess) {
       return res.status(403).json({
         error: 'Forbidden',
         message: 'You do not have permission to delete this response',
       });
+    }
+
+    // Check access if org form (only admin can delete)
+    if (form.org_id) {
+      const canDelete = await checkAccess(req, 'delete');
+      if (!canDelete) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You do not have permission to delete responses in this organization',
+        });
+      }
     }
 
     await responsesService.deleteResponse(id);

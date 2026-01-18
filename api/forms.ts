@@ -11,7 +11,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { FormsService } from '../src/services/forms/forms.service';
-import { getUserFromAuth } from './lib/auth';
+import { getAuthContext, checkAccess } from './lib/auth';
 
 const formsService = new FormsService();
 
@@ -37,11 +37,11 @@ export default async function handler(
     const isPublicGet = req.method === 'GET' && slug && typeof slug === 'string';
 
     // Authenticate user if not a public GET
-    let userId: string | null = null;
+    let authContext = null;
     if (!isPublicGet) {
-      userId = await getUserFromAuth(req);
+      authContext = await getAuthContext(req);
 
-      if (!userId) {
+      if (!authContext) {
         return res.status(401).json({
           error: 'Unauthorized',
           message: 'Valid authentication required',
@@ -52,16 +52,16 @@ export default async function handler(
     // Route based on HTTP method
     switch (req.method) {
       case 'GET':
-        return await handleGetForms(req, res, userId);
+        return await handleGetForms(req, res, authContext);
 
       case 'POST':
-        return await handleCreateForm(req, res, userId as string);
+        return await handleCreateForm(req, res, authContext!);
 
       case 'PUT':
-        return await handleUpdateForm(req, res, userId as string);
+        return await handleUpdateForm(req, res, authContext!);
 
       case 'DELETE':
-        return await handleDeleteForm(req, res, userId as string);
+        return await handleDeleteForm(req, res, authContext!);
 
       default:
         return res.status(405).json({
@@ -80,12 +80,12 @@ export default async function handler(
 
 /**
  * GET /api/forms
- * Get single form by ID or slug, or list all user forms
+ * Get single form by ID or slug, or list all user forms (with org support)
  */
 async function handleGetForms(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string | null,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null } | null,
 ) {
   const { id, slug } = req.query;
 
@@ -100,8 +100,15 @@ async function handleGetForms(
       });
     }
 
-    // Check ownership
-    if (!userId || form.user_id !== userId) {
+    // Check access: personal ownership OR org membership
+    if (!authContext) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const hasPersonalAccess = form.user_id === authContext.userId && !form.org_id;
+    const hasOrgAccess = form.org_id && form.org_id === authContext.orgId;
+
+    if (!hasPersonalAccess && !hasOrgAccess) {
       return res.status(403).json({
         error: 'Forbidden',
         message: 'You do not have access to this form',
@@ -125,23 +132,27 @@ async function handleGetForms(
     return res.status(200).json({ form });
   }
 
-  // List all user forms
-  if (!userId) {
+  // List all accessible forms (personal or org based on context)
+  if (!authContext) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  const forms = await formsService.getUserForms(userId);
+
+  const forms = await formsService.getAccessibleForms(
+    authContext.userId,
+    authContext.orgId,
+  );
 
   return res.status(200).json({ forms });
 }
 
 /**
  * POST /api/forms
- * Create new form
+ * Create new form (with org support and permission check)
  */
 async function handleCreateForm(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { title, description, fields, stations, settings } = req.body;
 
@@ -152,8 +163,20 @@ async function handleCreateForm(
     });
   }
 
+  // Check access if creating in org context (admin and basic_member can write)
+  if (authContext.orgId) {
+    const canWrite = await checkAccess(req, 'write');
+    if (!canWrite) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to create forms in this organization',
+      });
+    }
+  }
+
   const result = await formsService.createForm({
-    userId,
+    userId: authContext.userId,
+    orgId: authContext.orgId,
     title,
     description,
     fields: fields || [],
@@ -176,12 +199,12 @@ async function handleCreateForm(
 
 /**
  * PUT /api/forms?id=xxx
- * Update existing form
+ * Update existing form (with org support and permission check)
  */
 async function handleUpdateForm(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { id } = req.query;
 
@@ -192,9 +215,41 @@ async function handleUpdateForm(
     });
   }
 
+  // Get form to check access
+  const form = await formsService.getFormById(id);
+
+  if (!form) {
+    return res.status(404).json({
+      error: 'Not found',
+      message: 'Form not found',
+    });
+  }
+
+  // Check access: personal ownership OR org membership
+  const hasPersonalAccess = form.user_id === authContext.userId && !form.org_id;
+  const hasOrgAccess = form.org_id && form.org_id === authContext.orgId;
+
+  if (!hasPersonalAccess && !hasOrgAccess) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'You do not have access to this form',
+    });
+  }
+
+  // Check access if updating org form (admin and basic_member can write)
+  if (form.org_id) {
+    const canWrite = await checkAccess(req, 'write');
+    if (!canWrite) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to update forms in this organization',
+      });
+    }
+  }
+
   const { title, description, fields, stations, settings } = req.body;
 
-  const result = await formsService.updateForm(id, userId, {
+  const result = await formsService.updateForm(id, authContext.userId, {
     title,
     description,
     fields,
@@ -217,12 +272,12 @@ async function handleUpdateForm(
 
 /**
  * DELETE /api/forms?id=xxx
- * Delete form
+ * Delete form (with org support and permission check)
  */
 async function handleDeleteForm(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { id } = req.query;
 
@@ -233,7 +288,39 @@ async function handleDeleteForm(
     });
   }
 
-  const result = await formsService.deleteForm(id, userId);
+  // Get form to check access
+  const form = await formsService.getFormById(id);
+
+  if (!form) {
+    return res.status(404).json({
+      error: 'Not found',
+      message: 'Form not found',
+    });
+  }
+
+  // Check access: personal ownership OR org membership
+  const hasPersonalAccess = form.user_id === authContext.userId && !form.org_id;
+  const hasOrgAccess = form.org_id && form.org_id === authContext.orgId;
+
+  if (!hasPersonalAccess && !hasOrgAccess) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'You do not have access to this form',
+    });
+  }
+
+  // Check access if deleting org form (only admin can delete)
+  if (form.org_id) {
+    const canDelete = await checkAccess(req, 'delete');
+    if (!canDelete) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to delete forms in this organization',
+      });
+    }
+  }
+
+  const result = await formsService.deleteForm(id, authContext.userId);
 
   if (!result.success) {
     return res.status(result.error?.includes('unauthorized') ? 403 : 400).json({

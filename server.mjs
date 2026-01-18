@@ -152,7 +152,7 @@ app.use('/assets', express.static(join(distPath, 'assets'), {
 }));
 
 // PDFs - no caching (always fresh)
-app.get('/*.pdf', (req, res) => {
+app.get(/.*\.pdf$/, (req, res) => {
   res.set('Content-Type', 'application/pdf');
   res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(join(distPath, req.path));
@@ -176,14 +176,15 @@ app.use(express.static(distPath, {
 /**
  * Fallback to index.html for all non-API routes
  * This enables React Router to handle client-side routing
+ * Using middleware instead of route to avoid Express 5 path-to-regexp issues
  */
-app.get('*', (req, res) => {
+app.use((req, res) => {
   // Don't fallback for API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
 
-  // Serve index.html for all other routes
+  // Serve index.html for all other routes (SPA fallback)
   res.sendFile(join(distPath, 'index.html'));
 });
 
@@ -192,7 +193,10 @@ app.get('*', (req, res) => {
 // ============================================================================
 
 // 404 handler for API routes
-app.use('/api/*', (req, res) => {
+// Note: This middleware is positioned after the SPA fallback,
+// but won't be reached because the SPA fallback handles /api/* routes separately
+// Keeping this for explicit API error handling if needed in future
+app.use(/^\/api\/.*/, (req, res) => {
   res.status(404).json({
     error: 'Not Found',
     message: `API endpoint ${req.method} ${req.path} not found`

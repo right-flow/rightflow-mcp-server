@@ -12,7 +12,7 @@ describe('FormsService (Form CRUD)', () => {
   let formsService: FormsService;
   let testUserId: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     formsService = new FormsService();
     testUserId = crypto.randomUUID();
 
@@ -20,6 +20,16 @@ describe('FormsService (Form CRUD)', () => {
     if (!process.env.DATABASE_URL) {
       process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
     }
+
+    // Create test user in database (required for foreign key constraint)
+    const db = await import('../../lib/db').then(m => m.getDb());
+    await db('users').insert({
+      id: testUserId,
+      clerk_id: `clerk_${testUserId}`,
+      email: `test-${testUserId}@example.com`,
+      tenant_type: 'rightflow',
+      created_at: new Date(),
+    });
   });
 
   afterEach(async () => {
@@ -375,6 +385,133 @@ describe('FormsService (Form CRUD)', () => {
         expect(slug2).toContain('-');
         expect(slug2.startsWith(slug1.split('-')[0]!)).toBe(true);
       }
+    });
+  });
+
+  describe('Multi-Tenant Form Access (TDD)', () => {
+    it('getAccessibleForms() returns only personal forms when orgId is null', async () => {
+      // Create personal form
+      const personalForm = await formsService.createForm({
+        userId: testUserId,
+        title: 'Personal Form',
+        fields: [],
+      });
+
+      expect(personalForm.success).toBe(true);
+
+      // Get accessible forms with orgId=null (personal context)
+      const forms = await formsService.getAccessibleForms(testUserId, null);
+
+      expect(forms).toBeDefined();
+      expect(forms.length).toBeGreaterThan(0);
+      expect(forms.every(f => f.user_id === testUserId)).toBe(true);
+      expect(forms.every(f => f.org_id === null)).toBe(true);
+    });
+
+    it('getAccessibleForms() returns only org forms when orgId is provided', async () => {
+      const orgId = crypto.randomUUID(); // Use valid UUID for org_id
+      const db = await import('../../lib/db').then(m => m.getDb());
+
+      // Create organization first (required for foreign key constraint)
+      await db('organizations').insert({
+        id: orgId,
+        name: 'Test Organization',
+        owner_id: testUserId,
+        created_at: new Date(),
+      });
+
+      // Create org form using the service (now supports orgId)
+      const orgForm = await formsService.createForm({
+        userId: testUserId,
+        orgId,
+        title: 'Org Form',
+        fields: [],
+      });
+
+      expect(orgForm.success).toBe(true);
+
+      // Get accessible forms with orgId (org context)
+      const forms = await formsService.getAccessibleForms(testUserId, orgId);
+
+      expect(forms).toBeDefined();
+      expect(forms.every(f => f.org_id === orgId)).toBe(true);
+    });
+
+    it('getAccessibleForms() does not return forms from other orgs', async () => {
+      const orgId1 = crypto.randomUUID(); // Use valid UUID for org_id
+      const orgId2 = crypto.randomUUID(); // Use valid UUID for org_id
+      const db = await import('../../lib/db').then(m => m.getDb());
+
+      // Create organizations first (required for foreign key constraint)
+      await db('organizations').insert([
+        { id: orgId1, name: 'Organization 1', owner_id: testUserId, created_at: new Date() },
+        { id: orgId2, name: 'Organization 2', owner_id: testUserId, created_at: new Date() },
+      ]);
+
+      // Create forms for org1 using service
+      const org1Form = await formsService.createForm({
+        userId: testUserId,
+        orgId: orgId1,
+        title: 'Org 1 Form',
+        fields: [],
+      });
+
+      expect(org1Form.success).toBe(true);
+
+      // Create forms for org2 using service
+      const org2Form = await formsService.createForm({
+        userId: testUserId,
+        orgId: orgId2,
+        title: 'Org 2 Form',
+        fields: [],
+      });
+
+      expect(org2Form.success).toBe(true);
+
+      // Get forms for org1
+      const org1Forms = await formsService.getAccessibleForms(testUserId, orgId1);
+
+      // Should only get org1 forms
+      expect(org1Forms.every(f => f.org_id === orgId1)).toBe(true);
+      expect(org1Forms.some(f => f.org_id === orgId2)).toBe(false);
+    });
+
+    it('getAccessibleForms() handles personal and org separation', async () => {
+      const orgId = crypto.randomUUID(); // Use valid UUID for org_id
+      const db = await import('../../lib/db').then(m => m.getDb());
+
+      // Create organization first (required for foreign key constraint)
+      await db('organizations').insert({
+        id: orgId,
+        name: 'Test Organization',
+        owner_id: testUserId,
+        created_at: new Date(),
+      });
+
+      // Create personal form
+      await formsService.createForm({
+        userId: testUserId,
+        title: 'Personal Form',
+        fields: [],
+      });
+
+      // Create org form using service
+      const orgForm = await formsService.createForm({
+        userId: testUserId,
+        orgId,
+        title: 'Org Form',
+        fields: [],
+      });
+
+      expect(orgForm.success).toBe(true);
+
+      // Get personal forms
+      const personalForms = await formsService.getAccessibleForms(testUserId, null);
+      expect(personalForms.every(f => f.org_id === null)).toBe(true);
+
+      // Get org forms
+      const orgForms = await formsService.getAccessibleForms(testUserId, orgId);
+      expect(orgForms.every(f => f.org_id === orgId)).toBe(true);
     });
   });
 });

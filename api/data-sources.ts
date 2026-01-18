@@ -12,8 +12,8 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { DataSourcesService } from '../src/services/data-sources/data-sources.service';
-import { getUserFromAuth } from './lib/auth';
+import { DataSourcesService, type DataSourceType } from '../src/services/data-sources/data-sources.service';
+import { getAuthContext, checkAccess } from './lib/auth';
 
 const dataSourcesService = new DataSourcesService();
 
@@ -35,9 +35,9 @@ export default async function handler(
 
   try {
     // Authenticate user
-    const userId = await getUserFromAuth(req);
+    const authContext = await getAuthContext(req);
 
-    if (!userId) {
+    if (!authContext) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Valid authentication required',
@@ -47,16 +47,16 @@ export default async function handler(
     // Route based on HTTP method
     switch (req.method) {
       case 'GET':
-        return await handleGetDataSources(req, res, userId);
+        return await handleGetDataSources(req, res, authContext);
 
       case 'POST':
-        return await handleCreateDataSource(req, res, userId);
+        return await handleCreateDataSource(req, res, authContext);
 
       case 'PUT':
-        return await handleUpdateDataSource(req, res, userId);
+        return await handleUpdateDataSource(req, res, authContext);
 
       case 'DELETE':
-        return await handleDeleteDataSource(req, res, userId);
+        return await handleDeleteDataSource(req, res, authContext);
 
       default:
         return res.status(405).json({
@@ -76,18 +76,19 @@ export default async function handler(
 /**
  * GET /api/data-sources
  * Get single data source by ID, get options, or list all user data sources
+ * Supports both personal and organization contexts
  */
 async function handleGetDataSources(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { id, action, source_type } = req.query;
 
   // Get options from a data source
   if (action === 'options' && id && typeof id === 'string') {
     try {
-      const options = await dataSourcesService.getOptions(id, userId);
+      const options = await dataSourcesService.getOptions(id, authContext.userId, authContext.orgId);
       return res.status(200).json({
         success: true,
         data: options,
@@ -115,7 +116,7 @@ async function handleGetDataSources(
 
   // Get single data source by ID
   if (id && typeof id === 'string') {
-    const dataSource = await dataSourcesService.findById(id, userId);
+    const dataSource = await dataSourcesService.findById(id, authContext.userId, authContext.orgId);
 
     if (!dataSource) {
       return res.status(404).json({
@@ -137,7 +138,7 @@ async function handleGetDataSources(
     filters.source_type = source_type;
   }
 
-  const dataSources = await dataSourcesService.findAll(userId, filters);
+  const dataSources = await dataSourcesService.findAll(authContext.userId, filters, authContext.orgId);
 
   return res.status(200).json({
     success: true,
@@ -149,11 +150,12 @@ async function handleGetDataSources(
 /**
  * POST /api/data-sources
  * Create new data source
+ * Supports both personal and organization contexts with permission checks
  */
 async function handleCreateDataSource(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { name, description, source_type, config, cache_ttl, is_active } = req.body;
 
@@ -172,6 +174,15 @@ async function handleCreateDataSource(
     });
   }
 
+  // Validate source_type is valid
+  const validSourceTypes: DataSourceType[] = ['static', 'csv_import', 'json_import', 'table', 'custom_query'];
+  if (!validSourceTypes.includes(source_type as DataSourceType)) {
+    return res.status(400).json({
+      error: 'Bad request',
+      message: `source_type must be one of: ${validSourceTypes.join(', ')}`,
+    });
+  }
+
   if (!config || typeof config !== 'object') {
     return res.status(400).json({
       error: 'Bad request',
@@ -179,12 +190,24 @@ async function handleCreateDataSource(
     });
   }
 
+  // Check access if creating in org context (admin and basic_member can write)
+  if (authContext.orgId) {
+    const canWrite = await checkAccess(req, 'write');
+    if (!canWrite) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to create data sources in this organization',
+      });
+    }
+  }
+
   try {
     const dataSource = await dataSourcesService.create({
-      user_id: userId,
+      user_id: authContext.userId,
+      org_id: authContext.orgId,
       name,
       description,
-      source_type,
+      source_type: source_type as DataSourceType,
       config,
       cache_ttl,
       is_active,
@@ -217,11 +240,12 @@ async function handleCreateDataSource(
 /**
  * PUT /api/data-sources?id=xxx
  * Update existing data source
+ * Supports both personal and organization contexts with permission checks
  */
 async function handleUpdateDataSource(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { id } = req.query;
 
@@ -234,14 +258,35 @@ async function handleUpdateDataSource(
 
   const { name, description, config, cache_ttl, is_active } = req.body;
 
+  // Get data source to check access and org
+  const existing = await dataSourcesService.findById(id, authContext.userId, authContext.orgId);
+
+  if (!existing) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'You do not have access to this data source',
+    });
+  }
+
+  // Check access if updating org data source (admin and basic_member can write)
+  if (existing.org_id) {
+    const canWrite = await checkAccess(req, 'write');
+    if (!canWrite) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to update data sources in this organization',
+      });
+    }
+  }
+
   try {
-    const dataSource = await dataSourcesService.update(id, userId, {
+    const dataSource = await dataSourcesService.update(id, authContext.userId, {
       name,
       description,
       config,
       cache_ttl,
       is_active,
-    });
+    }, authContext.orgId);
 
     return res.status(200).json({
       success: true,
@@ -272,11 +317,12 @@ async function handleUpdateDataSource(
 /**
  * DELETE /api/data-sources?id=xxx
  * Soft delete data source
+ * Supports both personal and organization contexts with permission checks
  */
 async function handleDeleteDataSource(
   req: VercelRequest,
   res: VercelResponse,
-  userId: string,
+  authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
   const { id } = req.query;
 
@@ -287,8 +333,29 @@ async function handleDeleteDataSource(
     });
   }
 
+  // Get data source to check access and org
+  const existing = await dataSourcesService.findById(id, authContext.userId, authContext.orgId);
+
+  if (!existing) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'You do not have access to this data source',
+    });
+  }
+
+  // Check access if deleting org data source (only admin can delete)
+  if (existing.org_id) {
+    const canDelete = await checkAccess(req, 'delete');
+    if (!canDelete) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You do not have permission to delete data sources in this organization',
+      });
+    }
+  }
+
   try {
-    await dataSourcesService.delete(id, userId);
+    await dataSourcesService.delete(id, authContext.userId, authContext.orgId);
 
     return res.status(200).json({
       success: true,
