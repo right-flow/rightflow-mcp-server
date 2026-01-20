@@ -16,6 +16,7 @@ function App() {
   return (
     <ClerkProvider
       publishableKey={CLERK_PUBLISHABLE_KEY || ''}
+      domain={undefined}  // Temporarily disable custom domain to test
       appearance={{
         layout: {
           socialButtonsPlacement: 'bottom',
