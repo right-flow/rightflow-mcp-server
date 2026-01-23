@@ -265,18 +265,9 @@ export function FormViewerPage() {
           <h2 className="text-3xl font-bold text-foreground mb-4">
             {direction === 'rtl' ? 'תודה רבה!' : 'Thank you!'}
           </h2>
-          <p className="text-muted-foreground mb-8 text-lg">
+          <p className="text-muted-foreground text-lg">
             {direction === 'rtl' ? 'התגובה שלך נשלחה בהצלחה.' : 'Your response has been submitted successfully.'}
           </p>
-          <button
-            onClick={() => {
-              setSubmitSuccess(false);
-              setFormData({});
-            }}
-            className="btn-primary w-full hover:scale-105 transition-transform"
-          >
-            {direction === 'rtl' ? 'שלח תגובה נוספת' : 'Submit another response'}
-          </button>
         </motion.div>
       </div>
     );

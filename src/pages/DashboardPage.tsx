@@ -30,10 +30,10 @@ export function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Simplified role-based access (Clerk free tier)
-  // Both admin and basic_member can create forms
+  // Everyone can create forms except viewers
   // Only admin can delete forms
-  const canCreateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
-  const canDeleteForm = !orgId || orgRole === 'admin';
+  const canCreateForm = !orgId || (orgRole !== 'org:viewer' && orgRole !== null);
+  const canDeleteForm = !orgId || orgRole === 'org:admin' || orgRole === 'admin';
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {

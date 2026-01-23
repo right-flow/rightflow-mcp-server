@@ -96,9 +96,9 @@ export function EditorPage() {
   const isMobile = useIsMobile();
 
   // Simplified role-based access (Clerk free tier)
-  // Both admin and basic_member can create and update forms
-  const canCreateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
-  const canUpdateForm = !orgId || orgRole === 'admin' || orgRole === 'basic_member';
+  // Everyone can create and update forms except viewers
+  const canCreateForm = !orgId || (orgRole !== 'org:viewer' && orgRole !== null);
+  const canUpdateForm = !orgId || (orgRole !== 'org:viewer' && orgRole !== null);
 
   // Calculate field validation errors
   const errorFieldIds = useMemo(() => {

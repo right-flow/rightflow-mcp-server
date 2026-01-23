@@ -176,8 +176,8 @@ export const TopToolbar = ({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 mr-2">
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="hidden md:flex items-center gap-1 mr-2">
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 rounded-xl" title={isDark ? t.lightMode : t.darkMode}>
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
@@ -192,12 +192,12 @@ export const TopToolbar = ({
           </Button>
         </div>
 
-        <Separator orientation="vertical" className="h-6" />
+        <Separator orientation="vertical" className="h-6 hidden md:block" />
 
         {!hasDocument ? (
           <Button onClick={onUpload} className="btn-primary py-1.5 px-4 text-sm h-9 flex items-center gap-2 shadow-none ml-2">
             <Upload className="w-4 h-4" />
-            {t.uploadPdf}
+            <span className="hidden sm:inline">{t.uploadPdf}</span>
           </Button>
         ) : (
           <>
@@ -207,14 +207,18 @@ export const TopToolbar = ({
               onClick={onExtractFields}
               disabled={isExtractingFields}
               className={`h-9 rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 gap-2 transition-all ${isExtractingFields ? 'animate-pulse' : ''}`}
+              title={isExtractingFields ? t.detecting : t.autoDetect}
             >
               <Sparkles className={`w-4 h-4 ${isExtractingFields ? 'animate-spin' : ''}`} />
-              <span className="hidden lg:inline">{isExtractingFields ? t.detecting : t.autoDetect}</span>
+              <span className="hidden md:inline">{isExtractingFields ? t.detecting : t.autoDetect}</span>
             </Button>
 
-            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Separator orientation="vertical" className="h-6 mx-1 hidden sm:block" />
 
             <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={onUpload} className="h-9 w-9 rounded-xl" title={t.uploadPdf}>
+                <Upload className="w-5 h-5 text-muted-foreground" />
+              </Button>
               <Button variant="ghost" size="icon" onClick={onSettings} className="h-9 w-9 rounded-xl" title={t.settings}>
                 <Settings className="w-5 h-5 text-muted-foreground" />
               </Button>
@@ -224,13 +228,13 @@ export const TopToolbar = ({
             </div>
 
             <div className="flex items-center gap-2 ml-2">
-              <Button variant="outline" size="sm" onClick={onSave} className="h-9 rounded-xl gap-2 font-bold px-4">
+              <Button variant="outline" size="sm" onClick={onSave} className="h-9 rounded-xl gap-2 font-bold px-4" title={t.export}>
                 <Download className="w-4 h-4" />
-                {t.export}
+                <span className="hidden sm:inline">{t.export}</span>
               </Button>
-              <Button onClick={onPublish} disabled={isPublishing} className="btn-primary h-9 rounded-xl px-5 flex items-center gap-2 shadow-none">
+              <Button onClick={onPublish} disabled={isPublishing} className="btn-primary h-9 rounded-xl px-5 flex items-center gap-2 shadow-none" title={isPublishing ? t.publishing : t.publish}>
                 {isPublishing ? <Globe className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
-                {isPublishing ? t.publishing : t.publish}
+                <span className="hidden sm:inline">{isPublishing ? t.publishing : t.publish}</span>
               </Button>
             </div>
           </>
