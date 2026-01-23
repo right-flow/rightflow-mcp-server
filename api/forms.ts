@@ -10,7 +10,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { FormsService } from '../src/services/forms/forms.service';
+import { FormsService } from '../src/services/forms/forms.service.js';
 import { getAuthContext, checkAccess } from './lib/auth';
 
 const formsService = new FormsService();

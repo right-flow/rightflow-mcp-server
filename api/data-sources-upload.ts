@@ -7,8 +7,8 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { DataSourcesService } from '../src/services/data-sources/data-sources.service';
-import { StorageService } from '../src/services/storage/storage.service';
+import { DataSourcesService } from '../src/services/data-sources/data-sources.service.js';
+import { StorageService } from '../src/services/storage/storage.service.js';
 import { getUserFromAuth } from './lib/auth';
 
 const dataSourcesService = new DataSourcesService();

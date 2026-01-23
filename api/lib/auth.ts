@@ -4,8 +4,8 @@
  */
 
 import type { VercelRequest } from '@vercel/node';
-import { clerkService } from '../../src/services/auth/clerk.service';
-import { getDb } from '../../src/lib/db';
+import { clerkService } from '../../src/services/auth/clerk.service.js';
+import { getDb } from '../../src/lib/db.js';
 
 /**
  * Extended authentication context including organization information

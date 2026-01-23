@@ -12,7 +12,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { DataSourcesService, type DataSourceType } from '../src/services/data-sources/data-sources.service';
+import { DataSourcesService, type DataSourceType } from '../src/services/data-sources/data-sources.service.js';
 import { getAuthContext, checkAccess } from './lib/auth';
 
 const dataSourcesService = new DataSourcesService();

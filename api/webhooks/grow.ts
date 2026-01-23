@@ -12,7 +12,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GrowService } from '../../src/services/billing/grow.service';
+import { GrowService } from '../../src/services/billing/grow.service.js';
 
 const growService = new GrowService();
 
