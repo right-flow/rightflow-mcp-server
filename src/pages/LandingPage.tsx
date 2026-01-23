@@ -161,9 +161,9 @@ export function LandingPage() {
                 <div className="relative bg-white p-4 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(10,21,81,0.15)] border border-slate-100">
                   <div className="rounded-[2rem] overflow-hidden bg-slate-100 aspect-[4/3] relative">
                     <img
-                      src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=800"
+                      src="/images/hero-success.png"
                       alt="Mobile App Interface"
-                      className="w-full h-full object-cover opacity-90"
+                      className="w-full h-full object-cover opacity-95"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0A1551]/60 to-transparent flex flex-col justify-end p-8 text-white">
                       <div className="flex items-center gap-3 mb-4">
@@ -246,8 +246,8 @@ export function LandingPage() {
                       key={niche.id}
                       onClick={() => setActiveNiche(niche.id)}
                       className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${activeNiche === niche.id
-                          ? 'bg-white shadow-lg scale-105'
-                          : 'text-slate-400 hover:text-white'
+                        ? 'bg-white shadow-lg scale-105'
+                        : 'text-slate-400 hover:text-white'
                         }`}
                     >
                       <div className={`p-2 rounded-lg ${activeNiche === niche.id ? niche.bg : 'bg-slate-800'}`}>
@@ -291,7 +291,7 @@ export function LandingPage() {
                       </div>
                       <div className="w-full md:w-1/2 aspect-square rounded-[2rem] bg-slate-100 overflow-hidden shadow-inner">
                         <img
-                          src={`https://images.unsplash.com/photo-${activeNiche === 'medical' ? '1581056771107-24ca5f033842' : activeNiche === 'technical' ? '1581092160562-40aa08e78837' : '1504307651254-35680f4f4640'}?auto=format&fit=crop&q=80&w=400`}
+                          src={activeNiche === 'medical' ? '/images/medical-success.png' : activeNiche === 'technical' ? '/images/technical-success.png' : `https://images.unsplash.com/photo-${activeNiche === 'construction' ? '1504307651254-35680f4f4640' : '1581056771107-24ca5f033842'}?auto=format&fit=crop&q=80&w=400`}
                           alt={activeNiche}
                           className="w-full h-full object-cover"
                         />
@@ -326,6 +326,8 @@ export function LandingPage() {
 
                   <div className="grid grid-cols-2 gap-6 pt-4">
                     {[
+                      { name: 'Priority ERP', detail: (t as any).priorityTitle },
+                      { name: 'חשבשבת', detail: (t as any).hashavshevetTitle },
                       { name: 'Monday.com', detail: 'Israeli Favorite' },
                       { name: 'Zoho CRM', detail: 'Advanced Flow' },
                       { name: 'WhatsApp', detail: 'Instant Alerts' },
@@ -349,14 +351,17 @@ export function LandingPage() {
                         <LinkIcon key={i} className="w-20 h-20 text-[#0A1551]" />
                       ))}
                     </div>
-                    <div className="relative z-10 text-center space-y-6">
+                    <div className="relative z-10 text-center space-y-6 p-8">
                       <div className="w-24 h-24 bg-orange-100 rounded-[2rem] flex items-center justify-center mx-auto shadow-sm">
-                        <LinkIcon className="text-[#FF6100] w-12 h-12" />
+                        <Cpu className="text-[#FF6100] w-12 h-12" />
                       </div>
-                      <h4 className="text-2xl font-black text-[#0A1551] uppercase tracking-tighter">ActivePieces Native</h4>
+                      <h4 className="text-2xl font-black text-[#0A1551] uppercase tracking-tighter">Integration Hub</h4>
+                      <p className="text-[#0A1551] text-sm font-bold px-4">
+                        {(t as any).bidirectionalFlowDesc}
+                      </p>
                       <div className="flex justify-center gap-2">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-slate-200" />
+                          <div key={i} className="w-2 h-2 rounded-full bg-[#FF6100]" />
                         ))}
                       </div>
                     </div>

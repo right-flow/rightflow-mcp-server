@@ -367,6 +367,18 @@ export interface Translations {
   signatureSmoothingDesc: string;
   aiDetectionTitle: string;
   aiDetectionDesc: string;
+
+  // Integrations
+  priorityTitle: string;
+  priorityDesc: string;
+  hashavshevetTitle: string;
+  hashavshevetDesc: string;
+  integrationHubTitle: string;
+  integrationHubDesc: string;
+  bidirectionalFlowTitle: string;
+  bidirectionalFlowDesc: string;
+  ephemeralDataTitle: string;
+  ephemeralDataDesc: string;
 }
 
 const hebrewTranslations: Translations = {
@@ -703,16 +715,16 @@ const hebrewTranslations: Translations = {
   itemsWaitingToSync: 'פריטים ממתינים לסנכרון',
 
   // Landing Page
-  heroTitle: 'הופכים קבצי PDF לתהליכים אינטראקטיביים',
-  heroSubtitle: 'בונה טפסי ה-PDF היחיד עם תמיכה מלאה בעברית, עבודה ללא אינטרנט ודיגיטציה מבוססת AI לצוותי שטח.',
-  getStarted: 'התחל בחינם',
-  viewDemo: 'צפה בדמו',
+  heroTitle: 'הצלחה בשטח מתחילה בטפסים חכמים',
+  heroSubtitle: 'הפלטפורמה המקצועית בישראל לניהול צוותי שטח, חיבור מלא ל-ERP ודיגיטציה של תהליכים עסקיים במינימום מאמץ ומקסימום בטחון.',
+  getStarted: 'התחל עכשיו בחינם',
+  viewDemo: 'צפה בדמו חי',
   featureHebrewTitle: 'עברית שפת אם',
   featureHebrewDesc: 'תמיכה מלאה ב-RTL עם רינדור מושלם וטיפול דו-כיווני (Bidi).',
   featureAiTitle: 'דיגיטציה ב-AI',
   featureAiDesc: 'הפוך טפסים פיזיים לדיגיטליים בתוך שניות באמצעות מנוע ה-OCR שלנו.',
-  featureOfflineTitle: 'מאובטח ואופליין',
-  featureOfflineDesc: 'איסוף נתונים ללא צורך בחיבור לאינטרנט. מוצפן ומאוחסן בענן ישראלי.',
+  featureOfflineTitle: 'בטחון מלא באופליין',
+  featureOfflineDesc: 'איסוף נתונים ללא צורך בחיבור לאינטרנט. מוצפן ומאוחסן בענן ישראלי מאובטח.',
   socialProofTitle: 'הבחירה של החברות המובילות בישראל',
 
   // Landing Page V3 Niches
@@ -736,6 +748,18 @@ const hebrewTranslations: Translations = {
   signatureSmoothingDesc: 'אלגוריתם Bézier ליצירת חתימות מקצועיות שנראות סרוקות בתוך ה-PDF.',
   aiDetectionTitle: 'זיהוי שדות ב-AI',
   aiDetectionDesc: 'העלה כל קובץ PDF והמערכת שלנו תזהה ותמפה את השדות עבורך בשניות.',
+
+  // Integrations
+  priorityTitle: 'Priority ERP',
+  priorityDesc: 'סנכרון מלא עם Priority Cloud ו-On-premise לניהול מלאי ולקוחות.',
+  hashavshevetTitle: 'חשבשבת ERP',
+  hashavshevetDesc: 'קישור ישיר למערכת חשבשבת להפקת מסמכים ועדכון נתונים בזמן אמת.',
+  integrationHubTitle: 'Integration Hub',
+  integrationHubDesc: 'חיבור חכם לכל מערכת ERP/CRM ללא צורך בכתיבת קוד.',
+  bidirectionalFlowTitle: 'Pull & Push בזמן אמת',
+  bidirectionalFlowDesc: 'משוך נתוני לקוחות מה-ERP ומדחס את התוצאות חזרה בלחיצת כפתור.',
+  ephemeralDataTitle: 'אבטחת מידע מקסימלית',
+  ephemeralDataDesc: 'הנתונים הרגישים אינם נשמרים בבסיס הנתונים שלנו - הכל מוצפן ועובר ישירות לארגון.',
 };
 
 const englishTranslations: Translations = {
@@ -1072,16 +1096,16 @@ const englishTranslations: Translations = {
   itemsWaitingToSync: 'Items waiting to sync',
 
   // Landing Page
-  heroTitle: 'Transform PDFs into Conversational Flows',
-  heroSubtitle: 'The only PDF form builder with native RTL support, offline-first reliability, and AI-powered digitization for Israeli field sales teams.',
-  getStarted: 'Get Started Free',
-  viewDemo: 'View Demo',
+  heroTitle: 'Field Success Starts with Smart Forms',
+  heroSubtitle: 'The professional Israeli platform for field team management, full ERP integration, and process digitization with maximum confidence.',
+  getStarted: 'Start Free Now',
+  viewDemo: 'View Live Demo',
   featureHebrewTitle: 'Native Hebrew',
   featureHebrewDesc: 'Full RTL support with perfect rendering and bidirectional text handling.',
   featureAiTitle: 'AI Digitization',
   featureAiDesc: 'Turn paper forms into digital interfaces in seconds using our advanced AI engine.',
   featureOfflineTitle: 'Secure & Offline',
-  featureOfflineDesc: 'Collect data without internet. Fully encrypted and hosted on Israeli cloud.',
+  featureOfflineDesc: 'Collect data without internet. Fully encrypted and hosted on secure Israeli cloud.',
   socialProofTitle: 'TRUSTED BY LEADING ISRAELI COMPANIES',
 
   // Landing Page V3 Niches
@@ -1105,6 +1129,18 @@ const englishTranslations: Translations = {
   signatureSmoothingDesc: 'Bézier algorithm for professional signatures that look scanned in the PDF.',
   aiDetectionTitle: 'AI Field Detection',
   aiDetectionDesc: 'Upload any PDF and our system will detect and map fields for you in seconds.',
+
+  // Integrations
+  priorityTitle: 'Priority ERP',
+  priorityDesc: 'Full synchronization with Priority Cloud and On-premise for inventory and CRM.',
+  hashavshevetTitle: 'Hashavshevet ERP',
+  hashavshevetDesc: 'Direct link to Hashavshevet for document generation and real-time updates.',
+  integrationHubTitle: 'Integration Hub',
+  integrationHubDesc: 'Smart connection to any ERP/CRM system without writing code.',
+  bidirectionalFlowTitle: 'Real-time Pull & Push',
+  bidirectionalFlowDesc: 'Pull customer data from ERP and push results back at the click of a button.',
+  ephemeralDataTitle: 'Maximum Data Security',
+  ephemeralDataDesc: 'Sensitive data is not stored in our database - everything is encrypted and sent directly.',
 };
 
 const translations: Record<Language, Translations> = {
