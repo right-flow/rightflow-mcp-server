@@ -10,6 +10,7 @@
 
 import { getDb } from '../../lib/db';
 import type { Knex } from 'knex';
+import crypto from 'crypto';
 
 export interface GrowSubscription {
   id: string;
@@ -341,7 +342,6 @@ export class GrowService {
     // PRODUCTION IMPLEMENTATION
     // Verify HMAC-SHA256 signature using timing-safe comparison
     try {
-      const crypto = require('crypto');
       const expectedSignature = crypto
         .createHmac('sha256', this.webhookSecret)
         .update(payload)

@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* Mobile-specific styles */
+@import './mobile.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 33% 98%;
+    --foreground: 224 71% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 243 75% 59%;
+
+    --radius: 0.75rem;
+
+    /* Highlight colors for forms */
+    --highlight-orange: 24 95% 53%;
+    --highlight-blue: 217 91% 60%;
+
+    --sidebar-bg: 220 33% 98%;
+    --canvas-bg: 220 14% 94%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 243 75% 59%;
+
+    --sidebar-bg: 224 71% 2%;
+    --canvas-bg: 224 71% 6%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  .glass-card {
+    @apply glass shadow-xl rounded-2xl transition-all duration-300;
+  }
+
+  .glass-panel {
+    @apply bg-white/40 dark:bg-black/20 backdrop-blur-3xl border-r border-white/10 dark:border-white/5;
+  }
+
+  .glass-border {
+    @apply border border-white/20 dark:border-white/10;
+  }
+
+  .premium-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .premium-shadow {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 rounded-xl px-6 py-2.5 font-bold transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply glass hover:bg-white/80 dark:hover:bg-white/10 rounded-xl px-6 py-2.5 font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-highlight-blue font-bold;
+  }
+
+  .input-premium {
+    @apply bg-white/50 dark:bg-black/20 border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl px-4 py-2 transition-all outline-none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+}
+
+/* Layout Specifics */
+.forms-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+.dashboard-grid {
+  @apply grid min-h-screen;
+  grid-template-columns: 260px 1fr;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Animations */
+.hover-lift {
+  @apply transition-transform duration-300 hover:-translate-y-1;
+}
+
+/* Field Markers - PDF Canvas Fields */
+:root {
+  --field-station-agent: 217 91% 60%; /* Blue for agent fields */
+  --field-station-client: 24 95% 53%; /* Orange for client fields */
+  --field-text: 220 9% 46%;
+  --field-checkbox: 142 71% 45%;
+  --field-radio: 262 83% 58%;
+  --field-dropdown: 199 89% 48%;
+  --signature-bg: 220 14% 96%;
+}
+
+.dark {
+  --field-station-agent: 217 91% 65%;
+  --field-station-client: 24 95% 58%;
+  --field-text: 220 9% 70%;
+  --field-checkbox: 142 71% 50%;
+  --field-radio: 262 83% 65%;
+  --field-dropdown: 199 89% 55%;
+  --signature-bg: 215 28% 17%;
+}
+
+.field-marker {
+  @apply rounded-sm transition-all duration-150;
+  border: 1.5px solid transparent;
+}
+
+.field-marker-station-agent {
+  border-color: hsl(var(--field-station-agent) / 0.6);
+  background-color: hsl(var(--field-station-agent) / 0.08);
+}
+
+.field-marker-station-client {
+  border-color: hsl(var(--field-station-client) / 0.6);
+  background-color: hsl(var(--field-station-client) / 0.08);
+}
+
+.field-marker-selected {
+  border-width: 2px;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+
+.field-marker-station-agent.field-marker-selected {
+  border-color: hsl(var(--field-station-agent));
+}
+
+.field-marker-station-client.field-marker-selected {
+  border-color: hsl(var(--field-station-client));
+}
+
+.field-marker:hover,
+.field-marker-hovered {
+  border-color: hsl(var(--primary) / 0.8);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+}

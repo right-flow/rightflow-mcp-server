@@ -144,10 +144,10 @@ export async function migrateLocalStorageForms(
 }
 
 /**
- * Hook to trigger migration on dashboard mount
+ * Function to trigger migration on dashboard mount
  * Should be called from DashboardPage after user is authenticated
  */
-export async function useMigrationOnMount(
+export async function runLocalStorageMigration(
   userId: string | undefined,
   authToken: string | undefined,
 ): Promise<void> {

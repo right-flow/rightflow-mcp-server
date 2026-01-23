@@ -17,7 +17,7 @@ import {
   Camera,
   PenTool,
   Cpu,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react';
 import { useTranslation, useDirection } from '@/i18n';
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
@@ -82,16 +82,12 @@ export function LandingPage() {
 
           <div className="flex items-center gap-4">
             <LanguageSelector />
-            <SignInButton mode="modal">
-              <button className="hidden sm:block text-sm font-bold text-[#0A1551] hover:bg-slate-50 px-4 py-2 rounded-lg transition-colors">
-                {isRtl ? 'התחברות' : 'Login'}
-              </button>
-            </SignInButton>
-            <SignInButton mode="modal">
-              <button className="bg-[#FF6100] hover:bg-[#E65700] text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 text-sm uppercase tracking-wide">
-                {t.getStarted}
-              </button>
-            </SignInButton>
+            <a href="https://app.rightflow.co.il/sign-in" className="hidden sm:block text-sm font-bold text-[#0A1551] hover:bg-slate-50 px-4 py-2 rounded-lg transition-colors">
+              {isRtl ? 'התחברות' : 'Login'}
+            </a>
+            <a href="https://app.rightflow.co.il/sign-up" className="bg-[#FF6100] hover:bg-[#E65700] text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 text-sm uppercase tracking-wide">
+              {t.getStarted}
+            </a>
           </div>
         </div>
       </nav>
@@ -126,12 +122,10 @@ export function LandingPage() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <SignInButton mode="modal">
-                    <button className="bg-[#FF6100] hover:bg-[#E65700] text-white text-lg font-bold px-10 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-orange-500/30 group">
-                      {t.getStarted}
-                      {isRtl ? <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> : <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
-                    </button>
-                  </SignInButton>
+                  <a href="https://app.rightflow.co.il/sign-up" className="bg-[#FF6100] hover:bg-[#E65700] text-white text-lg font-bold px-10 py-5 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-orange-500/30 group">
+                    {t.getStarted}
+                    {isRtl ? <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> : <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
+                  </a>
                   <button className="bg-white hover:bg-slate-50 text-[#0A1551] font-bold px-10 py-5 rounded-2xl border border-slate-200 transition-all shadow-sm">
                     {t.viewDemo}
                   </button>
@@ -180,7 +174,7 @@ export function LandingPage() {
                 {/* Floating Micro-UI */}
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
                   className="absolute -top-6 -right-6 md:-right-10 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4"
                 >
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
@@ -331,7 +325,7 @@ export function LandingPage() {
                       { name: 'Monday.com', detail: 'Israeli Favorite' },
                       { name: 'Zoho CRM', detail: 'Advanced Flow' },
                       { name: 'WhatsApp', detail: 'Instant Alerts' },
-                      { name: 'Zapier', detail: '3000+ Apps' }
+                      { name: 'Zapier', detail: '3000+ Apps' },
                     ].map(app => (
                       <div key={app.name} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
                         <div className="w-8 h-8 rounded bg-[#FF6100] flex items-center justify-center font-black text-xs">RF</div>
@@ -400,11 +394,9 @@ export function LandingPage() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
-              <SignInButton mode="modal">
-                <button className="bg-[#FF6100] hover:bg-[#E65700] text-white text-xl font-bold px-12 py-6 rounded-2xl shadow-2xl shadow-orange-500/40 transition-all hover:scale-105 active:scale-95 leading-none">
-                  {t.getStarted}
-                </button>
-              </SignInButton>
+              <a href="https://app.rightflow.co.il/sign-up" className="bg-[#FF6100] hover:bg-[#E65700] text-white text-xl font-bold px-12 py-6 rounded-2xl shadow-2xl shadow-orange-500/40 transition-all hover:scale-105 active:scale-95 leading-none flex items-center justify-center">
+                {t.getStarted}
+              </a>
               <button className="bg-[#0A1551] hover:bg-[#1E2B7A] text-white text-xl font-bold px-12 py-6 rounded-2xl shadow-xl transition-all leading-none">
                 {isRtl ? 'צור קשר' : 'Contact Us'}
               </button>

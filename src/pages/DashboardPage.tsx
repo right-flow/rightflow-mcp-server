@@ -11,11 +11,11 @@ import {
   HelpCircle,
   Search,
   Bell,
-  Layout
+  Layout,
 } from 'lucide-react';
 import { FormCard } from '../components/dashboard/FormCard';
 import type { FormRecord } from '../services/forms/forms.service';
-import { useMigrationOnMount } from '../utils/localStorageMigration';
+import { runLocalStorageMigration } from '../utils/localStorageMigration';
 import { useTranslation, useDirection } from '../i18n';
 
 export function DashboardPage() {
@@ -44,7 +44,7 @@ export function DashboardPage() {
   useEffect(() => {
     if (isSignedIn && user) {
       loadForms();
-      useMigrationOnMount(user.id, user.primaryEmailAddress?.id);
+      runLocalStorageMigration(user.id, user.primaryEmailAddress?.id);
     }
   }, [isSignedIn, user]);
 
@@ -119,7 +119,7 @@ export function DashboardPage() {
   }
 
   const filteredForms = forms.filter(f =>
-    f.title.toLowerCase().includes(searchQuery.toLowerCase())
+    f.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (!isLoaded) {
@@ -254,7 +254,7 @@ export function DashboardPage() {
               </div>
               <h2 className="text-2xl font-bold mb-2">{t.noFormsFound}</h2>
               <p className="text-muted-foreground mb-8 max-w-sm">
-                {searchQuery ? t.noResultsFor.replace('{query}', searchQuery) : "עדיין לא יצרת טפסים. התחל את המסע שלך על ידי יצירת ה-flow הראשון שלך בעברית."}
+                {searchQuery ? t.noResultsFor.replace('{query}', searchQuery) : 'עדיין לא יצרת טפסים. התחל את המסע שלך על ידי יצירת ה-flow הראשון שלך בעברית.'}
               </p>
               {!searchQuery && canCreateForm && (
                 <button
@@ -284,4 +284,3 @@ export function DashboardPage() {
     </div>
   );
 }
-

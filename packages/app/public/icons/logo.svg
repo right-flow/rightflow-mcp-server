@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#003399" rx="80"/>
+
+  <!-- White document icon with arrow (representing flow) -->
+  <g transform="translate(106, 106)">
+    <!-- Document base -->
+    <rect x="40" y="60" width="220" height="280" rx="8" fill="#ffffff"/>
+
+    <!-- Document lines (Hebrew text representation) -->
+    <line x1="220" y1="100" x2="80" y2="100" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+    <line x1="220" y1="130" x2="80" y2="130" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+    <line x1="220" y1="160" x2="120" y2="160" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+
+    <line x1="220" y1="200" x2="80" y2="200" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+    <line x1="220" y1="230" x2="80" y2="230" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+    <line x1="220" y1="260" x2="140" y2="260" stroke="#003399" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- RTL Arrow pointing left (as in right-to-left) -->
+    <g transform="translate(150, 70)">
+      <!-- Arrow shaft -->
+      <line x1="-40" y1="0" x2="40" y2="0" stroke="#00ff99" stroke-width="12" stroke-linecap="round"/>
+      <!-- Arrow head (pointing left for RTL) -->
+      <path d="M -40 0 L -20 -20 M -40 0 L -20 20" stroke="#00ff99" stroke-width="12" stroke-linecap="round" fill="none"/>
+    </g>
+  </g>
+</svg>

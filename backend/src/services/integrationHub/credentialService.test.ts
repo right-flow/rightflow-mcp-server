@@ -28,7 +28,7 @@ beforeAll(async () => {
   const org = await query(
     `INSERT INTO organizations (clerk_organization_id, name)
      VALUES ($1, $2) RETURNING id`,
-    ['test-cred-org', 'Test Credentials Org']
+    ['test-cred-org', 'Test Credentials Org'],
   );
   testOrgId = org[0].id;
 
@@ -37,7 +37,7 @@ beforeAll(async () => {
     organizationId: testOrgId,
     definitionSlug: 'priority-cloud',
     name: 'Test Connector for Credentials',
-    config: {}
+    config: {},
   });
   testConnectorId = connector.id;
 });
@@ -92,7 +92,7 @@ describe('CredentialService', () => {
       const credentials = {
         username: 'admin',
         password: 'secret123',
-        apiKey: 'abc-def-ghi'
+        apiKey: 'abc-def-ghi',
       };
 
       await credentialService.storeCredentials(testConnectorId, 'basic', credentials);
@@ -116,7 +116,7 @@ describe('CredentialService', () => {
       const credentials = {
         username: 'משתמש',
         password: 'סיסמה123',
-        companyName: 'חברת דוגמה'
+        companyName: 'חברת דוגמה',
       };
 
       await credentialService.storeCredentials(testConnectorId, 'basic', credentials);
@@ -132,7 +132,7 @@ describe('CredentialService', () => {
     it('should not expose credentials in error messages (CRITICAL SECURITY)', async () => {
       const credentials = {
         username: 'admin',
-        password: 'super-secret-password-123'
+        password: 'super-secret-password-123',
       };
 
       // Store credentials
@@ -143,7 +143,7 @@ describe('CredentialService', () => {
         `UPDATE connector_credentials
          SET credentials_encrypted = $1
          WHERE connector_id = $2`,
-        [Buffer.from('corrupted!!!'), testConnectorId]
+        [Buffer.from('corrupted!!!'), testConnectorId],
       );
 
       // Attempt to decrypt - should fail gracefully
@@ -171,6 +171,7 @@ describe('CredentialService', () => {
       try {
         // Force service reload with new key
         jest.resetModules();
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const newService = require('./credentialService');
 
         await newService.getCredentials(testConnectorId);
@@ -192,7 +193,7 @@ describe('CredentialService', () => {
 
       const stored = await query(
         'SELECT auth_type, encryption_key_version FROM connector_credentials WHERE connector_id = $1',
-        [testConnectorId]
+        [testConnectorId],
       );
 
       expect(stored[0].auth_type).toBe('api_key');
@@ -217,18 +218,18 @@ describe('CredentialService', () => {
       // Verify only one row exists
       const count = await query(
         'SELECT COUNT(*) FROM connector_credentials WHERE connector_id = $1',
-        [testConnectorId]
+        [testConnectorId],
       );
       expect(parseInt(count[0].count)).toBe(1);
     });
 
     it('should reject credentials larger than 1MB', async () => {
       const largeCredentials = {
-        certificateChain: 'X'.repeat(2 * 1024 * 1024) // 2MB string
+        certificateChain: 'X'.repeat(2 * 1024 * 1024), // 2MB string
       };
 
       await expect(
-        credentialService.storeCredentials(testConnectorId, 'custom', largeCredentials)
+        credentialService.storeCredentials(testConnectorId, 'custom', largeCredentials),
       ).rejects.toThrow('Credentials too large');
     });
 
@@ -236,7 +237,7 @@ describe('CredentialService', () => {
       const credentials = { test: 'value' };
 
       await expect(
-        credentialService.storeCredentials(testConnectorId, 'invalid_type' as any, credentials)
+        credentialService.storeCredentials(testConnectorId, 'invalid_type' as any, credentials),
       ).rejects.toThrow('Invalid auth type');
     });
   });
@@ -270,7 +271,7 @@ describe('CredentialService', () => {
 
       const result = await query(
         'SELECT last_used_at FROM connector_credentials WHERE connector_id = $1',
-        [testConnectorId]
+        [testConnectorId],
       );
 
       expect(result[0].last_used_at).not.toBeNull();
@@ -304,7 +305,7 @@ describe('CredentialService', () => {
 
       const result = await query(
         'SELECT encryption_key_version FROM connector_credentials WHERE connector_id = $1',
-        [testConnectorId]
+        [testConnectorId],
       );
 
       expect(result[0].encryption_key_version).toBe(1);
@@ -317,14 +318,14 @@ describe('CredentialService', () => {
         accessToken: 'access-token-value',
         refreshToken: 'refresh-token-value',
         expiresAt: new Date(Date.now() + 3600 * 1000),
-        tokenUrl: 'https://auth.example.com/token'
+        tokenUrl: 'https://auth.example.com/token',
       };
 
       await credentialService.storeOAuth2Tokens(testConnectorId, oauthData);
 
       const result = await query(
         'SELECT oauth_expires_at, oauth_token_url FROM connector_credentials WHERE connector_id = $1',
-        [testConnectorId]
+        [testConnectorId],
       );
 
       expect(result[0].oauth_expires_at).not.toBeNull();
@@ -336,7 +337,7 @@ describe('CredentialService', () => {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
         expiresAt: new Date(Date.now() + 3600 * 1000),
-        tokenUrl: 'https://auth.example.com/token'
+        tokenUrl: 'https://auth.example.com/token',
       };
 
       await credentialService.storeOAuth2Tokens(testConnectorId, oauthData);
