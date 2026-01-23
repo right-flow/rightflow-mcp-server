@@ -96,9 +96,17 @@ export function EditorPage() {
   const isMobile = useIsMobile();
 
   // Simplified role-based access (Clerk free tier)
-  // Everyone can create and update forms except viewers
-  const canCreateForm = !orgId || (orgRole !== 'org:viewer' && orgRole !== null);
-  const canUpdateForm = !orgId || (orgRole !== 'org:viewer' && orgRole !== null);
+  // Create/update forms: Personal accounts OR organization members (admin/member)
+  const canCreateForm = !orgId || (
+    orgRole === 'org:admin' ||
+    orgRole === 'org:member' ||
+    orgRole === 'org:basic_member'
+  );
+  const canUpdateForm = !orgId || (
+    orgRole === 'org:admin' ||
+    orgRole === 'org:member' ||
+    orgRole === 'org:basic_member'
+  );
 
   // Calculate field validation errors
   const errorFieldIds = useMemo(() => {
