@@ -14,13 +14,20 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noEmit": false,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./packages/app/src/*"]
+    }
   },
   "include": [
     "api/**/*",
-    "src/lib/**/*",
-    "src/services/**/*",
-    "src/vite-env.d.ts"
+    "packages/app/src/lib/**/*",
+    "packages/app/src/services/**/*",
+    "packages/app/src/store/**/*",
+    "packages/app/src/types/**/*",
+    "packages/app/src/utils/**/*",
+    "packages/app/src/vite-env.d.ts"
   ],
   "exclude": [
     "**/*.test.ts",

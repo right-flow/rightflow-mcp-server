@@ -6,7 +6,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { clerkService } from '../../src/services/auth/clerk.service.js';
+import { clerkService } from '../../packages/app/src/services/auth/clerk.service.js';
 
 export default async function handler(
   req: VercelRequest,

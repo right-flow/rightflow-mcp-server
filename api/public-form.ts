@@ -7,7 +7,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { FormsService } from '../src/services/forms/forms.service.js';
+import { FormsService } from '../packages/app/src/services/forms/forms.service.js';
 
 const formsService = new FormsService();
 

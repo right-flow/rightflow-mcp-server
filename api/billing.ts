@@ -8,9 +8,9 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getDb } from '../src/lib/db.js';
-import { GrowService } from '../src/services/billing/grow.service.js';
-import { LimitsService } from '../src/services/billing/limits.service.js';
+import { getDb } from '../packages/app/src/lib/db.js';
+import { GrowService } from '../packages/app/src/services/billing/grow.service.js';
+import { LimitsService } from '../packages/app/src/services/billing/limits.service.js';
 import { getUserFromAuth } from './lib/auth';
 
 const growService = new GrowService();

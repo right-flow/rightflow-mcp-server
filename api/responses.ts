@@ -11,8 +11,8 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { ResponsesService } from '../src/services/responses/responses.service.js';
-import { FormsService } from '../src/services/forms/forms.service.js';
+import { ResponsesService } from '../packages/app/src/services/responses/responses.service.js';
+import { FormsService } from '../packages/app/src/services/forms/forms.service.js';
 import { getAuthContext, checkAccess } from './lib/auth';
 
 const responsesService = new ResponsesService();
