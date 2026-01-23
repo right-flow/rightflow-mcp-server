@@ -1,4 +1,5 @@
-import { Language } from '@/store/appStore';
+// Language type definition for landing page
+export type Language = 'he' | 'en';
 
 export interface Translations {
   // Header

@@ -1,13 +1,19 @@
 import { ChevronDown } from 'lucide-react';
-import { useAppStore, Language } from '@/store/appStore';
 import { useTranslation } from '@/i18n';
 import { useState, useRef, useEffect } from 'react';
+import type { Language } from '@/i18n/translations';
 
 export const LanguageSelector = () => {
-  const { language, setLanguage } = useAppStore();
   const t = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get current language from localStorage
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'he';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' ? 'en' : 'he') as Language;
+  });
 
   const languages: { code: Language; label: string }[] = [
     { code: 'en', label: t.english },
@@ -29,8 +35,13 @@ export const LanguageSelector = () => {
   }, []);
 
   const handleLanguageChange = (code: Language) => {
-    setLanguage(code);
+    // Update localStorage
+    localStorage.setItem('language', code);
+    setLanguageState(code);
     setIsOpen(false);
+
+    // Dispatch storage event for other components to pick up the change
+    window.dispatchEvent(new Event('languagechange'));
   };
 
   return (
