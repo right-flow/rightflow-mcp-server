@@ -70,11 +70,10 @@ COPY --from=backend-builder /app/dist-api ./dist-api
 # Copy backend source (needed for some imports)
 COPY backend/ ./backend/
 
-# Cache bust: v2.4.2-fix-css-glass-classes
-# Copy server and config files
-COPY server.mjs ./
-COPY knexfile.cjs ./
-COPY knexfile.ts ./
+# Copy server and config files from packages/app (build context is repo root)
+COPY packages/app/server.mjs ./
+COPY packages/app/knexfile.cjs ./
+COPY packages/app/knexfile.ts ./
 
 # Expose port (Railway will override with PORT env var)
 EXPOSE 3000
