@@ -13,6 +13,9 @@ ARG CACHE_BUST=v2.4.2-fix-css-20260125-163500
 # Copy source files
 COPY . .
 
+# Force cache invalidation - update timestamp for each release
+RUN echo "Build version: 2.4.2 - Build time: $(date +%Y%m%d_%H%M%S)"
+
 # Build-time environment variables for Vite
 ARG VITE_CLERK_PUBLISHABLE_KEY
 ARG VITE_CLERK_DOMAIN
