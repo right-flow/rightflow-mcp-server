@@ -7,6 +7,8 @@ export default {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
     './src/**/*.css',
+    './packages/app/src/**/*.{ts,tsx}',
+    './packages/app/src/**/*.css',
   ],
   // Safelist RTL-related classes that may be dynamically generated
   safelist: [
