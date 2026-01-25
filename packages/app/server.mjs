@@ -112,7 +112,7 @@ app.get('/api/health', async (req, res) => {
       clerk: process.env.VITE_CLERK_PUBLISHABLE_KEY ? 'configured' : 'missing',
       gemini: process.env.GEMINI_API_KEY ? 'configured' : 'missing',
       timestamp: new Date().toISOString(),
-      version: '2.4.2'
+      version: '2.4.3'
     });
   } catch (error) {
     console.error('Health check failed:', error);
