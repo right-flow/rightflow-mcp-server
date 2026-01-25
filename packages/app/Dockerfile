@@ -7,6 +7,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Cache bust argument to force rebuild
+ARG CACHE_BUST=v2.4.2-fix-css-20260125-163500
+
 # Copy source files
 COPY . .
 
@@ -64,7 +67,7 @@ COPY --from=backend-builder /app/dist-api ./dist-api
 # Copy backend source (needed for some imports)
 COPY backend/ ./backend/
 
-# Cache bust: v2.4.1-fix-db-import
+# Cache bust: v2.4.2-fix-css-glass-classes
 # Copy server and config files
 COPY server.mjs ./
 COPY knexfile.cjs ./

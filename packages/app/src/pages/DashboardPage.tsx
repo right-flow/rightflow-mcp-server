@@ -140,7 +140,7 @@ export function DashboardPage() {
   return (
     <div className="dashboard-grid bg-background text-foreground" dir={direction}>
       {/* Sidebar */}
-      <aside className={`border-${direction === 'rtl' ? 'l' : 'r'} border-border bg-sidebar-bg/50 backdrop-blur-xl hidden lg:flex flex-col p-6 sticky top-0 h-screen`}>
+      <aside className={`${direction === 'rtl' ? 'border-l' : 'border-r'} border-border bg-sidebar-bg/50 backdrop-blur-xl hidden lg:flex flex-col p-6 sticky top-0 h-screen`}>
         <div className="flex items-center gap-3 px-2 mb-10 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
             <Layout className="text-white w-5 h-5" />
@@ -203,7 +203,7 @@ export function DashboardPage() {
             </button>
             <div className="h-8 w-[1px] bg-border mx-2" />
             <div className="flex items-center gap-3">
-              <div className={`text-${direction === 'rtl' ? 'left' : 'right'} hidden sm:block`}>
+              <div className={`${direction === 'rtl' ? 'text-left' : 'text-right'} hidden sm:block`}>
                 <p className="text-sm font-bold truncate max-w-[120px]">{user?.fullName || (direction === 'rtl' ? 'משתמש' : 'User')}</p>
                 <p className="text-xs text-muted-foreground">{t.freePlan}</p>
               </div>

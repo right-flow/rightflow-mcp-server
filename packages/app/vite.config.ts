@@ -13,6 +13,7 @@ export default defineConfig({
       manifest: false, // Use the manifest.json from public folder
       workbox: {
         globPatterns: ['**/*.{js,css,html,ttf,woff2,png,svg}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB limit
         runtimeCaching: [
           {
             // Cache form data API calls
