@@ -7,6 +7,12 @@ import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
 import { pdfToViewportCoords } from '@/utils/pdfCoordinates';
 import { useMultiDrag } from '@/hooks/useMultiDrag';
+import {
+  getConfidenceClassName,
+  getConfidenceBadgeClassName,
+  getConfidenceLabel,
+  formatConfidencePercent,
+} from '@/utils/fieldConfidence';
 
 interface PageDimensions {
   width: number;
@@ -92,13 +98,19 @@ export const RadioField = ({
   // IMPORTANT: Use containerHeight (full radio group), not field.height (single option)
   const pdfTopY = field.y + containerHeight; // Top of the ENTIRE radio group in PDF coordinates
 
-  const viewportTopCoords = pdfToViewportCoords(
+  const rawViewportCoords = pdfToViewportCoords(
     field.x,
     pdfTopY, // top of field
     pageDimensions,
     scale * 100,
     canvasWidth,
   );
+
+  // Using Gemini's native box_2d format - no offset needed
+  const viewportTopCoords = {
+    x: rawViewportCoords.x,
+    y: rawViewportCoords.y,
+  };
 
   return (
     <>
@@ -119,6 +131,7 @@ export const RadioField = ({
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered',
+          getConfidenceClassName(field.confidence, field.manuallyAdjusted),
           'group',
         )}
         style={{
@@ -198,6 +211,16 @@ export const RadioField = ({
         >
           <X className="w-3 h-3" />
         </button>
+
+        {/* Confidence badge - shows on hover/select for AI-detected fields */}
+        {field.confidence && !field.manuallyAdjusted && (
+          <div
+            className={getConfidenceBadgeClassName(field.confidence)}
+            title={getConfidenceLabel(field.confidence)}
+          >
+            {formatConfidencePercent(field.confidence)}
+          </div>
+        )}
       </Rnd>
 
       {/* Context Menu */}

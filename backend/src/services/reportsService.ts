@@ -67,7 +67,7 @@ export class ReportsService {
    */
   async getDailyActivityReport(
     organizationId: string,
-    date?: string
+    date?: string,
   ): Promise<DailyActivityReport> {
     const targetDate = date || new Date().toISOString().split('T')[0];
     const yesterday = new Date(targetDate);
@@ -82,7 +82,7 @@ export class ReportsService {
        WHERE s.organization_id = $1
        AND DATE(s.created_at) = $2
        AND s.deleted_at IS NULL`,
-      [organizationId, targetDate]
+      [organizationId, targetDate],
     );
 
     // Get submissions count for yesterday
@@ -91,7 +91,7 @@ export class ReportsService {
        WHERE organization_id = $1
        AND DATE(created_at) = $2
        AND deleted_at IS NULL`,
-      [organizationId, yesterdayStr]
+      [organizationId, yesterdayStr],
     );
 
     const submissionsToday = todaySubmissions.length;
@@ -111,7 +111,7 @@ export class ReportsService {
        WHERE organization_id = $1
        AND DATE(created_at) = $2
        AND deleted_at IS NULL`,
-      [organizationId, targetDate]
+      [organizationId, targetDate],
     );
 
     // Calculate average completion time from metadata
@@ -171,7 +171,7 @@ export class ReportsService {
   async getTeamPerformanceReport(
     organizationId: string,
     from: string,
-    to: string
+    to: string,
   ): Promise<TeamPerformanceReport> {
     // Get all submissions in date range (join with users to get names)
     const submissions = await query<FormSubmissionRow>(
@@ -182,7 +182,7 @@ export class ReportsService {
        AND DATE(s.created_at) >= $2
        AND DATE(s.created_at) <= $3
        AND s.deleted_at IS NULL`,
-      [organizationId, from, to]
+      [organizationId, from, to],
     );
 
     // Group by user
@@ -271,7 +271,7 @@ export class ReportsService {
   async getFormsStatusReport(
     organizationId: string,
     from: string,
-    to: string
+    to: string,
   ): Promise<FormsStatusReport> {
     // Get all submissions in date range
     const submissions = await query<FormSubmissionRow>(
@@ -282,7 +282,7 @@ export class ReportsService {
        AND DATE(s.created_at) >= $2
        AND DATE(s.created_at) <= $3
        AND s.deleted_at IS NULL`,
-      [organizationId, from, to]
+      [organizationId, from, to],
     );
 
     // Count by status

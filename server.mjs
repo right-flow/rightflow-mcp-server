@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import { exec } from 'child_process';
 
 // Load environment variables
 dotenv.config();
@@ -245,16 +246,149 @@ server.listen(PORT, () => {
 });
 
 // ============================================================================
+// CHILD PROCESS TRACKING
+// ============================================================================
+
+// Track all spawned child processes for cleanup
+const childProcesses = new Set();
+
+/**
+ * Register a child process for cleanup on shutdown
+ * @param {import('child_process').ChildProcess} child
+ */
+export const registerChildProcess = (child) => {
+  childProcesses.add(child);
+  child.on('exit', () => childProcesses.delete(child));
+  child.on('error', () => childProcesses.delete(child));
+};
+
+/**
+ * Kill all tracked child processes
+ */
+const killChildProcesses = () => {
+  if (childProcesses.size === 0) {
+    console.log('✅ No child processes to kill');
+    return;
+  }
+
+  console.log(`🔪 Killing ${childProcesses.size} child process(es)...`);
+  for (const child of childProcesses) {
+    try {
+      child.kill('SIGTERM');
+      // Force kill after 2 seconds if still alive
+      setTimeout(() => {
+        if (!child.killed) {
+          child.kill('SIGKILL');
+        }
+      }, 2000);
+    } catch (error) {
+      console.error(`❌ Error killing child process ${child.pid}:`, error.message);
+    }
+  }
+  childProcesses.clear();
+  console.log('✅ Child processes terminated');
+};
+
+/**
+ * Kill any process occupying the server port (platform-specific)
+ */
+const killPortProcess = async (port) => {
+  const isWindows = process.platform === 'win32';
+
+  return new Promise((resolve) => {
+    if (isWindows) {
+      // Windows: Find and kill process on port
+      exec(`netstat -ano | findstr :${port}`, (error, stdout) => {
+        if (error || !stdout) {
+          console.log(`✅ No process found on port ${port}`);
+          resolve();
+          return;
+        }
+
+        // Extract PIDs from netstat output
+        const lines = stdout.trim().split('\n');
+        const pids = new Set();
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== '0' && !isNaN(parseInt(pid))) {
+            pids.add(pid);
+          }
+        }
+
+        if (pids.size === 0) {
+          console.log(`✅ No process found on port ${port}`);
+          resolve();
+          return;
+        }
+
+        console.log(`🔪 Killing ${pids.size} process(es) on port ${port}...`);
+        for (const pid of pids) {
+          exec(`taskkill /F /PID ${pid}`, (err) => {
+            if (err) {
+              console.error(`❌ Failed to kill PID ${pid}:`, err.message);
+            } else {
+              console.log(`✅ Killed PID ${pid}`);
+            }
+          });
+        }
+        // Give time for processes to terminate
+        setTimeout(resolve, 1000);
+      });
+    } else {
+      // Unix/Linux/macOS: Use lsof and kill
+      exec(`lsof -ti:${port}`, (error, stdout) => {
+        if (error || !stdout) {
+          console.log(`✅ No process found on port ${port}`);
+          resolve();
+          return;
+        }
+
+        const pids = stdout.trim().split('\n').filter(Boolean);
+        if (pids.length === 0) {
+          console.log(`✅ No process found on port ${port}`);
+          resolve();
+          return;
+        }
+
+        console.log(`🔪 Killing ${pids.length} process(es) on port ${port}...`);
+        exec(`kill -9 ${pids.join(' ')}`, (err) => {
+          if (err) {
+            console.error(`❌ Failed to kill processes on port ${port}:`, err.message);
+          } else {
+            console.log(`✅ Killed processes on port ${port}`);
+          }
+          resolve();
+        });
+      });
+    }
+  });
+};
+
+// ============================================================================
 // GRACEFUL SHUTDOWN
 // ============================================================================
 
+let isShuttingDown = false;
+
 const shutdown = async () => {
+  // Prevent multiple shutdown calls
+  if (isShuttingDown) {
+    console.log('⚠️ Shutdown already in progress...');
+    return;
+  }
+  isShuttingDown = true;
+
   console.log('\n\n👋 Shutting down gracefully...');
 
-  server.close(async () => {
-    console.log('✅ Server closed');
+  // Step 1: Kill all tracked child processes
+  killChildProcesses();
 
-    // Close database connections
+  // Step 2: Close HTTP server
+  server.close(async () => {
+    console.log('✅ HTTP server closed');
+
+    // Step 3: Close database connections (force close)
     try {
       const { closeDb } = await import('./dist-api/packages/app/src/lib/db.js');
       await closeDb();
@@ -263,11 +397,20 @@ const shutdown = async () => {
       console.error('❌ Error closing database:', error.message);
     }
 
+    // Step 4: Kill any lingering processes on the port
+    await killPortProcess(PORT);
+
+    console.log('✅ Shutdown complete');
     process.exit(0);
   });
 
   // Force shutdown after 10 seconds
-  setTimeout(() => {
+  setTimeout(async () => {
+    console.error('⚠️ Graceful shutdown timed out, forcing...');
+
+    // Force kill port processes before exit
+    await killPortProcess(PORT);
+
     console.error('❌ Forced shutdown after timeout');
     process.exit(1);
   }, 10000);

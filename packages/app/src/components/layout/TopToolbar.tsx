@@ -18,6 +18,7 @@ import {
   Sun,
   Languages,
   Home,
+  FileCode,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ interface TopToolbarProps {
   canRedo?: boolean;
   onExtractFields?: () => void;
   isExtractingFields?: boolean;
+  onExportHtml?: () => void;
   onPublish?: () => void;
   isPublishing?: boolean;
   formStatus?: 'draft' | 'published' | 'archived';
@@ -63,6 +65,7 @@ export const TopToolbar = ({
   canRedo = false,
   onExtractFields,
   isExtractingFields = false,
+  onExportHtml,
   onPublish,
   isPublishing = false,
   formStatus = 'draft',
@@ -232,6 +235,12 @@ export const TopToolbar = ({
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">{t.export}</span>
               </Button>
+              {onExportHtml && (
+                <Button variant="outline" size="sm" onClick={onExportHtml} className="h-9 rounded-xl gap-2 px-4" title={t.exportHtml}>
+                  <FileCode className="w-4 h-4" />
+                  <span className="hidden sm:inline">HTML</span>
+                </Button>
+              )}
               <Button onClick={onPublish} disabled={isPublishing} className="btn-primary h-9 rounded-xl px-5 flex items-center gap-2 shadow-none" title={isPublishing ? t.publishing : t.publish}>
                 {isPublishing ? <Globe className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
                 <span className="hidden sm:inline">{isPublishing ? t.publishing : t.publish}</span>

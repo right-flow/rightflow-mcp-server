@@ -34,6 +34,8 @@ const createApiHandler = (handlerPath) => async (req, res) => {
 
 // Mount all API endpoints
 app.post('/api/extract-fields', createApiHandler('./api/extract-fields.ts'));
+app.post('/api/extract-fields-azure', createApiHandler('./api/extract-fields-azure.ts'));
+app.post('/api/extract-fields-hybrid', createApiHandler('./api/extract-fields-hybrid.ts'));
 app.all('/api/forms', createApiHandler('./api/forms.ts'));
 app.all('/api/forms-publish', createApiHandler('./api/forms-publish.ts'));
 app.all('/api/form-versions', createApiHandler('./api/form-versions.ts'));

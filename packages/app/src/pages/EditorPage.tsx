@@ -621,7 +621,7 @@ export function EditorPage() {
     }
   };
 
-  const _handleExportHtml = async () => {
+  const handleExportHtml = async () => {
     if (fields.length === 0) {
       alert('אין שדות לייצוא. אנא הוסף לפחות שדה אחד.');
       return;
@@ -883,6 +883,7 @@ export function EditorPage() {
         canRedo={canRedo()}
         onExtractFields={handleExtractFields}
         isExtractingFields={isExtractingFields}
+        onExportHtml={handleExportHtml}
         onPublish={handlePublish}
         isPublishing={isPublishing}
         formStatus={formStatus}

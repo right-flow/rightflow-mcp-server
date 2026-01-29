@@ -78,7 +78,7 @@ describe('Reports API Routes', () => {
       expect(response.body.timestamp).toBeDefined();
       expect(reportsService.getDailyActivityReport).toHaveBeenCalledWith(
         'org_test123',
-        undefined // No date provided
+        undefined, // No date provided
       );
     });
 
@@ -105,7 +105,7 @@ describe('Reports API Routes', () => {
       // Assert
       expect(reportsService.getDailyActivityReport).toHaveBeenCalledWith(
         'org_test123',
-        '2026-01-15'
+        '2026-01-15',
       );
     });
 
@@ -123,7 +123,7 @@ describe('Reports API Routes', () => {
     it('should handle service errors gracefully', async () => {
       // Arrange
       (reportsService.getDailyActivityReport as jest.Mock).mockRejectedValue(
-        new Error('Database connection failed')
+        new Error('Database connection failed'),
       );
 
       // Act
@@ -178,7 +178,7 @@ describe('Reports API Routes', () => {
       expect(reportsService.getTeamPerformanceReport).toHaveBeenCalledWith(
         'org_test123',
         '2026-01-01',
-        '2026-01-31'
+        '2026-01-31',
       );
     });
 
@@ -251,7 +251,7 @@ describe('Reports API Routes', () => {
       expect(reportsService.getFormsStatusReport).toHaveBeenCalledWith(
         'org_test123',
         '2026-01-01',
-        '2026-01-31'
+        '2026-01-31',
       );
     });
 
@@ -319,7 +319,7 @@ describe('Reports API Routes', () => {
       // Assert - Verify organizationId from auth context is used
       expect(reportsService.getDailyActivityReport).toHaveBeenCalledWith(
         'org_test123', // From mocked auth
-        undefined
+        undefined,
       );
     });
 

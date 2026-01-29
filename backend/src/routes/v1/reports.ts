@@ -48,7 +48,7 @@ const dateRangeQuerySchema = z
       const toDate = new Date(data.to);
       return fromDate <= toDate;
     },
-    { message: 'from date must be before to date' }
+    { message: 'from date must be before to date' },
   )
   .refine(
     (data) => {
@@ -57,7 +57,7 @@ const dateRangeQuerySchema = z
       const diffDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
       return diffDays <= 90;
     },
-    { message: 'Date range cannot exceed 90 days' }
+    { message: 'Date range cannot exceed 90 days' },
   );
 
 // ============================================================================

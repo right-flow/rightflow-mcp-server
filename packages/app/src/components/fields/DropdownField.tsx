@@ -7,6 +7,12 @@ import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { FieldContextMenu } from './FieldContextMenu';
 import { pdfToViewportCoords, viewportToPDFCoords } from '@/utils/pdfCoordinates';
 import { useMultiDrag } from '@/hooks/useMultiDrag';
+import {
+  getConfidenceClassName,
+  getConfidenceBadgeClassName,
+  getConfidenceLabel,
+  formatConfidencePercent,
+} from '@/utils/fieldConfidence';
 
 interface PageDimensions {
   width: number;
@@ -102,6 +108,7 @@ export const DropdownField = ({
       height: pdfHeight,
       x: pdfTopCoords.x,
       y: pdfBottomY, // Bottom edge in PDF coordinates
+      manuallyAdjusted: true, // Mark as manually adjusted (Layer 5)
     });
   };
 
@@ -110,13 +117,19 @@ export const DropdownField = ({
   // So we need to convert the TOP of the field: field.y + field.height
   const pdfTopY = field.y + field.height; // Top of field in PDF coordinates
 
-  const viewportTopCoords = pdfToViewportCoords(
+  const rawViewportCoords = pdfToViewportCoords(
     field.x,
     pdfTopY, // top of field
     pageDimensions,
     scale * 100,
     canvasWidth,
   );
+
+  // Using Gemini's native box_2d format - no offset needed
+  const viewportTopCoords = {
+    x: rawViewportCoords.x,
+    y: rawViewportCoords.y,
+  };
 
   return (
     <>
@@ -139,6 +152,7 @@ export const DropdownField = ({
           field.station === 'agent' ? 'field-marker-station-agent' : 'field-marker-station-client',
           isSelected && 'field-marker-selected',
           isHovered && 'field-marker-hovered',
+          getConfidenceClassName(field.confidence, field.manuallyAdjusted),
           'group flex items-center',
         )}
         style={{
@@ -186,6 +200,16 @@ export const DropdownField = ({
         >
           <X className="w-3 h-3" />
         </button>
+
+        {/* Confidence badge - shows on hover/select for AI-detected fields */}
+        {field.confidence && !field.manuallyAdjusted && (
+          <div
+            className={getConfidenceBadgeClassName(field.confidence)}
+            title={getConfidenceLabel(field.confidence)}
+          >
+            {formatConfidencePercent(field.confidence)}
+          </div>
+        )}
       </Rnd>
 
       {/* Context Menu */}

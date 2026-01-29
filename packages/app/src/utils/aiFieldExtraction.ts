@@ -1,7 +1,9 @@
 import { FieldDefinition, PageMetadata, GuidanceText, FormMetadata } from '@/types/fields';
 import { PDFDocument } from 'pdf-lib';
+import { pdfjs } from 'react-pdf';
 import { detectRadioGroups } from './fieldGrouping';
 import { reindexFields } from './fieldSorting';
+import { verifyAndCorrectFieldPositions, shouldVerifyPositions } from './fieldPositionVerification';
 
 interface GeminiFieldResponse {
   type: 'text' | 'checkbox' | 'radio' | 'dropdown' | 'signature';
@@ -106,7 +108,7 @@ async function processPageWithAI(
   totalPages: number,
 ): Promise<PageExtractionResult> {
   try {
-    const response = await fetch('/api/extract-fields', {
+    const response = await fetch('/api/extract-fields-hybrid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -140,7 +142,27 @@ async function processPageWithAI(
       };
     }
 
-    const { fields, guidanceTexts } = await response.json();
+    const responseData = await response.json();
+    const { fields, guidanceTexts, coordinateDiagnostics } = responseData;
+
+    // DEBUG: Log raw field coordinates received from API
+    console.log(`[API Response] Page ${pageNumber}: Received ${fields.length} fields`);
+    if (fields.length > 0) {
+      const sampleFields = fields.slice(0, 5);
+      sampleFields.forEach((f: GeminiFieldResponse) => {
+        console.log(`  Field "${f.name}" (page ${f.pageNumber}): x=${f.x?.toFixed(1)}, y=${f.y?.toFixed(1)}, width=${f.width?.toFixed(1)}, height=${f.height?.toFixed(1)}`);
+      });
+    }
+
+    // Log Azure debug data if present
+    if (responseData._debug) {
+      console.log(`[API Debug] Page ${pageNumber}:`, JSON.stringify(responseData._debug, null, 2));
+    }
+
+    // Log coordinate diagnostics if present (warning about suspicious coordinates)
+    if (coordinateDiagnostics) {
+      console.warn(`[API Warning] ${coordinateDiagnostics.message}`);
+    }
 
     // Log radio fields received from API for debugging
     const radioFromApi = fields.filter((f: GeminiFieldResponse) => f.type === 'radio');
@@ -244,13 +266,14 @@ export async function extractFieldsWithAI(
   let allFields: GeminiFieldResponse[] = [];
   let allGuidance: GeminiGuidanceResponse[] = [];
   let extractedFormMetadata: FormMetadata | undefined;
+  let apiPageDimensions: Array<{ pageNumber: number; width: number; height: number }> | undefined;
 
   if (pageCount <= PAGE_THRESHOLD) {
     // Small document - process entire PDF at once
     onProgress?.(`שולח מסמך שלם (${pageCount} עמודים) לניתוח...`);
 
     const base64 = arrayBufferToBase64(arrayBuffer);
-    const response = await fetch('/api/extract-fields', {
+    const response = await fetch('/api/extract-fields-hybrid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -264,10 +287,11 @@ export async function extractFieldsWithAI(
       throw new Error(error.error || 'AI extraction failed');
     }
 
-    const { fields, guidanceTexts, formMetadata } = await response.json();
+    const { fields, guidanceTexts, formMetadata, pageDimensions } = await response.json();
     allFields = fields;
     allGuidance = guidanceTexts || [];
     extractedFormMetadata = formMetadata;
+    apiPageDimensions = pageDimensions;
   } else {
     // Large document - process page by page
     onProgress?.(`מסמך גדול (${pageCount} עמודים) - מפצל לעמודים בודדים...`);
@@ -343,7 +367,7 @@ export async function extractFieldsWithAI(
   }
 
   // Convert to FieldDefinition[]
-  const fields: FieldDefinition[] = allFields.map(
+  let fields: FieldDefinition[] = allFields.map(
     (gf: GeminiFieldResponse, index: number) => ({
       id: crypto.randomUUID(),
       type: gf.type,
@@ -379,6 +403,41 @@ export async function extractFieldsWithAI(
       }),
     }),
   );
+
+  // Position verification: Check if fields need position correction
+  // This is critical for RTL Hebrew forms where AI often returns label position instead of input position
+  if (shouldVerifyPositions(fields)) {
+    onProgress?.('מאמת מיקומי שדות מול טקסט ב-PDF...');
+    console.log('[Position Verification] Fields may need position correction, loading PDF for verification');
+
+    try {
+      // Load PDF with pdfjs for text extraction
+      const pdfJsDoc = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+
+      // Build page dimensions map from API response or pdf-lib
+      const pageDimensions = new Map<number, { width: number; height: number }>();
+      if (apiPageDimensions && apiPageDimensions.length > 0) {
+        // Use dimensions from API response
+        for (const dim of apiPageDimensions) {
+          pageDimensions.set(dim.pageNumber, { width: dim.width, height: dim.height });
+        }
+      } else {
+        // Fallback: extract from pdf-lib
+        const pages = pdfDoc.getPages();
+        pages.forEach((page, index) => {
+          const { width, height } = page.getSize();
+          pageDimensions.set(index + 1, { width, height });
+        });
+      }
+
+      // Verify and correct positions
+      fields = await verifyAndCorrectFieldPositions(fields, pdfJsDoc, pageDimensions);
+      console.log('[Position Verification] Completed position verification and correction');
+    } catch (verifyError) {
+      console.warn('[Position Verification] Failed to verify positions, using original:', verifyError);
+      // Continue with original fields if verification fails
+    }
+  }
 
   // Group fields by page to create metadata
   const metadata: PageMetadata[] = [];
@@ -474,6 +533,12 @@ export async function reprocessSinglePage(
   if (result.error) {
     throw new Error(`שגיאה בעיבוד עמוד ${pageNumber}: ${result.error}`);
   }
+
+  // DEBUG: Log coordinates for reprocessed page
+  console.log(`[Reprocess DEBUG] Page ${pageNumber}: ${result.fields.length} fields received`);
+  result.fields.slice(0, 5).forEach((f: GeminiFieldResponse) => {
+    console.log(`  Field "${f.name}": x=${f.x?.toFixed(1)}, y=${f.y?.toFixed(1)}, w=${f.width?.toFixed(1)}, h=${f.height?.toFixed(1)}`);
+  });
 
   onProgress?.(`עיבוד ${result.fields.length} שדות מעמוד ${pageNumber}...`);
 

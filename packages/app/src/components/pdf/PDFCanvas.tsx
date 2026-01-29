@@ -68,9 +68,36 @@ export const PDFCanvas = ({
 
   const handlePageLoadSuccess = useCallback(
     (page: any) => {
-      // In react-pdf, page object has width/height properties directly
-      const width = page.originalWidth || page.width;
-      const height = page.originalHeight || page.height;
+      // DEBUG: Log all available page dimension properties
+      console.log('[PDFCanvas DEBUG] Page object properties:', {
+        originalWidth: page.originalWidth,
+        originalHeight: page.originalHeight,
+        width: page.width,
+        height: page.height,
+        view: page.view,
+        rotate: page.rotate,
+      });
+
+      // FIXED: Use page.view (MediaBox) for reliable unscaled dimensions
+      // page.view = [x1, y1, x2, y2] in PDF points
+      let width: number;
+      let height: number;
+
+      if (page.view && page.view.length === 4) {
+        width = page.view[2] - page.view[0];
+        height = page.view[3] - page.view[1];
+      } else {
+        width = page.originalWidth || page.width;
+        height = page.originalHeight || page.height;
+      }
+
+      // Handle rotation
+      const rotation = page.rotate || 0;
+      if (rotation === 90 || rotation === 270) {
+        [width, height] = [height, width];
+      }
+
+      console.log(`[PDFCanvas] Page dimensions: ${width} x ${height} points (rotation: ${rotation}, scale: ${scale}%)`);
 
       const scaledWidth = width * (scale / 100);
       setCanvasWidth(scaledWidth);

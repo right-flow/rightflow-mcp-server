@@ -511,7 +511,7 @@ async function seedSubmissions(
   orgId: string,
   date: string,
   count: number,
-  userId: string = 'user-test-001'
+  userId: string = 'user-test-001',
 ): Promise<void> {
   for (let i = 0; i < count; i++) {
     await createSubmission(orgId, date, { totalSeconds: 120 }, userId, 'approved');
@@ -526,7 +526,7 @@ async function seedSubmissionsWithStatus(
   date: string,
   count: number,
   status: string,
-  userId: string = 'user-test-001'
+  userId: string = 'user-test-001',
 ): Promise<void> {
   for (let i = 0; i < count; i++) {
     await createSubmission(orgId, date, { totalSeconds: 120 }, userId, status);
@@ -541,7 +541,7 @@ async function createSubmission(
   date: string,
   metadata: any,
   userId: string = '00000000-0000-0000-0000-000000000011', // Default to testUserId
-  status: string = 'approved'
+  status: string = 'approved',
 ): Promise<void> {
   await query(
     `INSERT INTO submissions
@@ -555,7 +555,7 @@ async function createSubmission(
       `${date}T12:00:00Z`,
       metadata ? JSON.stringify(metadata) : null,
       '{}', // Empty data JSONB
-    ]
+    ],
   );
 }
 
@@ -565,7 +565,7 @@ async function createSubmission(
 async function createSubmissionAtTime(
   orgId: string,
   date: Date,
-  status: string = 'approved'
+  status: string = 'approved',
 ): Promise<void> {
   await query(
     `INSERT INTO submissions
@@ -579,6 +579,6 @@ async function createSubmissionAtTime(
       date.toISOString(),
       JSON.stringify({ totalSeconds: 120 }),
       '{}', // Empty data JSONB
-    ]
+    ],
   );
 }

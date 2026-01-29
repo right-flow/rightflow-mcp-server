@@ -44,6 +44,17 @@ export interface ValidatorConfig {
   params?: Record<string, unknown>;    // e.g., { min: 8, max: 9 }
 }
 
+/**
+ * Confidence scores for AI-detected field positions
+ * Used by Layer 5 of PDF Field Location Optimization
+ */
+export interface FieldConfidence {
+  position: number;   // 0-1: How confident in x,y coordinates
+  size: number;       // 0-1: How confident in width,height
+  labelMatch: number; // 0-1: How confident label text matches field purpose
+  overall: number;    // 0-1: Overall confidence (weighted average)
+}
+
 export interface FieldDefinition {
   id: string;
   type: FieldType;
@@ -54,6 +65,11 @@ export interface FieldDefinition {
   y: number;
   width: number;
   height: number;
+
+  // AI confidence (from automatic extraction)
+  confidence?: FieldConfidence;
+  // Whether this field's position was manually adjusted by user
+  manuallyAdjusted?: boolean;
 
   // Field properties
   name: string;

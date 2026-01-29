@@ -98,6 +98,7 @@ export function useMultiDrag({
         onUpdate(field.id, {
           x: pdfTopCoords.x,
           y: pdfBottomY,
+          manuallyAdjusted: true, // Mark as manually adjusted (Layer 5)
         });
       }
 
