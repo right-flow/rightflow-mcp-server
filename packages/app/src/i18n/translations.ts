@@ -95,6 +95,7 @@ export interface Translations {
   language: string;
   hebrew: string;
   english: string;
+  arabic: string;
 
   // Theme
   darkMode: string;
@@ -398,6 +399,97 @@ export interface Translations {
   noWorkingChannels: string;
   messagesSentLabel: string;
   refreshStatus: string;
+
+  // Language Auto-Detection
+  'language.autoDetect.title': string;
+  'language.autoDetect.message': string;
+  'language.autoDetect.dontAskAgain': string;
+
+  // Common (additional)
+  'common.yes': string;
+  'common.no': string;
+
+  // Workflow - Approval Chain
+  'workflow.approval.chainSettings': string;
+  'workflow.approval.overallTimeout': string;
+  'workflow.approval.hours': string;
+  'workflow.approval.onTimeout': string;
+  'workflow.approval.timeout.fail': string;
+  'workflow.approval.timeout.escalate': string;
+  'workflow.approval.timeout.autoApprove': string;
+  'workflow.approval.addLevel': string;
+  'workflow.approval.level': string;
+  'workflow.approval.approvalType': string;
+  'workflow.approval.approvalType.any': string;
+  'workflow.approval.approvalType.all': string;
+  'workflow.approval.approvalType.allDescription': string;
+  'workflow.approval.approvalType.anyDescription': string;
+  'workflow.approval.approvers': string;
+  'workflow.approval.addApprover': string;
+  'workflow.approval.timeout': string;
+  'workflow.approval.escalation': string;
+  'workflow.approval.escalation.timeoutHours': string;
+  'workflow.approval.escalation.escalateTo': string;
+  'workflow.approval.addEscalation': string;
+  'workflow.approval.removeEscalation': string;
+  'workflow.approval.approverType.user': string;
+  'workflow.approval.approverType.role': string;
+  'workflow.approval.approverType.dynamic': string;
+  'workflow.approval.selectUser': string;
+  'workflow.approval.selectRole': string;
+
+  // Workflow - Template Gallery
+  'workflow.template.gallery': string;
+  'workflow.template.searchPlaceholder': string;
+  'workflow.template.allCategories': string;
+  'workflow.template.category.approval': string;
+  'workflow.template.category.dataCollection': string;
+  'workflow.template.category.automation': string;
+  'workflow.template.category.conditional': string;
+  'workflow.template.category.integration': string;
+  'workflow.template.category.notification': string;
+  'workflow.template.category.custom': string;
+  'workflow.template.sortBy': string;
+  'workflow.template.sort.usageDesc': string;
+  'workflow.template.sort.usageAsc': string;
+  'workflow.template.sort.dateDesc': string;
+  'workflow.template.sort.dateAsc': string;
+  'workflow.template.sort.nameAsc': string;
+  'workflow.template.sort.nameDesc': string;
+  'workflow.template.viewGrid': string;
+  'workflow.template.viewList': string;
+  'workflow.template.used': string;
+  'workflow.template.times': string;
+  'workflow.template.useTemplate': string;
+  'workflow.template.exportTemplate': string;
+  'workflow.template.deleteTemplate': string;
+  'workflow.template.importTemplate': string;
+  'workflow.template.storageUsed': string;
+  'workflow.template.storageWarning': string;
+  'workflow.template.noTemplates': string;
+
+  // Workflow - Conditional Logic
+  'workflow.conditional.builder': string;
+  'workflow.conditional.addGroup': string;
+  'workflow.conditional.addRule': string;
+  'workflow.conditional.operator.and': string;
+  'workflow.conditional.operator.or': string;
+  'workflow.conditional.field': string;
+  'workflow.conditional.operator': string;
+  'workflow.conditional.value': string;
+  'workflow.conditional.op.eq': string;
+  'workflow.conditional.op.ne': string;
+  'workflow.conditional.op.gt': string;
+  'workflow.conditional.op.lt': string;
+  'workflow.conditional.op.gte': string;
+  'workflow.conditional.op.lte': string;
+  'workflow.conditional.op.contains': string;
+  'workflow.conditional.op.exists': string;
+  'workflow.conditional.op.in': string;
+  'workflow.conditional.op.notIn': string;
+  'workflow.conditional.removeRule': string;
+  'workflow.conditional.removeGroup': string;
+  'workflow.conditional.maxDepth': string;
 }
 
 const hebrewTranslations: Translations = {
@@ -495,6 +587,7 @@ const hebrewTranslations: Translations = {
   language: 'שפה',
   hebrew: 'עברית',
   english: 'English',
+  arabic: 'العربية',
 
   // Theme
   darkMode: 'מצב כהה',
@@ -798,6 +891,97 @@ const hebrewTranslations: Translations = {
   noWorkingChannels: 'אין ערוצים פעילים. חבר ערוץ חדש מהגדרות הארגון.',
   messagesSentLabel: 'הודעות נשלחו',
   refreshStatus: 'רענן סטטוס',
+
+  // Language Auto-Detection
+  'language.autoDetect.title': 'זוהתה שפה אחרת',
+  'language.autoDetect.message': 'נראה שאתה כותב ב{language}. האם לשנות את שפת האפליקציה?',
+  'language.autoDetect.dontAskAgain': 'אל תשאל שוב',
+
+  // Common (additional)
+  'common.yes': 'כן',
+  'common.no': 'לא',
+
+  // Workflow - Approval Chain
+  'workflow.approval.chainSettings': 'הגדרות שרשרת אישורים',
+  'workflow.approval.overallTimeout': 'זמן תפוגה כללי',
+  'workflow.approval.hours': 'שעות',
+  'workflow.approval.onTimeout': 'בעת תפוגת זמן',
+  'workflow.approval.timeout.fail': 'כשל',
+  'workflow.approval.timeout.escalate': 'העלאה',
+  'workflow.approval.timeout.autoApprove': 'אישור אוטומטי',
+  'workflow.approval.addLevel': 'הוסף שכבה',
+  'workflow.approval.level': 'שכבה',
+  'workflow.approval.approvalType': 'סוג אישור',
+  'workflow.approval.approvalType.any': 'כל אחד (ANY)',
+  'workflow.approval.approvalType.all': 'כולם (ALL)',
+  'workflow.approval.approvalType.allDescription': 'כל המאשרים חייבים לאשר',
+  'workflow.approval.approvalType.anyDescription': 'מספיק שמאשר אחד יאשר',
+  'workflow.approval.approvers': 'מאשרים',
+  'workflow.approval.addApprover': 'הוסף מאשר',
+  'workflow.approval.timeout': 'זמן תפוגה',
+  'workflow.approval.escalation': 'העלאה',
+  'workflow.approval.escalation.timeoutHours': 'שעות עד העלאה',
+  'workflow.approval.escalation.escalateTo': 'העלה אל',
+  'workflow.approval.addEscalation': 'הוסף העלאה',
+  'workflow.approval.removeEscalation': 'הסר העלאה',
+  'workflow.approval.approverType.user': 'משתמש',
+  'workflow.approval.approverType.role': 'תפקיד',
+  'workflow.approval.approverType.dynamic': 'דינמי',
+  'workflow.approval.selectUser': 'בחר משתמש',
+  'workflow.approval.selectRole': 'בחר תפקיד',
+
+  // Workflow - Template Gallery
+  'workflow.template.gallery': 'גלריית תבניות',
+  'workflow.template.searchPlaceholder': 'חפש תבניות...',
+  'workflow.template.allCategories': 'כל הקטגוריות',
+  'workflow.template.category.approval': 'אישורים',
+  'workflow.template.category.dataCollection': 'איסוף נתונים',
+  'workflow.template.category.automation': 'אוטומציה',
+  'workflow.template.category.conditional': 'לוגיקה מותנית',
+  'workflow.template.category.integration': 'אינטגרציה',
+  'workflow.template.category.notification': 'התראות',
+  'workflow.template.category.custom': 'מותאם אישית',
+  'workflow.template.sortBy': 'מיין לפי',
+  'workflow.template.sort.usageDesc': 'הכי בשימוש',
+  'workflow.template.sort.usageAsc': 'הכי פחות בשימוש',
+  'workflow.template.sort.dateDesc': 'החדשים ביותר',
+  'workflow.template.sort.dateAsc': 'הישנים ביותר',
+  'workflow.template.sort.nameAsc': 'שם (א-ת)',
+  'workflow.template.sort.nameDesc': 'שם (ת-א)',
+  'workflow.template.viewGrid': 'תצוגת רשת',
+  'workflow.template.viewList': 'תצוגת רשימה',
+  'workflow.template.used': 'בשימוש',
+  'workflow.template.times': 'פעמים',
+  'workflow.template.useTemplate': 'השתמש בתבנית',
+  'workflow.template.exportTemplate': 'ייצא תבנית',
+  'workflow.template.deleteTemplate': 'מחק תבנית',
+  'workflow.template.importTemplate': 'ייבא תבנית',
+  'workflow.template.storageUsed': 'אחסון בשימוש',
+  'workflow.template.storageWarning': 'אחסון מתקרב לגבול',
+  'workflow.template.noTemplates': 'לא נמצאו תבניות',
+
+  // Workflow - Conditional Logic
+  'workflow.conditional.builder': 'בונה לוגיקה מותנית',
+  'workflow.conditional.addGroup': 'הוסף קבוצה',
+  'workflow.conditional.addRule': 'הוסף כלל',
+  'workflow.conditional.operator.and': 'וגם (AND)',
+  'workflow.conditional.operator.or': 'או (OR)',
+  'workflow.conditional.field': 'שדה',
+  'workflow.conditional.operator': 'אופרטור',
+  'workflow.conditional.value': 'ערך',
+  'workflow.conditional.op.eq': 'שווה ל',
+  'workflow.conditional.op.ne': 'לא שווה ל',
+  'workflow.conditional.op.gt': 'גדול מ',
+  'workflow.conditional.op.lt': 'קטן מ',
+  'workflow.conditional.op.gte': 'גדול או שווה ל',
+  'workflow.conditional.op.lte': 'קטן או שווה ל',
+  'workflow.conditional.op.contains': 'מכיל',
+  'workflow.conditional.op.exists': 'קיים',
+  'workflow.conditional.op.in': 'בתוך',
+  'workflow.conditional.op.notIn': 'לא בתוך',
+  'workflow.conditional.removeRule': 'הסר כלל',
+  'workflow.conditional.removeGroup': 'הסר קבוצה',
+  'workflow.conditional.maxDepth': 'הגעת לעומק המקסימלי (3 רמות)',
 };
 
 const englishTranslations: Translations = {
@@ -895,6 +1079,7 @@ const englishTranslations: Translations = {
   language: 'Language',
   hebrew: 'עברית',
   english: 'English',
+  arabic: 'العربية',
 
   // Theme
   darkMode: 'Dark Mode',
@@ -1198,11 +1383,593 @@ const englishTranslations: Translations = {
   noWorkingChannels: 'No active channels. Connect a new channel from organization settings.',
   messagesSentLabel: 'Messages Sent',
   refreshStatus: 'Refresh Status',
+
+  // Language Auto-Detection
+  'language.autoDetect.title': 'Different Language Detected',
+  'language.autoDetect.message': 'It looks like you\'re typing in {language}. Switch app language?',
+  'language.autoDetect.dontAskAgain': 'Don\'t ask again',
+
+  // Common (additional)
+  'common.yes': 'Yes',
+  'common.no': 'No',
+
+  // Workflow - Approval Chain
+  'workflow.approval.chainSettings': 'Approval Chain Settings',
+  'workflow.approval.overallTimeout': 'Overall Timeout',
+  'workflow.approval.hours': 'Hours',
+  'workflow.approval.onTimeout': 'On Timeout',
+  'workflow.approval.timeout.fail': 'Fail',
+  'workflow.approval.timeout.escalate': 'Escalate',
+  'workflow.approval.timeout.autoApprove': 'Auto Approve',
+  'workflow.approval.addLevel': 'Add Level',
+  'workflow.approval.level': 'Level',
+  'workflow.approval.approvalType': 'Approval Type',
+  'workflow.approval.approvalType.any': 'Any',
+  'workflow.approval.approvalType.all': 'All',
+  'workflow.approval.approvalType.allDescription': 'All approvers must approve',
+  'workflow.approval.approvalType.anyDescription': 'Only one approver needs to approve',
+  'workflow.approval.approvers': 'Approvers',
+  'workflow.approval.addApprover': 'Add Approver',
+  'workflow.approval.timeout': 'Timeout',
+  'workflow.approval.escalation': 'Escalation',
+  'workflow.approval.escalation.timeoutHours': 'Timeout Hours',
+  'workflow.approval.escalation.escalateTo': 'Escalate To',
+  'workflow.approval.addEscalation': 'Add Escalation',
+  'workflow.approval.removeEscalation': 'Remove Escalation',
+  'workflow.approval.approverType.user': 'User',
+  'workflow.approval.approverType.role': 'Role',
+  'workflow.approval.approverType.dynamic': 'Dynamic',
+  'workflow.approval.selectUser': 'Select User',
+  'workflow.approval.selectRole': 'Select Role',
+
+  // Workflow - Template Gallery
+  'workflow.template.gallery': 'Template Gallery',
+  'workflow.template.searchPlaceholder': 'Search templates...',
+  'workflow.template.allCategories': 'All Categories',
+  'workflow.template.category.approval': 'Approval',
+  'workflow.template.category.dataCollection': 'Data Collection',
+  'workflow.template.category.automation': 'Automation',
+  'workflow.template.category.conditional': 'Conditional Logic',
+  'workflow.template.category.integration': 'Integration',
+  'workflow.template.category.notification': 'Notification',
+  'workflow.template.category.custom': 'Custom',
+  'workflow.template.sortBy': 'Sort By',
+  'workflow.template.sort.usageDesc': 'Most Used',
+  'workflow.template.sort.usageAsc': 'Least Used',
+  'workflow.template.sort.dateDesc': 'Newest',
+  'workflow.template.sort.dateAsc': 'Oldest',
+  'workflow.template.sort.nameAsc': 'Name (A-Z)',
+  'workflow.template.sort.nameDesc': 'Name (Z-A)',
+  'workflow.template.viewGrid': 'Grid View',
+  'workflow.template.viewList': 'List View',
+  'workflow.template.used': 'Used',
+  'workflow.template.times': 'times',
+  'workflow.template.useTemplate': 'Use Template',
+  'workflow.template.exportTemplate': 'Export Template',
+  'workflow.template.deleteTemplate': 'Delete Template',
+  'workflow.template.importTemplate': 'Import Template',
+  'workflow.template.storageUsed': 'Storage Used',
+  'workflow.template.storageWarning': 'Storage approaching limit',
+  'workflow.template.noTemplates': 'No templates found',
+
+  // Workflow - Conditional Logic
+  'workflow.conditional.builder': 'Conditional Logic Builder',
+  'workflow.conditional.addGroup': 'Add Group',
+  'workflow.conditional.addRule': 'Add Rule',
+  'workflow.conditional.operator.and': 'AND',
+  'workflow.conditional.operator.or': 'OR',
+  'workflow.conditional.field': 'Field',
+  'workflow.conditional.operator': 'Operator',
+  'workflow.conditional.value': 'Value',
+  'workflow.conditional.op.eq': 'Equals',
+  'workflow.conditional.op.ne': 'Not Equals',
+  'workflow.conditional.op.gt': 'Greater Than',
+  'workflow.conditional.op.lt': 'Less Than',
+  'workflow.conditional.op.gte': 'Greater or Equal',
+  'workflow.conditional.op.lte': 'Less or Equal',
+  'workflow.conditional.op.contains': 'Contains',
+  'workflow.conditional.op.exists': 'Exists',
+  'workflow.conditional.op.in': 'In',
+  'workflow.conditional.op.notIn': 'Not In',
+  'workflow.conditional.removeRule': 'Remove Rule',
+  'workflow.conditional.removeGroup': 'Remove Group',
+  'workflow.conditional.maxDepth': 'Maximum nesting depth reached (3 levels)',
+};
+
+const arabicTranslations: Translations = {
+  // Header
+  appTitle: 'RightFlow PDF to HTML Convertor',
+  poweredBy: 'مدعوم من RightFlow',
+
+  // Toolbar - File operations
+  uploadPdf: 'تحميل PDF',
+  savePdf: 'حفظ PDF',
+  settings: 'الإعدادات',
+
+  // Toolbar - Field operations
+  saveFields: 'حفظ الحقول',
+  loadFields: 'تحميل الحقول',
+  exportHtml: 'تصدير HTML',
+  autoDetect: 'كشف تلقائي',
+  detecting: 'جاري الكشف...',
+  generating: 'جاري الإنشاء...',
+
+  // Toolbar - Navigation
+  page: 'صفحة',
+  of: 'من',
+  previousPage: 'الصفحة السابقة',
+  nextPage: 'الصفحة التالية',
+
+  // Toolbar - Zoom
+  zoomIn: 'تكبير',
+  zoomOut: 'تصغير',
+
+  // Toolbar - Undo/Redo
+  undo: 'تراجع (Ctrl+Z)',
+  redo: 'إعادة (Ctrl+Shift+Z)',
+
+  // Tools bar
+  selectTool: 'تحديد',
+  textFieldTool: 'حقل نص',
+  checkboxFieldTool: 'مربع اختيار',
+  radioFieldTool: 'أزرار اختيار',
+  dropdownFieldTool: 'قائمة منسدلة',
+  signatureFieldTool: 'توقيع',
+  staticTextFieldTool: 'نص ثابت',
+  cameraFieldTool: 'كاميرا',
+  gpsLocationFieldTool: 'موقع GPS',
+  qrScanFieldTool: 'ماسح QR',
+  barcodeScanFieldTool: 'ماسح الباركود',
+
+  // Field types
+  textField: 'نص',
+  checkboxField: 'مربع اختيار',
+  radioField: 'زر اختيار',
+  dropdownField: 'قائمة منسدلة',
+  signatureField: 'توقيع',
+
+  // Common actions
+  save: 'حفظ',
+  cancel: 'إلغاء',
+  delete: 'حذف',
+  confirm: 'تأكيد',
+  close: 'إغلاق',
+  add: 'إضافة',
+  remove: 'إزالة',
+  edit: 'تحرير',
+
+  // Messages
+  noPdfLoaded: 'لم يتم تحميل PDF. الرجاء تحميل ملف PDF أولاً.',
+  noFieldsToSave: 'لا توجد حقول للحفظ. الرجاء إضافة حقل واحد على الأقل.',
+  noFieldsToExport: 'لا توجد حقول للتصدير. الرجاء إضافة حقل واحد على الأقل.',
+  pdfLoadError: 'خطأ في تحميل ملف PDF',
+  invalidPdfFile: 'ملف PDF غير صالح',
+  fieldsFound: 'تم العثور على حقول موجودة في PDF',
+  fieldsImported: 'تم استيراد الحقول بنجاح',
+  downloadSuccess: 'تم تنزيل الملف بنجاح! تحقق من مجلد التنزيلات.',
+
+  // Settings
+  settingsTitle: 'الإعدادات',
+  textFieldSettings: 'إعدادات حقل النص',
+  checkboxFieldSettings: 'إعدادات مربع الاختيار',
+  radioFieldSettings: 'إعدادات أزرار الاختيار',
+  dropdownFieldSettings: 'إعدادات القائمة المنسدلة',
+  signatureFieldSettings: 'إعدادات التوقيع',
+  namingSettings: 'إعدادات التسمية',
+  font: 'الخط',
+  fontSize: 'حجم الخط',
+  direction: 'الاتجاه',
+  style: 'النمط',
+  orientation: 'التوجيه',
+  spacing: 'التباعد',
+  buttonCount: 'عدد الأزرار',
+  defaultWidth: 'العرض الافتراضي',
+  defaultHeight: 'الارتفاع الافتراضي',
+  resetToDefaults: 'إعادة تعيين إلى الافتراضيات',
+
+  // Language selector
+  language: 'اللغة',
+  hebrew: 'עברית',
+  english: 'English',
+  arabic: 'العربية',
+
+  // Theme
+  darkMode: 'الوضع الداكن',
+  lightMode: 'الوضع الفاتح',
+
+  // Field list sidebar
+  fieldsList: 'قائمة الحقول',
+  searchFields: 'البحث عن الحقول...',
+  noFields: 'لا توجد حقول',
+  fieldsOnPage: 'الحقول في الصفحة',
+  counter: 'عداد',
+  field: 'حقل',
+  fields: 'حقول',
+  noFieldsYet: 'لا توجد حقول بعد',
+  useToolsAbove: 'استخدم الأدوات أعلاه لإضافة حقول',
+  general: 'عام',
+  deleteField: 'حذف الحقل',
+
+  // Field properties panel
+  fieldName: 'اسم الحقل',
+  fieldLabel: 'التسمية',
+  required: 'مطلوب',
+  defaultValue: 'القيمة الافتراضية',
+  options: 'الخيارات',
+  addOption: 'إضافة خيار',
+  textFieldProperties: 'خصائص حقل النص',
+  checkboxProperties: 'خصائص مربع الاختيار',
+  radioProperties: 'خصائص زر الاختيار',
+  dropdownProperties: 'خصائص القائمة المنسدلة',
+  signatureProperties: 'خصائص حقل التوقيع',
+  staticTextProperties: 'خصائص النص الثابت',
+  fieldNameEnglish: 'اسم الحقل (بالإنجليزية)',
+  fieldNameHint: 'اسم الحقل (أحرف إنجليزية وأرقام وشرطة سفلية فقط)',
+  labelTitle: 'التسمية (العنوان)',
+  labelHint: 'النص المعروض بجوار الحقل',
+  serialNumber: 'الرقم التسلسلي',
+  serialNumberHint: 'ترتيب إنشاء الحقل (للقراءة فقط)',
+  sectionName: 'اسم القسم',
+  sectionNameHint: 'تجميع الحقول في أقسام (يتم نسخه تلقائيًا للحقول الجديدة)',
+  sectionNamePlaceholder: 'مثال: التفاصيل الشخصية',
+  defaultValueHint: 'النص الذي سيظهر في الحقل افتراضيًا',
+  defaultValuePlaceholder: 'النص الافتراضي',
+  radioOrientation: 'اتجاه ترتيب الأزرار',
+  radioOrientationHint: 'عمودي - الأزرار مرتبة للأسفل | أفقي - الأزرار مرتبة جانبيًا',
+  vertical: 'عمودي (↓)',
+  horizontal: 'أفقي (→)',
+  spacingBetweenButtons: 'التباعد بين الأزرار (pt)',
+  spacingHint: 'المسافة بين كل زر وجاره (-5 إلى 10 نقاط | سالب = متداخل، 1pt ≈ 0.35mm)',
+  radioOptions: 'خيارات أزرار الاختيار',
+  radioOptionsHint: 'تسمح أزرار الاختيار باختيار خيار واحد فقط من القائمة',
+  dropdownOptionsHint: 'كل سطر هو خيار منفصل في القائمة',
+  signature: 'التوقيع',
+  addSignature: 'إضافة توقيع',
+  editSignature: 'تحرير التوقيع',
+  created: 'تم الإنشاء',
+  requiredField: 'حقل مطلوب',
+  requiredFieldHint: 'هل يجب ملء هذا الحقل',
+  autoFill: 'ملء تلقائي',
+  autoFillHint: 'تمكين الملء التلقائي لهذا الحقل',
+  station: 'محطة الملء',
+  stationHint: 'من سيملأ هذا الحقل',
+  stationClient: 'العميل',
+  stationAgent: 'الوكيل',
+  textDirectionRtl: 'اتجاه النص من اليمين إلى اليسار',
+  textDirectionHint: 'RTL للعربية، LTR للإنجليزية',
+  selectFontHint: 'اختر خطًا عربيًا للنص العربي',
+  fontSizeRange: 'النطاق: 8-24 نقطة (pt)',
+  pageLabel: 'صفحة',
+  typeLabel: 'النوع',
+  widthLabel: 'العرض',
+  heightLabel: 'الارتفاع',
+
+  // Static text properties
+  content: 'المحتوى',
+  textAlignment: 'محاذاة النص',
+  alignLeft: 'يسار',
+  alignCenter: 'وسط',
+  alignRight: 'يمين',
+  fontWeight: 'وزن الخط',
+  normal: 'عادي',
+  bold: 'عريض',
+  fontStyle: 'نمط الخط',
+  italic: 'مائل',
+  textColor: 'لون النص',
+  backgroundColor: 'لون الخلفية',
+  border: 'الحدود',
+  width: 'العرض',
+  color: 'اللون',
+  enterStaticText: 'أدخل نصًا ثابتًا...',
+
+  // Recovery dialog
+  recoveryTitle: 'استرجاع البيانات',
+  recoveryMessage: 'تم العثور على بيانات محفوظة من جلسة سابقة. الاسترجاع؟',
+  restore: 'استرجاع',
+  discard: 'تجاهل',
+
+  // Upload warning
+  uploadWarningTitle: 'تحذير التحميل',
+  uploadWarningMessage: 'حقول موجودة في المستند الحالي. ماذا تفعل؟',
+  newDocument: 'مستند جديد (حذف الحقول)',
+  newVersion: 'إصدار جديد (الاحتفاظ بالحقول)',
+
+  // AI extraction
+  aiExtractionTitle: 'كشف الحقول بواسطة AI',
+  aiExtractionInProgress: 'جاري الكشف عن الحقول...',
+  aiExtractionSuccess: 'تم اكتشاف الحقول بنجاح!',
+  aiExtractionError: 'خطأ في اكتشاف الحقول',
+  replaceOrMerge: 'استبدال الحقول الموجودة أم الدمج؟',
+  replace: 'استبدال',
+  merge: 'دمج',
+
+  // HTML preview
+  htmlPreviewTitle: 'معاينة HTML',
+  downloadHtml: 'تنزيل HTML',
+  copyHtml: 'نسخ HTML',
+  copied: 'تم النسخ!',
+
+  // Reprocess page
+  reprocessPage: 'إعادة المعالجة',
+  reprocessConfirm: 'سيؤدي هذا إلى حذف الحقول الموجودة في هذه الصفحة. المتابعة؟',
+  reprocessSuccess: 'تمت إعادة معالجة الصفحة بنجاح!',
+
+  // Multi-select properties panel
+  multiEdit: 'تحرير متعدد',
+  fieldsSelected: 'حقول محددة',
+  fieldTypes: 'أنواع الحقول',
+  willUpdateAllFields: 'سيتم التحديث لجميع الحقول المحددة',
+  textProperties: 'خصائص النص',
+  appliesToTextFieldsOnly: '* ينطبق على حقول النص فقط',
+  appliesToRadioFieldsOnly: '* ينطبق على أزرار الاختيار فقط',
+  mixed: '(مختلط)',
+  multiSelectTip: 'نصيحة: انقر على حقل أثناء الضغط على Ctrl للإضافة/الإزالة من التحديد',
+
+  // Sidebar tabs
+  extractedFields: 'الحقول المستخرجة',
+  jsonView: 'عرض JSON',
+  documentHistory: 'سجل المستندات',
+
+  // JSON view tab
+  jsonReadOnly: 'للقراءة فقط',
+  copyJson: 'نسخ JSON',
+  jsonCopied: 'تم نسخ JSON!',
+  noFieldsForJson: 'لا توجد حقول للعرض',
+  sortRTL: 'ترتيب RTL',
+  sorted: 'مرتب',
+  sortByPosition: 'ترتيب حسب الموضع الفعلي (RTL)',
+  showOriginalOrder: 'إظهار الترتيب الأصلي',
+
+  // Document history tab
+  noDocumentHistory: 'لا يوجد سجل مستندات',
+  documents: 'مستندات',
+  documentName: 'اسم المستند',
+  pages: 'صفحات',
+  lastModified: 'آخر تعديل',
+  loadHistoryFields: 'تحميل الحقول',
+  deleteHistory: 'حذف',
+  clearAllHistory: 'مسح السجل',
+  clearHistoryConfirm: 'حذف سجل المستندات بالكامل؟',
+  documentLoaded: 'تم تحميل الحقول بنجاح',
+  bytes: 'بايت',
+  kb: 'كيلوبايت',
+  mb: 'ميغابايت',
+
+  // Field validation
+  fieldValidation: 'التحقق من الحقل',
+  active: 'نشط',
+  suggestedType: 'النوع المقترح',
+  apply: 'تطبيق',
+  validationType: 'نوع التحقق',
+  noValidation: 'بدون تحقق',
+  enableValidation: 'تمكين التحقق',
+  validators: 'قواعد التحقق',
+  validationMultiHint: 'سيتم تطبيق التحقق على جميع الحقول المحددة',
+
+  deleteConfirmMessage: 'هل أنت متأكد من حذف {count} حقول؟',
+
+  // Dashboard
+  dashboard: 'لوحة التحكم',
+  backToDashboard: 'العودة إلى لوحة التحكم',
+  backToSettings: 'العودة إلى الإعدادات',
+  overview: 'نظرة عامة',
+  myForms: 'نماذجي',
+  responses: 'الردود',
+  helpCenter: 'مركز المساعدة',
+  noFormsFound: 'لم يتم العثور على نماذج',
+  createNewForm: 'إنشاء نموذج جديد',
+  createFirstForm: 'أنشئ نموذجك الأول',
+  searchFormsPlaceholder: 'البحث عن النماذج...',
+  manageFormsDescription: 'إدارة ومراقبة نماذج PDF الخاصة بك.',
+  freePlan: 'الخطة المجانية',
+  loadingDashboard: 'جاري تحميل لوحة التحكم...',
+  noResultsFor: 'لا توجد نتائج لـ "{query}". جرب بحثًا آخر.',
+
+  // Additional Toolbar
+  viewHistory: 'سجل الإصدارات',
+  publish: 'نشر',
+  publishing: 'جاري النشر...',
+  currentDocument: 'المستند الحالي',
+  untitledForm: 'نموذج بدون عنوان',
+  draft: 'مسودة',
+  published: 'منشور',
+  archived: 'مؤرشف',
+  export: 'تصدير',
+
+  // Conditional Logic
+  conditionalLogic: 'المنطق الشرطي',
+  addRule: 'إضافة قاعدة',
+  when: 'عندما',
+  equals: 'يساوي',
+  notEquals: 'لا يساوي',
+  contains: 'يحتوي على',
+  isEmpty: 'فارغ',
+  isNotEmpty: 'غير فارغ',
+  then: 'إذن',
+  show: 'إظهار',
+  hide: 'إخفاء',
+  require: 'مطلوب',
+  unrequire: 'غير مطلوب',
+  selectField: 'اختر حقلاً',
+  enterValue: 'أدخل قيمة',
+  and: 'و',
+  or: 'أو',
+  defaultVisibility: 'الرؤية الافتراضية',
+  visible: 'مرئي',
+  hidden: 'مخفي',
+  noRules: 'لا توجد قواعد محددة',
+
+  // Offline/PWA
+  online: 'متصل',
+  offline: 'غير متصل',
+  syncing: 'جاري المزامنة...',
+  pendingItems: 'عناصر معلقة',
+  syncNow: 'زامن الآن',
+  syncError: 'خطأ في المزامنة',
+  lastSynced: 'آخر مزامنة',
+  noConnection: 'لا يوجد اتصال بالإنترنت',
+  connectionRestored: 'تم استعادة الاتصال',
+  itemsWaitingToSync: 'عناصر في انتظار المزامنة',
+
+  // Landing Page
+  heroTitle: 'تحويل ملفات PDF إلى تدفقات تفاعلية',
+  heroSubtitle: 'منشئ نماذج PDF الوحيد مع دعم RTL أصلي، موثوقية غير متصلة بالإنترنت، ورقمنة مدعومة بالذكاء الاصطناعي لفرق المبيعات الميدانية.',
+  getStarted: 'ابدأ مجانًا',
+  viewDemo: 'عرض توضيحي',
+  featureHebrewTitle: 'العربية الأصلية',
+  featureHebrewDesc: 'دعم كامل لـ RTL مع عرض مثالي ومعالجة نص ثنائي الاتجاه.',
+  featureAiTitle: 'رقمنة بالذكاء الاصطناعي',
+  featureAiDesc: 'حول النماذج الورقية إلى واجهات رقمية في ثوانٍ باستخدام محرك OCR المتقدم.',
+  featureOfflineTitle: 'آمن وغير متصل',
+  featureOfflineDesc: 'جمع البيانات بدون إنترنت. مشفر بالكامل ومستضاف على سحابة محلية.',
+  socialProofTitle: 'موثوق به من قبل الشركات الرائدة',
+
+  // Landing Page V3 Niches
+  medicalTitle: 'المعدات الطبية',
+  medicalDesc: 'ملء النماذج في أقبية المستشفيات بدون إشارة، مع مزامنة تلقائية عند الاتصال.',
+  technicalTitle: 'الخدمات الفنية',
+  technicalDesc: 'توثيق الأعطال الميدانية بصور مضغوطة وتوقيع العميل السريع مع طابع زمني.',
+  constructionTitle: 'الإنشاءات والسلامة',
+  constructionDesc: 'مسح رموز QR على المعدات، استكمال قوائم المراجعة والإبلاغ عن العيوب مع موقع GPS دقيق.',
+  salesTitle: 'المبيعات والتأمين',
+  salesDesc: 'توقيع العميل على وثائق التأمين بواجهة متميزة تبدو كالحبر الحقيقي.',
+  securityTitle: 'الأمن والدوريات',
+  securityDesc: 'تتبع الدوريات المستند إلى GPS والإبلاغ عن الحوادث في الوقت الفعلي.',
+
+  // New Features Grid
+  pwaTitle: 'تطبيق ويب تقدمي',
+  pwaDesc: 'ثبت RightFlow على الشاشة الرئيسية بدون متاجر التطبيقات. يعمل فورًا.',
+  offlineFirstTitle: 'غير متصل حقيقي أولاً',
+  offlineFirstDesc: 'جميع القدرات متاحة دون اتصال. البيانات تبقى على الجهاز وتتم المزامنة في الخلفية.',
+  signatureSmoothingTitle: 'توقيع رقمي سلس',
+  signatureSmoothingDesc: 'خوارزمية Bézier لتوقيعات احترافية تبدو ممسوحة ضوئيًا في PDF.',
+  aiDetectionTitle: 'كشف الحقول بالذكاء الاصطناعي',
+  aiDetectionDesc: 'قم بتحميل أي PDF وسيكتشف نظامنا الحقول ويرسمها لك في ثوانٍ.',
+
+  // WhatsApp
+  whatsappChannels: 'قنوات واتساب',
+  whatsappManageChannelsDesc: 'إدارة قنوات واتساب وإرسال الرسائل',
+  connectNewWhatsapp: 'توصيل واتساب جديد',
+  disconnectChannel: 'قطع اتصال القناة',
+  disconnectConfirm: 'هل أنت متأكد من قطع اتصال هذه القناة؟',
+  channelName: 'اسم القناة',
+  channelNamePlaceholder: 'مثال: المبيعات',
+  statusWorking: 'متصل',
+  statusFailed: 'فشل',
+  statusStopped: 'غير متصل',
+  statusStarting: 'جاري الاتصال...',
+  statusScanQr: 'في انتظار المسح',
+  scanQrCode: 'مسح رمز QR',
+  scanQrInstructions: 'افتح واتساب على هاتفك ← الإعدادات ← الأجهزة المرتبطة ← ربط جهاز ← امسح الرمز',
+  qrExpired: 'انتهت صلاحية الرمز، جاري التحديث...',
+  connectionSuccess: 'تم توصيل واتساب بنجاح!',
+  sendFormLink: 'إرسال رابط عبر واتساب',
+  recipientPhone: 'رقم هاتف المستلم',
+  recipientPhonePlaceholder: '05-1234567',
+  messageCaption: 'رسالة مرفقة (اختياري)',
+  selectChannel: 'اختر قناة واتساب',
+  sendMessage: 'إرسال رسالة',
+  messageSent: 'تم إرسال الرسالة بنجاح',
+  messageFailed: 'فشل إرسال الرسالة',
+  noChannelsConnected: 'لا توجد قنوات واتساب متصلة',
+  noWorkingChannels: 'لا توجد قنوات نشطة. قم بتوصيل قناة جديدة من إعدادات المنظمة.',
+  messagesSentLabel: 'الرسائل المرسلة',
+  refreshStatus: 'تحديث الحالة',
+
+  // Language Auto-Detection
+  'language.autoDetect.title': 'تم اكتشاف لغة مختلفة',
+  'language.autoDetect.message': 'يبدو أنك تكتب بـ {language}. تبديل لغة التطبيق؟',
+  'language.autoDetect.dontAskAgain': 'لا تسأل مرة أخرى',
+
+  // Common (additional)
+  'common.yes': 'نعم',
+  'common.no': 'لا',
+
+  // Workflow - Approval Chain
+  'workflow.approval.chainSettings': 'إعدادات سلسلة الموافقات',
+  'workflow.approval.overallTimeout': 'المهلة الإجمالية',
+  'workflow.approval.hours': 'ساعات',
+  'workflow.approval.onTimeout': 'عند انتهاء المهلة',
+  'workflow.approval.timeout.fail': 'فشل',
+  'workflow.approval.timeout.escalate': 'تصعيد',
+  'workflow.approval.timeout.autoApprove': 'موافقة تلقائية',
+  'workflow.approval.addLevel': 'إضافة مستوى',
+  'workflow.approval.level': 'مستوى',
+  'workflow.approval.approvalType': 'نوع الموافقة',
+  'workflow.approval.approvalType.any': 'أي واحد (ANY)',
+  'workflow.approval.approvalType.all': 'الكل (ALL)',
+  'workflow.approval.approvalType.allDescription': 'يجب أن يوافق جميع الموافقين',
+  'workflow.approval.approvalType.anyDescription': 'يكفي أن يوافق موافق واحد',
+  'workflow.approval.approvers': 'الموافقون',
+  'workflow.approval.addApprover': 'إضافة موافق',
+  'workflow.approval.timeout': 'المهلة',
+  'workflow.approval.escalation': 'التصعيد',
+  'workflow.approval.escalation.timeoutHours': 'ساعات حتى التصعيد',
+  'workflow.approval.escalation.escalateTo': 'تصعيد إلى',
+  'workflow.approval.addEscalation': 'إضافة تصعيد',
+  'workflow.approval.removeEscalation': 'إزالة التصعيد',
+  'workflow.approval.approverType.user': 'مستخدم',
+  'workflow.approval.approverType.role': 'دور',
+  'workflow.approval.approverType.dynamic': 'ديناميكي',
+  'workflow.approval.selectUser': 'اختر مستخدم',
+  'workflow.approval.selectRole': 'اختر دور',
+
+  // Workflow - Template Gallery
+  'workflow.template.gallery': 'معرض القوالب',
+  'workflow.template.searchPlaceholder': 'البحث عن قوالب...',
+  'workflow.template.allCategories': 'جميع الفئات',
+  'workflow.template.category.approval': 'الموافقات',
+  'workflow.template.category.dataCollection': 'جمع البيانات',
+  'workflow.template.category.automation': 'الأتمتة',
+  'workflow.template.category.conditional': 'المنطق الشرطي',
+  'workflow.template.category.integration': 'التكامل',
+  'workflow.template.category.notification': 'الإشعارات',
+  'workflow.template.category.custom': 'مخصص',
+  'workflow.template.sortBy': 'ترتيب حسب',
+  'workflow.template.sort.usageDesc': 'الأكثر استخدامًا',
+  'workflow.template.sort.usageAsc': 'الأقل استخدامًا',
+  'workflow.template.sort.dateDesc': 'الأحدث',
+  'workflow.template.sort.dateAsc': 'الأقدم',
+  'workflow.template.sort.nameAsc': 'الاسم (أ-ي)',
+  'workflow.template.sort.nameDesc': 'الاسم (ي-أ)',
+  'workflow.template.viewGrid': 'عرض شبكي',
+  'workflow.template.viewList': 'عرض قائمة',
+  'workflow.template.used': 'استخدم',
+  'workflow.template.times': 'مرات',
+  'workflow.template.useTemplate': 'استخدم القالب',
+  'workflow.template.exportTemplate': 'تصدير القالب',
+  'workflow.template.deleteTemplate': 'حذف القالب',
+  'workflow.template.importTemplate': 'استيراد قالب',
+  'workflow.template.storageUsed': 'المساحة المستخدمة',
+  'workflow.template.storageWarning': 'المساحة تقترب من الحد الأقصى',
+  'workflow.template.noTemplates': 'لم يتم العثور على قوالب',
+
+  // Workflow - Conditional Logic
+  'workflow.conditional.builder': 'منشئ المنطق الشرطي',
+  'workflow.conditional.addGroup': 'إضافة مجموعة',
+  'workflow.conditional.addRule': 'إضافة قاعدة',
+  'workflow.conditional.operator.and': 'و (AND)',
+  'workflow.conditional.operator.or': 'أو (OR)',
+  'workflow.conditional.field': 'الحقل',
+  'workflow.conditional.operator': 'المشغل',
+  'workflow.conditional.value': 'القيمة',
+  'workflow.conditional.op.eq': 'يساوي',
+  'workflow.conditional.op.ne': 'لا يساوي',
+  'workflow.conditional.op.gt': 'أكبر من',
+  'workflow.conditional.op.lt': 'أقل من',
+  'workflow.conditional.op.gte': 'أكبر من أو يساوي',
+  'workflow.conditional.op.lte': 'أقل من أو يساوي',
+  'workflow.conditional.op.contains': 'يحتوي على',
+  'workflow.conditional.op.exists': 'موجود',
+  'workflow.conditional.op.in': 'في',
+  'workflow.conditional.op.notIn': 'ليس في',
+  'workflow.conditional.removeRule': 'إزالة القاعدة',
 };
 
 const translations: Record<Language, Translations> = {
   he: hebrewTranslations,
   en: englishTranslations,
+  ar: arabicTranslations,
 };
 
 export function getTranslations(language: Language): Translations {

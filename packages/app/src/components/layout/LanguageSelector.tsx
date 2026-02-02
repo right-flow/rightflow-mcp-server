@@ -12,6 +12,7 @@ export const LanguageSelector = () => {
   const languages: { code: Language; label: string }[] = [
     { code: 'en', label: t.english },
     { code: 'he', label: t.hebrew },
+    { code: 'ar', label: t.arabic },
   ];
 
   const currentLanguage = languages.find((l) => l.code === language);

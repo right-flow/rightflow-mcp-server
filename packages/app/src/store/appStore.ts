@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Language = 'he' | 'en';
+export type Language = 'he' | 'en' | 'ar';
 export type Theme = 'light' | 'dark';
 export type Direction = 'rtl' | 'ltr';
 
@@ -13,9 +13,16 @@ interface AppState {
   toggleTheme: () => void;
 }
 
+// Language configuration
+export const languageConfig = {
+  he: { name: 'עברית', direction: 'rtl' as const, locale: 'he-IL' },
+  en: { name: 'English', direction: 'ltr' as const, locale: 'en-US' },
+  ar: { name: 'العربية', direction: 'rtl' as const, locale: 'ar-SA' },
+};
+
 // Get direction based on language
 export function getDirection(language: Language): Direction {
-  return language === 'he' ? 'rtl' : 'ltr';
+  return languageConfig[language].direction;
 }
 
 export const useAppStore = create<AppState>()(

@@ -7,6 +7,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { EditorPage } from './pages/EditorPage';
+import { EditorPageV2 } from './pages/EditorPageV2';
 import { DashboardPage } from './pages/DashboardPage';
 import { FormViewerPage } from './pages/FormViewerPage';
 import { ResponsesPage } from './pages/ResponsesPage';
@@ -120,6 +121,22 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <EditorPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/editor-v2',
+    element: (
+      <AuthGuard>
+        <EditorPageV2 />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/editor-v2/:formId',
+    element: (
+      <AuthGuard>
+        <EditorPageV2 />
       </AuthGuard>
     ),
   },

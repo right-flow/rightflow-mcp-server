@@ -12,12 +12,13 @@ export const LanguageSelector = () => {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window === 'undefined') return 'he';
     const saved = localStorage.getItem('language');
-    return (saved === 'en' ? 'en' : 'he') as Language;
+    return (saved === 'en' || saved === 'ar' ? saved : 'he') as Language;
   });
 
   const languages: { code: Language; label: string }[] = [
     { code: 'en', label: t.english },
     { code: 'he', label: t.hebrew },
+    { code: 'ar', label: t.arabic },
   ];
 
   const currentLanguage = languages.find((l) => l.code === language);

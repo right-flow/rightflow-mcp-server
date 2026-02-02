@@ -18,7 +18,10 @@ import {
   X,
   Palette,
   Code,
-  Download
+  Download,
+  Upload,
+  Share2,
+  Sparkles
 } from 'lucide-react';
 import { RTLGuard } from '@/utils/rtl-guard';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -67,6 +70,7 @@ export interface FloatingNavbarProps {
 const IconComponents: Record<string, any> = {
   edit: Edit,
   preview: Eye,
+  eye: Eye,
   settings: Settings,
   save: Save,
   undo: Undo,
@@ -74,6 +78,10 @@ const IconComponents: Record<string, any> = {
   palette: Palette,
   code: Code,
   download: Download,
+  upload: Upload,
+  share: Share2,
+  publish: Share2,
+  sparkles: Sparkles,
 };
 
 // Default tabs
