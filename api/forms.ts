@@ -58,6 +58,7 @@ export default async function handler(
         return await handleCreateForm(req, res, authContext!);
 
       case 'PUT':
+      case 'PATCH': // Support PATCH for partial updates
         return await handleUpdateForm(req, res, authContext!);
 
       case 'DELETE':
@@ -87,7 +88,9 @@ async function handleGetForms(
   res: VercelResponse,
   authContext: { userId: string; orgId: string | null; orgRole: string | null } | null,
 ) {
-  const { id, slug } = req.query;
+  // Support ID from both URL path (/api/forms/:id) and query string (?id=xxx)
+  const id = (req as any).params?.id || req.query.id;
+  const { slug } = req.query;
 
   // Get single form by ID
   if (id && typeof id === 'string') {
@@ -206,7 +209,8 @@ async function handleUpdateForm(
   res: VercelResponse,
   authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
-  const { id } = req.query;
+  // Support ID from both URL path (/api/forms/:id) and query string (?id=xxx)
+  const id = (req as any).params?.id || req.query.id;
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({
@@ -279,7 +283,8 @@ async function handleDeleteForm(
   res: VercelResponse,
   authContext: { userId: string; orgId: string | null; orgRole: string | null },
 ) {
-  const { id } = req.query;
+  // Support ID from both URL path (/api/forms/:id) and query string (?id=xxx)
+  const id = (req as any).params?.id || req.query.id;
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({

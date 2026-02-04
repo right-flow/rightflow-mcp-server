@@ -98,7 +98,7 @@ export async function migrateLocalStorageForms(
   // Migrate each form
   for (const legacyForm of legacyForms) {
     try {
-      const response = await fetch('/api/v1/forms', {
+      const response = await fetch('/api/forms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -114,6 +114,12 @@ export interface Translations {
   general: string;
   deleteField: string;
 
+  // Sections (NEW - v2.0)
+  addSection: string;
+  renameSection: string;
+  deleteSection: string;
+  ungrouped: string;
+
   // Field properties panel
   fieldName: string;
   fieldLabel: string;
@@ -397,6 +403,7 @@ export interface Translations {
   messageFailed: string;
   noChannelsConnected: string;
   noWorkingChannels: string;
+  noWorkingChannelsLinkText: string;
   messagesSentLabel: string;
   refreshStatus: string;
 
@@ -605,6 +612,12 @@ const hebrewTranslations: Translations = {
   useToolsAbove: 'השתמש בכלים מלמעלה להוספת שדות',
   general: 'כללי',
   deleteField: 'מחק שדה',
+
+  // Sections (NEW - v2.0)
+  addSection: 'הוסף קטע',
+  renameSection: 'שנה שם קטע',
+  deleteSection: 'מחק קטע',
+  ungrouped: 'ללא קבוצה',
 
   // Field properties panel
   fieldName: 'שם שדה',
@@ -888,7 +901,8 @@ const hebrewTranslations: Translations = {
   messageSent: 'ההודעה נשלחה בהצלחה',
   messageFailed: 'שליחת ההודעה נכשלה',
   noChannelsConnected: 'אין ערוצי וואטסאפ מחוברים',
-  noWorkingChannels: 'אין ערוצים פעילים. חבר ערוץ חדש מהגדרות הארגון.',
+  noWorkingChannels: 'אין ערוצים פעילים.',
+  noWorkingChannelsLinkText: 'הגדרות ערוצי וואטסאפ',
   messagesSentLabel: 'הודעות נשלחו',
   refreshStatus: 'רענן סטטוס',
 
@@ -1097,6 +1111,12 @@ const englishTranslations: Translations = {
   useToolsAbove: 'Use the tools above to add fields',
   general: 'General',
   deleteField: 'Delete field',
+
+  // Sections (NEW - v2.0)
+  addSection: 'Add Section',
+  renameSection: 'Rename Section',
+  deleteSection: 'Delete Section',
+  ungrouped: 'Ungrouped',
 
   // Field properties panel
   fieldName: 'Field Name',
@@ -1380,7 +1400,8 @@ const englishTranslations: Translations = {
   messageSent: 'Message sent successfully',
   messageFailed: 'Message sending failed',
   noChannelsConnected: 'No WhatsApp channels connected',
-  noWorkingChannels: 'No active channels. Connect a new channel from organization settings.',
+  noWorkingChannels: 'No active channels.',
+  noWorkingChannelsLinkText: 'WhatsApp Channels Settings',
   messagesSentLabel: 'Messages Sent',
   refreshStatus: 'Refresh Status',
 
@@ -1589,6 +1610,12 @@ const arabicTranslations: Translations = {
   useToolsAbove: 'استخدم الأدوات أعلاه لإضافة حقول',
   general: 'عام',
   deleteField: 'حذف الحقل',
+
+  // Sections (NEW - v2.0)
+  addSection: 'إضافة قسم',
+  renameSection: 'إعادة تسمية القسم',
+  deleteSection: 'حذف القسم',
+  ungrouped: 'بدون مجموعة',
 
   // Field properties panel
   fieldName: 'اسم الحقل',
@@ -1872,7 +1899,8 @@ const arabicTranslations: Translations = {
   messageSent: 'تم إرسال الرسالة بنجاح',
   messageFailed: 'فشل إرسال الرسالة',
   noChannelsConnected: 'لا توجد قنوات واتساب متصلة',
-  noWorkingChannels: 'لا توجد قنوات نشطة. قم بتوصيل قناة جديدة من إعدادات المنظمة.',
+  noWorkingChannels: 'لا توجد قنوات نشطة.',
+  noWorkingChannelsLinkText: 'إعدادات قنوات واتساب',
   messagesSentLabel: 'الرسائل المرسلة',
   refreshStatus: 'تحديث الحالة',
 

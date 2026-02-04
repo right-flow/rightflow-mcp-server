@@ -113,8 +113,8 @@ export async function saveWorkflow(
     const definition = convertToWorkflowDefinition(nodes, edges, metadata);
 
     const url = workflowId
-      ? `/api/v1/workflows/${workflowId}`
-      : '/api/v1/workflows';
+      ? `/api/workflows/${workflowId}`
+      : '/api/workflows';
 
     const method = workflowId ? 'PUT' : 'POST';
 
@@ -166,7 +166,7 @@ export async function loadWorkflow(workflowId: string): Promise<{
   error?: string;
 }> {
   try {
-    const response = await fetch(`/api/v1/workflows/${workflowId}`);
+    const response = await fetch(`/api/workflows/${workflowId}`);
 
     if (!response.ok) {
       const error = await response.json();

@@ -21,6 +21,7 @@ app.use(express.json({ limit: '50mb' }));
 // Generic API handler that loads handlers dynamically
 const createApiHandler = (handlerPath) => async (req, res) => {
   try {
+    console.log(`📥 ${req.method} ${req.url} → ${handlerPath}`);
     const module = await import(handlerPath);
     const handler = module.default;
     await handler(req, res);
@@ -36,6 +37,8 @@ const createApiHandler = (handlerPath) => async (req, res) => {
 app.post('/api/extract-fields', createApiHandler('./api/extract-fields.ts'));
 app.post('/api/extract-fields-azure', createApiHandler('./api/extract-fields-azure.ts'));
 app.post('/api/extract-fields-hybrid', createApiHandler('./api/extract-fields-hybrid.ts'));
+// Support both /api/forms and /api/forms/:id
+app.all('/api/forms/:id', createApiHandler('./api/forms.ts'));
 app.all('/api/forms', createApiHandler('./api/forms.ts'));
 app.all('/api/forms-publish', createApiHandler('./api/forms-publish.ts'));
 app.all('/api/form-versions', createApiHandler('./api/form-versions.ts'));

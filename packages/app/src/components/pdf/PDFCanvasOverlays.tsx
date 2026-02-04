@@ -6,6 +6,7 @@
 import { FieldOverlay } from '@/components/fields/FieldOverlay';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
 import { FieldDefinition } from '@/types/fields';
+import { ExtractionProgressOverlay } from '@/components/pdf/ExtractionProgressOverlay';
 
 interface PDFCanvasOverlaysProps {
   pageNumber: number;
@@ -137,6 +138,9 @@ export const PDFCanvasOverlays = ({
             }}
           />
         )}
+
+      {/* AI Extraction Progress Overlay (NEW) */}
+      <ExtractionProgressOverlay />
     </>
   );
 };

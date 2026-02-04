@@ -13,6 +13,7 @@ import { SettingsModal } from '@/components/settings/SettingsModal';
 import { PublishDialog } from '@/components/publish/PublishDialog';
 import { VersionHistory } from '@/components/publish/VersionHistory';
 import { EditorMobileToolbar, EditorMobileToolbarSpacer } from '@/components/mobile/EditorMobileToolbar';
+import { FloatingNavbar, type Tab, type Action } from '@/components/editor/FloatingNavbar';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import type { GeneratedHtmlResult } from '@/services/html-generation';
 import { useTemplateEditorStore } from '@/store/templateEditorStore';
@@ -36,7 +37,6 @@ export function EditorPage() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showUploadWarning, setShowUploadWarning] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [isExtractingFields, setIsExtractingFields] = useState(false);
   const [isReprocessing, setIsReprocessing] = useState(false);
   const [reprocessingPage, setReprocessingPage] = useState<number | null>(null);
   const [isHtmlDialogOpen, setIsHtmlDialogOpen] = useState(false);
@@ -54,6 +54,9 @@ export function EditorPage() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorDialogTitle, setErrorDialogTitle] = useState('');
   const [errorDialogErrors, setErrorDialogErrors] = useState<string[]>([]);
+
+  // FloatingNavbar state
+  const [activeTab, setActiveTab] = useState<string>('edit');
 
   // Zustand stores
   const {
@@ -87,6 +90,10 @@ export function EditorPage() {
     setPageMetadata,
     hoveredFieldId,
     setHoveredField,
+    isExtractingFields,
+    startExtraction,
+    endExtraction,
+    setExtractionProgress,
   } = useTemplateEditorStore();
 
   const { settings } = useSettingsStore();
@@ -562,13 +569,14 @@ export function EditorPage() {
       return; // Prevent multiple simultaneous extractions
     }
 
-    setIsExtractingFields(true);
+    startExtraction();
 
     try {
       // Import AI field extraction utility
       const { extractFieldsWithAI } = await import('@/utils/aiFieldExtraction');
 
       const { fields: extractedFields, metadata, formMetadata } = await extractFieldsWithAI(pdfFile, (status) => {
+        setExtractionProgress({ message: status }); // Update store with progress
         console.log(`AI Extraction: ${status}`);
       });
 
@@ -633,7 +641,7 @@ export function EditorPage() {
         'ודא שהגדרת את GEMINI_API_KEY ב-Vercel.',
       );
     } finally {
-      setIsExtractingFields(false);
+      endExtraction();
     }
   };
 
@@ -723,7 +731,7 @@ export function EditorPage() {
       let formId = currentFormId;
 
       if (!formId) {
-        const createResponse = await fetch('/api/v1/forms', {
+        const createResponse = await fetch('/api/forms', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -754,15 +762,14 @@ export function EditorPage() {
       }
 
       // Step 2: Publish the form (update status to published)
-      const publishResponse = await fetch(`/api/v1/forms/${formId}`, {
-        method: 'PATCH',
+      const publishResponse = await fetch(`/api/forms-publish?id=${formId}&action=publish`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          status: 'published',
-          settings: notes ? { ...settings, publishNotes: notes } : settings
+          notes: notes || undefined,
         }),
       });
 
@@ -771,10 +778,17 @@ export function EditorPage() {
         throw new Error(error.message || 'Failed to publish form');
       }
 
-      const form = await publishResponse.json();
+      const result = await publishResponse.json();
+      const form = result.form;
+
+      console.log('✓ Form published successfully:', { form, slug: form?.slug });
 
       // Step 3: Update state with URLs
       // Construct public URL from form slug
+      if (!form?.slug) {
+        throw new Error('Form published but no slug returned');
+      }
+
       const baseUrl = window.location.origin;
       const publicUrl = `${baseUrl}/f/${form.slug}`;
 
@@ -782,7 +796,7 @@ export function EditorPage() {
       setShortUrl(form.short_url || null);
       setFormStatus('published');
 
-      console.log('✓ Form published successfully');
+      console.log('✓ Published URL:', publicUrl);
     } catch (error) {
       console.error('Error publishing form:', error);
       alert(
@@ -847,6 +861,77 @@ export function EditorPage() {
       );
     }
   };
+
+  // FloatingNavbar configuration
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+
+    // Handle specific tab actions
+    if (tabId === 'settings') {
+      setIsSettingsOpen(true);
+      // Reset to edit tab after opening settings
+      setTimeout(() => setActiveTab('edit'), 100);
+    }
+  };
+
+  const floatingNavbarTabs: Tab[] = [
+    { id: 'edit', label: 'Edit', icon: 'edit' },
+    { id: 'preview', label: 'Preview', icon: 'preview' },
+    { id: 'settings', label: 'Settings', icon: 'settings' },
+  ];
+
+  const floatingNavbarActions: Action[] = [
+    {
+      id: 'save',
+      label: 'Save',
+      icon: 'save',
+      onClick: () => handleSave(),
+      shortcut: 'Ctrl+S',
+      group: 'file',
+    },
+    {
+      id: 'undo',
+      label: 'Undo',
+      icon: 'undo',
+      onClick: () => undo(),
+      disabled: !canUndo(),
+      shortcut: 'Ctrl+Z',
+      group: 'edit',
+    },
+    {
+      id: 'redo',
+      label: 'Redo',
+      icon: 'redo',
+      onClick: () => redo(),
+      disabled: !canRedo(),
+      shortcut: 'Ctrl+Y',
+      group: 'edit',
+    },
+    {
+      id: 'extract',
+      label: isExtractingFields ? 'מזהה שדות...' : 'זיהוי אוטומטי',
+      icon: isExtractingFields ? 'loader' : 'sparkles',
+      onClick: () => handleExtractFields(),
+      disabled: isExtractingFields,
+      group: 'ai',
+      className: isExtractingFields ? 'animate-pulse' : '',
+    },
+    {
+      id: 'export',
+      label: 'Export HTML',
+      icon: 'download',
+      onClick: () => handleExportHtml(),
+      group: 'export',
+    },
+    {
+      id: 'publish',
+      label: 'Publish',
+      icon: 'share',
+      onClick: () => handlePublish(),
+      disabled: isPublishing,
+      group: 'publish',
+    },
+  ];
 
   return (
     <div className="w-screen h-screen flex flex-col bg-background" dir={direction}>
@@ -1013,6 +1098,20 @@ export function EditorPage() {
         {/* Mobile Toolbar Spacer - Prevents content from being hidden behind toolbar */}
         {pdfFile && isMobile && <EditorMobileToolbarSpacer />}
       </MainLayout>
+
+      {/* FloatingNavbar - Premium navigation overlay */}
+      {pdfFile && (
+        <FloatingNavbar
+          tabs={floatingNavbarTabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          actions={floatingNavbarActions}
+          direction={direction}
+          draggable
+          constrainToViewport
+          autoAdjustPosition
+        />
+      )}
     </div>
   );
 }

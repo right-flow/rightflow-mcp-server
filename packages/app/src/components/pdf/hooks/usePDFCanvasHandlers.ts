@@ -112,8 +112,11 @@ export function usePDFCanvasHandlers({
 
       const viewportCoords = getCanvasRelativeCoords(event, containerRef.current);
 
+      console.log('⬇️ handleCanvasMouseDown: activeTool =', activeTool);
+
       // Start drag for text field, dropdown, signature, or static text (drag-to-create)
       if ((activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field' || activeTool === 'static-text-field') && !isDragging) {
+        console.log('🎯 Starting drag for', activeTool);
         startDrag(viewportCoords.x, viewportCoords.y);
         event.preventDefault();
         return;
@@ -121,10 +124,13 @@ export function usePDFCanvasHandlers({
 
       // Start marquee selection in select mode
       if (activeTool === 'select' && !isMarqueeSelecting) {
+        console.log('🎯 Starting marquee selection');
         startMarquee(viewportCoords.x, viewportCoords.y);
         event.preventDefault();
         return;
       }
+
+      console.log('⏭️ handleCanvasMouseDown: No action taken (click-to-place tool or no action)');
     },
     [
       activeTool,
@@ -139,17 +145,30 @@ export function usePDFCanvasHandlers({
 
   const handleCanvasClick = useCallback(
     (event: React.MouseEvent) => {
-      if (!containerRef.current || !currentPageDimensions || !canvasWidth) return;
+      if (!containerRef.current || !currentPageDimensions || !canvasWidth) {
+        console.log('❌ handleCanvasClick: Missing prerequisites', {
+          containerRef: !!containerRef.current,
+          currentPageDimensions: !!currentPageDimensions,
+          canvasWidth,
+        });
+        return;
+      }
 
       // Skip if we just finished a drag operation
       if (justDraggedRef.current) {
+        console.log('⏭️ handleCanvasClick: Skipping (just dragged)');
         justDraggedRef.current = false;
         return;
       }
 
       // Ignore clicks on field markers
       const target = event.target as HTMLElement;
-      if (target.closest('.field-marker')) return;
+      if (target.closest('.field-marker')) {
+        console.log('⏭️ handleCanvasClick: Skipping (clicked on field marker)');
+        return;
+      }
+
+      console.log('🖱️ handleCanvasClick: activeTool =', activeTool);
 
       // Deselect field when clicking on empty area in select mode
       if (activeTool === 'select') {
@@ -161,6 +180,7 @@ export function usePDFCanvasHandlers({
 
       // Click-to-place checkbox
       if (activeTool === 'checkbox-field') {
+        console.log('✅ Creating checkbox field at', viewportCoords);
         const pdfCoords = viewportToPDFCoords(
           viewportCoords.x,
           viewportCoords.y,
@@ -173,21 +193,24 @@ export function usePDFCanvasHandlers({
           type: 'checkbox',
           pageNumber,
           x: pdfCoords.x,
-          y: pdfCoords.y - 10,
-          width: 10,
-          height: 10,
+          y: pdfCoords.y - 20, // Adjusted for new height
+          width: 20, // Increased from 10 to 20 for visibility
+          height: 20, // Increased from 10 to 20 for visibility
           name: '',
           required: false,
           autoFill: false,
           direction: 'rtl',
         };
 
+        console.log('📦 Checkbox field data:', newField);
         addFieldWithUndo(newField);
+        console.log('✓ addFieldWithUndo called for checkbox field');
         return;
       }
 
       // Click-to-place radio button group
       if (activeTool === 'radio-field') {
+        console.log('✅ Creating radio field at', viewportCoords);
         const pdfCoords = viewportToPDFCoords(
           viewportCoords.x,
           viewportCoords.y,
@@ -203,9 +226,9 @@ export function usePDFCanvasHandlers({
           type: 'radio',
           pageNumber,
           x: pdfCoords.x,
-          y: pdfCoords.y - 10,
-          width: 10,
-          height: 10,
+          y: pdfCoords.y - 20, // Adjusted for new height
+          width: 20, // Increased from 10 to 20 for visibility
+          height: 20, // Increased from 10 to 20 for visibility
           name: '',
           required: false,
           autoFill: false,
@@ -216,12 +239,15 @@ export function usePDFCanvasHandlers({
           orientation: settings.radioField.orientation,
         };
 
+        console.log('📦 Radio field data:', newField);
         addFieldWithUndo(newField);
+        console.log('✓ addFieldWithUndo called for radio field');
         return;
       }
 
       // Click-to-place camera field
       if (activeTool === 'camera-field') {
+        console.log('✅ Creating camera field at', viewportCoords);
         const pdfCoords = viewportToPDFCoords(
           viewportCoords.x,
           viewportCoords.y,
@@ -371,6 +397,8 @@ export function usePDFCanvasHandlers({
 
   const handleCanvasMouseUp = useCallback(
     (event: React.MouseEvent) => {
+      console.log('⬆️ handleCanvasMouseUp: activeTool =', activeTool, 'isDragging =', isDragging, 'isMarqueeSelecting =', isMarqueeSelecting);
+
       // Handle marquee selection end
       if (isMarqueeSelecting && activeTool === 'select') {
         if (marqueeStartX !== null && marqueeStartY !== null && marqueeEndX !== null && marqueeEndY !== null) {

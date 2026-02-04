@@ -21,7 +21,10 @@ import {
   Download,
   Upload,
   Share2,
-  Sparkles
+  Sparkles,
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { RTLGuard } from '@/utils/rtl-guard';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -43,6 +46,7 @@ export interface Action {
   shortcut?: string;
   group?: string;
   disabled?: boolean;
+  className?: string;
 }
 
 export interface FloatingNavbarProps {
@@ -82,6 +86,7 @@ const IconComponents: Record<string, any> = {
   share: Share2,
   publish: Share2,
   sparkles: Sparkles,
+  loader: Loader2,
 };
 
 // Default tabs
@@ -113,6 +118,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [navPosition, setNavPosition] = useState(position);
   const [announcement, setAnnouncement] = useState('');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -123,24 +129,75 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
     setCurrentTab(activeTab);
   }, [activeTab]);
 
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    try {
+      const savedCollapsed = localStorage.getItem('floatingNavbar_collapsed');
+      if (savedCollapsed !== null) {
+        setIsCollapsed(savedCollapsed === 'true');
+      }
+    } catch (error) {
+      console.warn('Failed to load collapsed state from localStorage:', error);
+    }
+  }, []);
+
+  // Save collapsed state to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('floatingNavbar_collapsed', String(isCollapsed));
+    } catch (error) {
+      console.warn('Failed to save collapsed state to localStorage:', error);
+    }
+  }, [isCollapsed]);
+
   // Adjust position to stay in viewport
   useEffect(() => {
     if (autoAdjustPosition && navRef.current) {
       const rect = navRef.current.getBoundingClientRect();
       const newPosition = { ...navPosition };
+      let changed = false;
 
-      if (rect.top < 0) newPosition.top = 0;
-      if (rect.left < 0) newPosition.left = 0;
-      if (rect.right > window.innerWidth) {
-        newPosition.left = window.innerWidth - rect.width - 20;
+      // Prevent top overflow
+      if (rect.top < 0) {
+        newPosition.top = 0;
+        changed = true;
       }
+
+      // Prevent left overflow (in LTR) or right overflow (in RTL)
+      if (rtlGuard.isRTL()) {
+        // In RTL, check right side
+        if (rect.right > window.innerWidth) {
+          newPosition.left = window.innerWidth - rect.width - 20;
+          changed = true;
+        }
+        if (rect.left < 0) {
+          newPosition.left = rect.width + 20;
+          changed = true;
+        }
+      } else {
+        // In LTR, check left side
+        if (rect.left < 0) {
+          newPosition.left = 0;
+          changed = true;
+        }
+        if (rect.right > window.innerWidth) {
+          newPosition.left = window.innerWidth - rect.width - 20;
+          changed = true;
+        }
+      }
+
+      // Prevent bottom overflow
       if (rect.bottom > window.innerHeight) {
         newPosition.top = window.innerHeight - rect.height - 20;
+        changed = true;
       }
 
-      setNavPosition(newPosition);
+      // Only update if position actually changed (prevent infinite loop)
+      if (changed) {
+        setNavPosition(newPosition);
+      }
     }
-  }, [autoAdjustPosition, navPosition]);
+  }, [autoAdjustPosition, navPosition, rtlGuard]);
 
   // Handle tab selection
   const handleTabSelect = useCallback((tabId: string) => {
@@ -242,15 +299,12 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Calculate position styles
-  // BUG FIX: RTL positioning - properly mirror the position
-  // Date: 2026-02-01
-  // Issue: Using navPosition.left directly as right doesn't account for proper mirroring
-  // Fix: Calculate right position as window.innerWidth - navPosition.left to correctly mirror
-  // Context: In RTL, if element is 20px from left in LTR, it should be 20px from right in RTL
+  // RTL positioning - mirror the position
+  // In RTL, if element is at left: 20px in LTR coordinates, it should be right: 20px in RTL
   const positionStyles = rtlGuard.isRTL()
     ? {
         top: navPosition.top,
-        right: window.innerWidth - (navPosition.left || 0) - (navRef.current?.offsetWidth || 0),
+        right: navPosition.left, // Simply mirror: left becomes right
         left: 'auto',
       }
     : navPosition;
@@ -265,6 +319,75 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
     groups[group].push(action);
     return groups;
   }, {} as Record<string, Action[]>);
+
+  // Toggle collapse state
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(prev => !prev);
+    setAnnouncement(isCollapsed ? 'Navbar expanded' : 'Navbar collapsed');
+  }, [isCollapsed]);
+
+  // Collapsed view - vertical bar with arrow
+  if (isCollapsed) {
+    // Collapsed bar position - stick to right edge in RTL
+    const collapsedBarStyles = rtlGuard.isRTL()
+      ? {
+          top: navPosition.top,
+          right: 0, // Stick to right edge
+          left: 'auto',
+        }
+      : {
+          top: navPosition.top,
+          left: 0, // Stick to left edge
+          right: 'auto',
+        };
+
+    return (
+      <>
+        {/* Screen reader announcements */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {announcement}
+        </div>
+
+        <motion.div
+          data-testid="collapsed-navbar-bar"
+          role="button"
+          tabIndex={0}
+          aria-label={rtlGuard.isRTL() ? 'הרחב תפריט' : 'Expand navbar'}
+          className={cn(
+            'fixed z-[1000] bg-white dark:bg-gray-900 rounded-lg shadow-lg',
+            'border border-gray-200 dark:border-gray-700',
+            'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800',
+            'flex items-center justify-center',
+            'transition-colors',
+            direction === 'rtl' && 'rtl'
+          )}
+          style={{
+            ...collapsedBarStyles,
+            width: '30px',
+            height: '150px',
+            position: 'fixed',
+            zIndex: 1000,
+          }}
+          onClick={toggleCollapse}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleCollapse();
+            }
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          {rtlGuard.isRTL() ? (
+            <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" data-icon="chevron-left" />
+          ) : (
+            <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" data-icon="chevron-right" />
+          )}
+        </motion.div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -294,15 +417,39 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
           backgroundColor: customTheme?.background,
           color: customTheme?.text,
         }}
-        initial={animateOnMount ? { opacity: 0, y: -20 } : false}
-        animate={animateOnMount ? { opacity: 1, y: 0 } : false}
-        transition={{ duration: 0.3 }}
+        initial={animateOnMount ? { opacity: 0, y: -20 } : { opacity: 1 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut'
+        }}
       >
         <div className="flex items-center p-2 gap-2">
+          {/* Collapse button */}
+          <button
+            className={cn(
+              'p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors',
+              rtlGuard.isRTL() ? 'order-first' : 'order-last'
+            )}
+            onClick={toggleCollapse}
+            aria-label={rtlGuard.isRTL() ? 'סגור תפריט' : 'Collapse navbar'}
+            title={rtlGuard.isRTL() ? 'סגור תפריט' : 'Collapse navbar'}
+          >
+            {rtlGuard.isRTL() ? (
+              <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+
           {/* Drag handle */}
           {draggable && (
             <div
-              className="cursor-move p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+              className={cn(
+                'cursor-move p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded',
+                rtlGuard.isRTL() ? 'order-last' : 'order-first'
+              )}
               onMouseDown={handleMouseDown}
               aria-label="Drag to reposition"
             >
@@ -334,8 +481,10 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
                     <button
                       role="tab"
                       aria-selected={isActive}
+                      aria-label={tab.label}
+                      title={tab.label}
                       className={cn(
-                        'px-4 py-2 flex items-center gap-2 rounded transition-colors',
+                        'p-2 flex items-center justify-center rounded transition-colors',
                         'hover:bg-gray-100 dark:hover:bg-gray-800',
                         isActive && 'active bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-400',
                         tab.disabled && 'opacity-50 cursor-not-allowed'
@@ -345,8 +494,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
                       disabled={tab.disabled}
                       style={{ display: isMobile && !isMenuOpen ? 'none' : 'flex' }}
                     >
-                      {Icon && <Icon className="w-4 h-4" />}
-                      <span>{tab.label}</span>
+                      {Icon && <Icon className="w-5 h-5" />}
                     </button>
 
                     {/* Tab indicator */}
@@ -386,7 +534,8 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({
                           className={cn(
                             'p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800',
                             'transition-colors',
-                            action.disabled && 'opacity-50 cursor-not-allowed'
+                            action.disabled && 'opacity-50 cursor-not-allowed',
+                            action.className,
                           )}
                           onClick={() => !action.disabled && action.onClick(action.id)}
                           aria-label={action.label}

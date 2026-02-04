@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ export function SendFormLinkDialog({
 }: SendFormLinkDialogProps) {
   const t = useTranslation();
   const { getToken } = useAuth();
+  const navigate = useNavigate();
   const [channels, setChannels] = useState<WhatsAppChannel[]>([]);
   const [channelId, setChannelId] = useState('');
   const [phone, setPhone] = useState('');
@@ -102,6 +104,11 @@ export function SendFormLinkDialog({
     }
   };
 
+  const handleGoToSettings = () => {
+    onOpenChange(false);
+    navigate('/organization/whatsapp');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -124,10 +131,18 @@ export function SendFormLinkDialog({
                     text-gray-400" />
                 </div>
               ) : channels.length === 0 ? (
-                <p className="text-sm text-amber-600 bg-amber-50
+                <div className="text-sm text-amber-600 bg-amber-50
                   rounded p-3">
-                  {t.noWorkingChannels}
-                </p>
+                  <p className="inline">
+                    {t.noWorkingChannels}{' '}
+                    <button
+                      onClick={handleGoToSettings}
+                      className="text-amber-700 underline hover:text-amber-800 font-semibold"
+                    >
+                      {t.noWorkingChannelsLinkText}
+                    </button>
+                  </p>
+                </div>
               ) : (
                 <>
                   {/* Channel selector */}

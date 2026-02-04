@@ -160,6 +160,7 @@ export const MobileFieldOverlay = ({
         )}
         style={{
           zIndex: isSelected ? 1000 : 100,
+          pointerEvents: 'auto', // Re-enable pointer events (parent has pointer-events-none)
         }}
         onClick={(e: any) => {
           e.stopPropagation();

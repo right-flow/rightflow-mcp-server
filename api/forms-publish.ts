@@ -54,7 +54,10 @@ export default async function handler(
     }
 
     if (action === 'publish') {
-      const result = await formsService.publishForm(id, userId);
+      // Extract notes from request body (optional)
+      const { notes } = req.body || {};
+
+      const result = await formsService.publishForm(id, userId, notes);
 
       if (!result.success) {
         return res.status(400).json({

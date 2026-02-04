@@ -62,7 +62,7 @@ export const FieldOverlay = ({
       }}
     >
       <div
-        className="relative pointer-events-auto"
+        className="relative pointer-events-none"
         style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
       >
         {fields.map((field) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { List, Code, History } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FieldDefinition } from '@/types/fields';
@@ -6,6 +6,8 @@ import { useTranslation, useDirection } from '@/i18n';
 import { ExtractedFieldsTab } from './ExtractedFieldsTab';
 import { JsonViewTab } from './JsonViewTab';
 import { DocumentHistoryTab } from './DocumentHistoryTab';
+import { DynamicFormSections } from '@/components/editor/DynamicFormSections';
+import { useTemplateEditorStore } from '@/store/templateEditorStore';
 
 interface FieldListSidebarProps {
   fields: FieldDefinition[];
@@ -39,6 +41,57 @@ export const FieldListSidebar = ({
   const t = useTranslation();
   const direction = useDirection();
   const [activeTab, setActiveTab] = useState('fields');
+
+  // Get sections and section actions from store
+  const {
+    sections,
+    addSection,
+    deleteSection,
+    renameSection,
+    reorderSection,
+    toggleSectionCollapse,
+    moveFieldToSection,
+    ensureUngroupedSection,
+  } = useTemplateEditorStore();
+
+  // Auto-create sections if fields exist but sections don't (after page refresh/document load)
+  useEffect(() => {
+    if (fields.length === 0) return;
+
+    // Case 1: No sections at all - create ungrouped for each page with fields
+    if (sections.length === 0) {
+      const uniquePages = [...new Set(fields.map((f) => f.pageNumber))];
+      uniquePages.forEach((pageNumber) => {
+        ensureUngroupedSection(pageNumber);
+      });
+      return;
+    }
+
+    // Case 2: Sections exist but fields might not be linked properly
+    // Check if any fields are orphaned (no sectionId or invalid sectionId)
+    const orphanedFields = fields.filter((f) => {
+      if (!f.sectionId) return true;
+      const sectionExists = sections.some((s) => s.id === f.sectionId);
+      return !sectionExists;
+    });
+
+    if (orphanedFields.length > 0) {
+      // Ensure ungrouped sections exist for pages with orphaned fields
+      const orphanedPages = [...new Set(orphanedFields.map((f) => f.pageNumber))];
+      orphanedPages.forEach((pageNumber) => {
+        ensureUngroupedSection(pageNumber);
+      });
+
+      // Move orphaned fields to ungrouped sections
+      orphanedFields.forEach((field) => {
+        const ungroupedId = `ungrouped_page${field.pageNumber}`;
+        moveFieldToSection(field.id, ungroupedId);
+      });
+    }
+  }, [fields, sections, ensureUngroupedSection, moveFieldToSection]);
+
+  // Filter sections for current page
+  const sectionsForPage = sections.filter((s) => s.pageNumber === currentPage);
 
   const handleLoadFieldsFromHistory = (loadedFields: FieldDefinition[]) => {
     if (onLoadFieldsFromHistory) {
@@ -81,18 +134,25 @@ export const FieldListSidebar = ({
         </TabsList>
 
         <TabsContent value="fields" className="flex-1 overflow-hidden">
-          <ExtractedFieldsTab
+          <DynamicFormSections
+            pageNumber={currentPage}
+            sections={sectionsForPage}
             fields={fields}
             selectedFieldId={selectedFieldId}
             selectedFieldIds={selectedFieldIds}
-            currentPage={currentPage}
-            errorFieldIds={errorFieldIds}
+            onAddSection={(pageNumber, name) => addSection(pageNumber, name || '')}
+            onDeleteSection={deleteSection}
+            onRenameSection={renameSection}
+            onReorderSection={reorderSection}
+            onToggleCollapse={toggleSectionCollapse}
+            onMoveField={moveFieldToSection}
             onFieldSelect={onFieldSelect}
             onToggleFieldSelection={onToggleFieldSelection}
             onFieldDelete={onFieldDelete}
             onPageNavigate={onPageNavigate}
             hoveredFieldId={hoveredFieldId}
             onFieldHover={onFieldHover}
+            direction={direction}
           />
         </TabsContent>
 

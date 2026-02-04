@@ -140,7 +140,17 @@ export const PDFCanvas = ({
   }
 
   return (
-    <div className="flex justify-center items-center p-4">
+    <div
+      className="flex justify-center items-center p-4"
+      style={{
+        cursor:
+          activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field' || activeTool === 'static-text-field'
+            ? 'crosshair'
+            : activeTool === 'checkbox-field' || activeTool === 'radio-field' || activeTool === 'camera-field' || activeTool === 'gps-location-field' || activeTool === 'qr-scan-field' || activeTool === 'barcode-scan-field'
+              ? 'copy'
+              : 'default',
+      }}
+    >
       <div
         ref={containerRef}
         className="relative"
@@ -149,12 +159,7 @@ export const PDFCanvas = ({
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
         style={{
-          cursor:
-            activeTool === 'text-field' || activeTool === 'dropdown-field' || activeTool === 'signature-field' || activeTool === 'static-text-field'
-              ? 'crosshair'
-              : activeTool === 'checkbox-field' || activeTool === 'radio-field' || activeTool === 'camera-field' || activeTool === 'gps-location-field' || activeTool === 'qr-scan-field' || activeTool === 'barcode-scan-field'
-                ? 'copy'
-                : 'default',
+          cursor: 'inherit', // Inherit from parent
           touchAction: isMobile ? 'none' : 'auto', // Enable gesture handling on mobile
         }}
       >

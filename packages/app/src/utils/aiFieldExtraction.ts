@@ -108,7 +108,7 @@ async function processPageWithAI(
   totalPages: number,
 ): Promise<PageExtractionResult> {
   try {
-    const response = await fetch('/api/v1/extract-fields-hybrid', {
+    const response = await fetch('/api/extract-fields-hybrid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -273,7 +273,7 @@ export async function extractFieldsWithAI(
     onProgress?.(`שולח מסמך שלם (${pageCount} עמודים) לניתוח...`);
 
     const base64 = arrayBufferToBase64(arrayBuffer);
-    const response = await fetch('/api/v1/extract-fields-hybrid', {
+    const response = await fetch('/api/extract-fields-hybrid', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

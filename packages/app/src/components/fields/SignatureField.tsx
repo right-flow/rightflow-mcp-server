@@ -179,6 +179,7 @@ export const SignatureField = ({
         style={{
           zIndex: isSelected ? 1000 : 100,
           backgroundColor: field.signatureImage ? 'transparent' : 'hsl(var(--signature-bg) / 0.05)',
+          pointerEvents: 'auto', // Re-enable pointer events (parent has pointer-events-none)
         }}
         onClick={(e: React.MouseEvent) => {
           e.stopPropagation();
@@ -204,15 +205,17 @@ export const SignatureField = ({
           {sanitizeUserInput(field.label || field.name) || 'חתימה'}
         </div>
 
-        {/* Delete badge - tiny Unicode ✕, outside top-left corner */}
+        {/* Delete X - 20% of field height, positioned above top-left corner */}
         <button
-          className="absolute bg-destructive text-white rounded-full flex items-center justify-center hover:bg-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-[1001] leading-none"
+          className="absolute text-destructive hover:text-destructive/70 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-[1001] leading-none"
           style={{
-            top: '-4px',
+            bottom: '100%',
             left: '-4px',
-            width: '8px',
-            height: '8px',
-            fontSize: '6px',
+            transform: 'translateY(-2px)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            fontSize: `${Math.max(10, viewportHeight * 0.2)}px`,
             lineHeight: 1,
             pointerEvents: 'auto',
           }}

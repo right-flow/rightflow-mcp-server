@@ -53,7 +53,7 @@ export function DashboardPage() {
       const token = await getToken();
       if (!token) throw new Error('No authentication token available');
 
-      const response = await fetch('/api/v1/forms', {
+      const response = await fetch('/api/forms', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -74,7 +74,7 @@ export function DashboardPage() {
 
       if (!token) throw new Error('No authentication token available');
 
-      const response = await fetch('/api/v1/forms', {
+      const response = await fetch('/api/forms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

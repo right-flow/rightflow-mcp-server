@@ -4,7 +4,7 @@ import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
 import { ResponseExportButton } from '../components/responses/ResponseExportButton';
 import { useTranslation, useDirection } from '../i18n';
 import { motion } from 'framer-motion';
-import { Calendar, MessageSquare, ArrowLeft, Layout, Search, Bell, HelpCircle, FileText } from 'lucide-react';
+import { Calendar, MessageSquare, ArrowLeft, Layout, Search, Bell, HelpCircle, FileText, BarChart3, Settings } from 'lucide-react';
 
 interface Response {
   id: string;

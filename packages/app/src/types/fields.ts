@@ -55,6 +55,21 @@ export interface FieldConfidence {
   overall: number;    // 0-1: Overall confidence (weighted average)
 }
 
+/**
+ * Form Section - Explicit section entity for organizing fields
+ * Added in v2.0 for Dynamic Form Sections feature
+ */
+export interface FormSection {
+  id: string;                    // Unique identifier (e.g., "section_1707123456789")
+  name: string;                  // Display name (editable by user)
+  pageNumber: number;            // Which PDF page this section belongs to
+  order: number;                 // Sort order (0-based index)
+  isCollapsed: boolean;          // Expansion state (persists to localStorage)
+  fieldIds: string[];            // Array of field IDs in this section (for ordering)
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface FieldDefinition {
   id: string;
   type: FieldType;
@@ -77,7 +92,8 @@ export interface FieldDefinition {
   required: boolean;
   defaultValue?: string;
   autoFill?: boolean; // Whether the field should be auto-filled
-  sectionName?: string; // Section name for grouping fields
+  sectionName?: string; // DEPRECATED: Section name for grouping fields (use sectionId)
+  sectionId?: string; // Section ID for explicit section assignment (NEW - v2.0)
   station?: string; // Filling station: 'client' (default), 'agent', or custom value
   index?: number; // Creation order index for HTML form generation
 

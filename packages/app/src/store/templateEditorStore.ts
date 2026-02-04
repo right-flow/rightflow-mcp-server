@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { FieldDefinition, ToolMode, PageMetadata } from '@/types/fields';
+import { FieldDefinition, ToolMode, PageMetadata, FormSection } from '@/types/fields';
 import {
   UndoManager,
   createAddFieldAction,
@@ -71,6 +71,9 @@ interface TemplateEditorStore {
   copiedField: FieldDefinition | null; // For copy/paste functionality
   lastUpdatedFieldId: string | null; // Track last updated field for section name inheritance
 
+  // Section state (NEW - v2.0)
+  sections: FormSection[];
+
   // Undo/Redo state
   undoManager: UndoManager;
 
@@ -93,6 +96,14 @@ interface TemplateEditorStore {
 
   // Hover state
   hoveredFieldId: string | null;
+
+  // AI Field Extraction state (NEW)
+  isExtractingFields: boolean;
+  extractionProgress: {
+    message: string;        // Hebrew status message
+    currentPage?: number;   // Optional: current page
+    totalPages?: number;    // Optional: total pages
+  } | null;
 
   // Actions - PDF
   setPdfFile: (file: File | null) => void;
@@ -152,6 +163,12 @@ interface TemplateEditorStore {
   // Actions - Hover
   setHoveredField: (id: string | null) => void;
 
+  // Actions - AI Extraction (NEW)
+  startExtraction: () => void;
+  endExtraction: () => void;
+  setExtractionProgress: (progress: { message: string; currentPage?: number; totalPages?: number }) => void;
+  clearExtractionProgress: () => void;
+
   // Actions - Reset
   reset: () => void;
 
@@ -160,6 +177,17 @@ interface TemplateEditorStore {
 
   // Actions - Page Reprocessing
   replaceFieldsForPage: (pageNumber: number, newFields: FieldDefinition[]) => void;
+
+  // Actions - Sections (NEW - v2.0)
+  addSection: (pageNumber: number, name?: string) => void;
+  deleteSection: (sectionId: string) => void;
+  renameSection: (sectionId: string, newName: string) => void;
+  reorderSection: (sectionId: string, newOrder: number) => void;
+  toggleSectionCollapse: (sectionId: string) => void;
+  moveFieldToSection: (fieldId: string, sectionId: string) => void;
+  reorderFieldInSection: (sectionId: string, fieldId: string, newIndex: number) => void;
+  getSectionsForPage: (pageNumber: number) => FormSection[];
+  ensureUngroupedSection: (pageNumber: number) => void;
 }
 
 const initialState = {
@@ -190,6 +218,9 @@ const initialState = {
   marqueeEndY: null,
   pagesMetadata: {},
   hoveredFieldId: null,
+  sections: [] as FormSection[], // NEW - v2.0
+  isExtractingFields: false,
+  extractionProgress: null,
 };
 
 export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => ({
@@ -238,6 +269,9 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
   addFieldWithUndo: (fieldData) => {
     const state = get();
 
+    // Ensure Ungrouped section exists for this page
+    get().ensureUngroupedSection(fieldData.pageNumber);
+
     // Auto-generate field name if not provided or empty
     let fieldName = fieldData.name;
     if (!fieldName || fieldName === '') {
@@ -247,17 +281,70 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
       fieldName = `${fieldData.type}_${nextNumber}`;
     }
 
-    // Inherit sectionName from last updated field if not provided
+    // Handle section assignment (NEW - v2.0)
+    let sectionId = fieldData.sectionId;
     let sectionName = fieldData.sectionName;
-    if (!sectionName && state.lastUpdatedFieldId) {
-      const lastUpdatedField = state.fields.find(f => f.id === state.lastUpdatedFieldId);
-      if (lastUpdatedField?.sectionName) {
-        sectionName = lastUpdatedField.sectionName;
+
+    if (!sectionId) {
+      // No sectionId provided - need to assign to a section
+      // Priority: 1) Use provided sectionName, 2) Inherit from last field, 3) Default to Ungrouped
+      if (!sectionName && state.lastUpdatedFieldId) {
+        const lastUpdatedField = state.fields.find(f => f.id === state.lastUpdatedFieldId);
+        if (lastUpdatedField?.sectionId) {
+          sectionId = lastUpdatedField.sectionId;
+        } else if (lastUpdatedField?.sectionName) {
+          sectionName = lastUpdatedField.sectionName;
+        }
       }
-    }
-    // Default to 'כללי' if still no section name
-    if (!sectionName) {
-      sectionName = 'כללי';
+
+      // Find or create section
+      if (sectionName && !sectionId) {
+        // Find existing section by name on this page
+        const existingSection = state.sections.find(
+          s => s.name === sectionName && s.pageNumber === fieldData.pageNumber,
+        );
+        if (existingSection) {
+          sectionId = existingSection.id;
+        } else {
+          // Auto-create section from sectionName
+          const newSectionId = `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const sectionsOnPage = state.sections.filter(s => s.pageNumber === fieldData.pageNumber);
+          const newSection: FormSection = {
+            id: newSectionId,
+            name: sectionName,
+            pageNumber: fieldData.pageNumber,
+            order: sectionsOnPage.length,
+            isCollapsed: false,
+            fieldIds: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // Add section to store
+          set((prevState) => ({
+            sections: [...prevState.sections, newSection],
+          }));
+
+          sectionId = newSectionId;
+          console.log(`[Store] Auto-created section: ${sectionName}`);
+        }
+      }
+
+      // Default to 'ungrouped_pageX' if still no section
+      if (!sectionId) {
+        sectionId = `ungrouped_page${fieldData.pageNumber}`;
+        sectionName = 'Ungrouped';
+      }
+    } else {
+      // sectionId provided - get sectionName from section
+      const section = state.sections.find(s => s.id === sectionId);
+      if (section) {
+        sectionName = section.name;
+      } else {
+        // Invalid sectionId - fall back to Ungrouped for this page
+        sectionId = `ungrouped_page${fieldData.pageNumber}`;
+        sectionName = 'Ungrouped';
+      }
     }
 
     // Get next creation order index
@@ -266,7 +353,8 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
     const newField: FieldDefinition = {
       ...fieldData,
       name: fieldName,
-      sectionName,
+      sectionId, // NEW - v2.0
+      sectionName, // Backward compatibility
       index: fieldIndex,
       id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     };
@@ -278,12 +366,25 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
           fields: [...prevState.fields, field],
           selectedFieldId: field.id,
           lastUpdatedFieldId: field.id,
+          // Update section's fieldIds
+          sections: prevState.sections.map(s =>
+            s.id === field.sectionId && !s.fieldIds.includes(field.id)
+              ? { ...s, fieldIds: [...s.fieldIds, field.id], updatedAt: new Date() }
+              : s,
+          ),
         }));
       },
       deleteField: (id) => {
+        const _fieldToDelete = state.fields.find(f => f.id === id);
         set((prevState) => ({
           fields: prevState.fields.filter((f) => f.id !== id),
           selectedFieldId: prevState.selectedFieldId === id ? null : prevState.selectedFieldId,
+          // Remove from section's fieldIds
+          sections: prevState.sections.map(s =>
+            s.fieldIds.includes(id)
+              ? { ...s, fieldIds: s.fieldIds.filter(fid => fid !== id), updatedAt: new Date() }
+              : s,
+          ),
         }));
       },
     });
@@ -567,12 +668,115 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
     // Initialize LastIndex based on loaded fields
     initializeLastIndex(fields);
 
-    set({
-      fields,
-      selectedFieldId: null,
-      selectedFieldIds: [],
-    });
-    console.log(`✓ Loaded ${fields.length} fields from template`);
+    const state = get();
+
+    // Backward compatibility: Auto-generate sections from sectionName if no sections exist
+    const needsSectionMigration = state.sections.length === 0 && fields.some(f => f.sectionName && !f.sectionId);
+
+    if (needsSectionMigration) {
+      console.log('[Store] Migrating legacy data: generating sections from sectionName');
+
+      // Collect unique section names per page
+      const sectionsByPage: Record<number, Set<string>> = {};
+      fields.forEach(field => {
+        const page = field.pageNumber;
+        const sectionName = field.sectionName || 'Ungrouped';
+
+        if (!sectionsByPage[page]) {
+          sectionsByPage[page] = new Set();
+        }
+        sectionsByPage[page].add(sectionName);
+      });
+
+      // Create sections
+      const newSections: FormSection[] = [];
+      let orderCounter = 0;
+
+      Object.entries(sectionsByPage).forEach(([pageStr, sectionNames]) => {
+        const page = parseInt(pageStr);
+        sectionNames.forEach(sectionName => {
+          // Use page-specific 'ungrouped_pageX' ID for Ungrouped sections
+          const sectionId = sectionName === 'Ungrouped'
+            ? `ungrouped_page${page}`
+            : `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          newSections.push({
+            id: sectionId,
+            name: sectionName,
+            pageNumber: page,
+            order: orderCounter++,
+            isCollapsed: false,
+            fieldIds: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        });
+      });
+
+      // Assign fields to sections
+      const updatedFields = fields.map(field => {
+        const sectionName = field.sectionName || 'Ungrouped';
+        const section = newSections.find(
+          s => s.name === sectionName && s.pageNumber === field.pageNumber,
+        );
+
+        if (section && !field.sectionId) {
+          // Update section's fieldIds
+          if (!section.fieldIds.includes(field.id)) {
+            section.fieldIds.push(field.id);
+          }
+          return { ...field, sectionId: section.id };
+        }
+        return field;
+      });
+
+      set({
+        fields: updatedFields,
+        sections: newSections,
+        selectedFieldId: null,
+        selectedFieldIds: [],
+      });
+
+      console.log(`✓ Loaded ${fields.length} fields and migrated to ${newSections.length} sections`);
+    } else {
+      // Normal load without migration
+      // Check for orphaned fields (no sectionId) and assign them to "ungrouped"
+      const fieldsWithOrphans = fields.some(f => !f.sectionId);
+
+      if (fieldsWithOrphans) {
+        const updatedFields = fields.map(f =>
+          !f.sectionId ? { ...f, sectionId: `ungrouped_page${f.pageNumber}`, sectionName: 'Ungrouped' } : f,
+        );
+
+        // Find all unique pages with fields
+        const pagesWithFields = [...new Set(updatedFields.map(f => f.pageNumber))];
+
+        // Ensure Ungrouped section exists for each page
+        pagesWithFields.forEach(pageNumber => {
+          get().ensureUngroupedSection(pageNumber);
+        });
+
+        set({
+          fields: updatedFields,
+          selectedFieldId: null,
+          selectedFieldIds: [],
+        });
+
+        console.log(`✓ Loaded ${fields.length} fields (assigned orphaned fields to Ungrouped)`);
+      } else {
+        // Even if no orphans, ensure Ungrouped sections exist for all pages with fields
+        const pagesWithFields = [...new Set(fields.map(f => f.pageNumber))];
+        pagesWithFields.forEach(pageNumber => {
+          get().ensureUngroupedSection(pageNumber);
+        });
+
+        set({
+          fields,
+          selectedFieldId: null,
+          selectedFieldIds: [],
+        });
+        console.log(`✓ Loaded ${fields.length} fields from template`);
+      }
+    }
   },
 
   // Undo/Redo actions
@@ -658,8 +862,38 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
   // Hover actions
   setHoveredField: (id) => set({ hoveredFieldId: id }),
 
+  // AI Extraction actions
+  startExtraction: () =>
+    set({
+      isExtractingFields: true,
+      extractionProgress: { message: 'מתחיל זיהוי שדות...' },
+    }),
+
+  endExtraction: () =>
+    set({
+      isExtractingFields: false,
+      extractionProgress: null,
+    }),
+
+  setExtractionProgress: (progress) =>
+    set({
+      extractionProgress: progress,
+    }),
+
+  clearExtractionProgress: () =>
+    set({
+      extractionProgress: null,
+    }),
+
   // Reset
-  reset: () => set(initialState),
+  reset: () => set({
+    ...initialState,
+    undoManager: new UndoManager(), // Create new instance to avoid sharing references
+    sections: [], // Explicitly reset sections
+    fields: [], // Explicitly reset fields
+    isExtractingFields: false, // Reset extraction state
+    extractionProgress: null,
+  }),
 
   // Crash Recovery
   restoreFromRecovery: (recoveryData) => {
@@ -696,5 +930,286 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
         selectedFieldId: null,
       };
     });
+  },
+
+  // ========================================
+  // Section Actions (NEW - v2.0)
+  // ========================================
+
+  addSection: (pageNumber, name) => {
+    const state = get();
+
+    // Generate unique ID
+    const sectionId = `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Use provided name or generate default
+    const sectionName = name && name.trim() !== '' ? name : `Section ${state.sections.length + 1}`;
+
+    // Calculate order (last position on page)
+    const sectionsOnPage = state.sections.filter(s => s.pageNumber === pageNumber);
+    const order = sectionsOnPage.length;
+
+    const newSection: FormSection = {
+      id: sectionId,
+      name: sectionName,
+      pageNumber,
+      order,
+      isCollapsed: false,
+      fieldIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    set((prevState) => ({
+      sections: [...prevState.sections, newSection],
+    }));
+
+    console.log(`[Store] Added section: ${sectionName} on page ${pageNumber}`);
+  },
+
+  // Helper: Ensure Ungrouped section exists for page
+  ensureUngroupedSection: (pageNumber: number) => {
+    const state = get();
+    const ungroupedId = `ungrouped_page${pageNumber}`;
+    const ungroupedExists = state.sections.some(
+      s => s.id === ungroupedId && s.pageNumber === pageNumber,
+    );
+
+    if (!ungroupedExists) {
+      const newSection: FormSection = {
+        id: ungroupedId,
+        name: 'Ungrouped',
+        pageNumber,
+        order: 999, // Put at end
+        isCollapsed: false,
+        fieldIds: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      set((prevState) => ({
+        sections: [...prevState.sections, newSection],
+      }));
+
+      console.log(`[Store] Auto-created Ungrouped section for page ${pageNumber}`);
+    }
+  },
+
+  deleteSection: (sectionId) => {
+    const state = get();
+
+    // Prevent deletion of default "Ungrouped" sections
+    if (sectionId.startsWith('ungrouped_page')) {
+      console.warn('[Store] Cannot delete default Ungrouped section');
+      return;
+    }
+
+    const section = state.sections.find(s => s.id === sectionId);
+    if (!section) {
+      console.warn(`[Store] Section not found: ${sectionId}`);
+      return;
+    }
+
+    // Move fields to "Ungrouped" section for the same page
+    const fieldsToMove = state.fields.filter(f => f.sectionId === sectionId);
+    const ungroupedId = `ungrouped_page${section.pageNumber}`;
+
+    // Ensure Ungrouped section exists for this page before moving fields
+    get().ensureUngroupedSection(section.pageNumber);
+
+    set((prevState) => ({
+      sections: prevState.sections.map(s => {
+        if (s.id === ungroupedId) {
+          // Add moved field IDs to Ungrouped section
+          const movedFieldIds = fieldsToMove.map(f => f.id);
+          const newFieldIds = [...s.fieldIds, ...movedFieldIds.filter(id => !s.fieldIds.includes(id))];
+          return { ...s, fieldIds: newFieldIds, updatedAt: new Date() };
+        }
+        return s;
+      }).filter(s => s.id !== sectionId),
+      fields: prevState.fields.map(f =>
+        f.sectionId === sectionId ? { ...f, sectionId: ungroupedId, sectionName: 'Ungrouped' } : f,
+      ),
+    }));
+
+    console.log(`[Store] Deleted section: ${section.name}, moved ${fieldsToMove.length} fields to Ungrouped`);
+  },
+
+  renameSection: (sectionId, newName) => {
+    const trimmedName = newName.trim();
+
+    // Prevent empty names
+    if (trimmedName === '') {
+      console.warn('[Store] Cannot rename section to empty string');
+      return;
+    }
+
+    set((state) => ({
+      sections: state.sections.map(s =>
+        s.id === sectionId ? { ...s, name: trimmedName, updatedAt: new Date() } : s,
+      ),
+      // Update field.sectionName for backward compatibility
+      fields: state.fields.map(f =>
+        f.sectionId === sectionId ? { ...f, sectionName: trimmedName } : f,
+      ),
+    }));
+
+    console.log(`[Store] Renamed section to: ${trimmedName}`);
+  },
+
+  reorderSection: (sectionId, newOrder) => {
+    const state = get();
+    const section = state.sections.find(s => s.id === sectionId);
+
+    if (!section) {
+      console.warn(`[Store] Section not found: ${sectionId}`);
+      return;
+    }
+
+    const sectionsOnPage = state.sections.filter(s => s.pageNumber === section.pageNumber);
+    const oldOrder = section.order;
+
+    // Clamp order to valid range
+    const clampedOrder = Math.max(0, Math.min(newOrder, sectionsOnPage.length - 1));
+
+    // No-op if order doesn't change
+    if (oldOrder === clampedOrder) {
+      return;
+    }
+
+    set((prevState) => ({
+      sections: prevState.sections.map(s => {
+        // Skip sections on other pages
+        if (s.pageNumber !== section.pageNumber) {
+          return s;
+        }
+
+        // Move the target section to new position
+        if (s.id === sectionId) {
+          return { ...s, order: clampedOrder, updatedAt: new Date() };
+        }
+
+        // Shift other sections
+        if (oldOrder < clampedOrder) {
+          // Moving down: shift sections between old and new position up
+          if (s.order > oldOrder && s.order <= clampedOrder) {
+            return { ...s, order: s.order - 1, updatedAt: new Date() };
+          }
+        } else {
+          // Moving up: shift sections between new and old position down
+          if (s.order >= clampedOrder && s.order < oldOrder) {
+            return { ...s, order: s.order + 1, updatedAt: new Date() };
+          }
+        }
+
+        return s;
+      }),
+    }));
+
+    console.log(`[Store] Reordered section from ${oldOrder} to ${clampedOrder}`);
+  },
+
+  toggleSectionCollapse: (sectionId) => {
+    set((state) => ({
+      sections: state.sections.map(s =>
+        s.id === sectionId ? { ...s, isCollapsed: !s.isCollapsed, updatedAt: new Date() } : s,
+      ),
+    }));
+
+    console.log(`[Store] Toggled collapse state for section: ${sectionId}`);
+  },
+
+  moveFieldToSection: (fieldId, sectionId) => {
+    const state = get();
+    const field = state.fields.find(f => f.id === fieldId);
+
+    if (!field) {
+      console.warn(`[Store] Field not found: ${fieldId}`);
+      return;
+    }
+
+    // Check if target section exists
+    const targetSection = state.sections.find(s => s.id === sectionId);
+
+    // If section doesn't exist or is on different page, move to Ungrouped
+    if (!targetSection || targetSection.pageNumber !== field.pageNumber) {
+      const ungroupedId = `ungrouped_page${field.pageNumber}`;
+      get().ensureUngroupedSection(field.pageNumber);
+
+      set((prevState) => ({
+        fields: prevState.fields.map(f =>
+          f.id === fieldId ? { ...f, sectionId: ungroupedId, sectionName: 'Ungrouped' } : f,
+        ),
+        sections: prevState.sections.map(s => {
+          if (s.id === ungroupedId && !s.fieldIds.includes(fieldId)) {
+            return { ...s, fieldIds: [...s.fieldIds, fieldId], updatedAt: new Date() };
+          }
+          // Remove from old section
+          if (s.fieldIds.includes(fieldId) && s.id !== ungroupedId) {
+            return { ...s, fieldIds: s.fieldIds.filter(id => id !== fieldId), updatedAt: new Date() };
+          }
+          return s;
+        }),
+      }));
+      console.warn(`[Store] Target section invalid, moved field to Ungrouped`);
+      return;
+    }
+
+    // Update field's sectionId and sectionName (backward compat)
+    set((prevState) => ({
+      fields: prevState.fields.map(f =>
+        f.id === fieldId ? { ...f, sectionId, sectionName: targetSection.name } : f,
+      ),
+      // Update section's fieldIds array
+      sections: prevState.sections.map(s => {
+        if (s.id === sectionId && !s.fieldIds.includes(fieldId)) {
+          return { ...s, fieldIds: [...s.fieldIds, fieldId], updatedAt: new Date() };
+        }
+        // Remove from old section
+        if (s.fieldIds.includes(fieldId) && s.id !== sectionId) {
+          return { ...s, fieldIds: s.fieldIds.filter(id => id !== fieldId), updatedAt: new Date() };
+        }
+        return s;
+      }),
+    }));
+
+    console.log(`[Store] Moved field ${fieldId} to section: ${targetSection.name}`);
+  },
+
+  reorderFieldInSection: (sectionId, fieldId, newIndex) => {
+    const state = get();
+    const section = state.sections.find(s => s.id === sectionId);
+
+    if (!section) {
+      console.warn(`[Store] Section not found: ${sectionId}`);
+      return;
+    }
+
+    const fieldIds = [...section.fieldIds];
+    const currentIndex = fieldIds.indexOf(fieldId);
+
+    if (currentIndex === -1) {
+      console.warn(`[Store] Field not in section: ${fieldId}`);
+      return;
+    }
+
+    // Reorder array
+    fieldIds.splice(currentIndex, 1);
+    fieldIds.splice(newIndex, 0, fieldId);
+
+    set((prevState) => ({
+      sections: prevState.sections.map(s =>
+        s.id === sectionId ? { ...s, fieldIds, updatedAt: new Date() } : s,
+      ),
+    }));
+
+    console.log(`[Store] Reordered field in section: ${fieldId} to index ${newIndex}`);
+  },
+
+  getSectionsForPage: (pageNumber) => {
+    const state = get();
+    return state.sections
+      .filter(s => s.pageNumber === pageNumber)
+      .sort((a, b) => a.order - b.order);
   },
 }));

@@ -159,3 +159,18 @@
     display: none;
   }
 }
+
+/* PDF Canvas - Force cursor inheritance for all children */
+.pdf-viewer-container * {
+  cursor: inherit !important;
+}
+
+/* Exception: Keep field markers draggable */
+.field-marker {
+  cursor: move !important;
+}
+
+/* Exception: Keep field delete buttons clickable */
+.field-marker button {
+  cursor: pointer !important;
+}
