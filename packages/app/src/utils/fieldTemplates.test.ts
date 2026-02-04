@@ -210,6 +210,74 @@ describe('fieldTemplates - Station Field Support', () => {
       expect(result).toHaveLength(1);
       expect(result[0].station).toBe('client'); // Should default to client
     });
+
+    it('should gracefully handle undefined fields in array', async () => {
+      const validField: FieldDefinition = {
+        ...baseField,
+        id: '7',
+        type: 'text',
+        pageNumber: 1,
+        x: 100,
+        y: 100,
+        width: 200,
+        height: 30,
+        name: 'valid_field',
+        required: false,
+        direction: 'rtl',
+      };
+
+      // Manually create array with undefined elements
+      const fieldsArray = [
+        validField,
+        undefined as any, // undefined at index 1
+        validField,
+        null as any, // null at index 3
+        validField,
+      ];
+
+      const templateContent = JSON.stringify({
+        version: '1.0',
+        name: 'Template with undefined fields',
+        fields: fieldsArray,
+        createdAt: new Date().toISOString(),
+        metadata: {
+          totalFields: 5,
+          fieldTypes: { text: 3 },
+          hasHebrewFields: false,
+        },
+      });
+
+      const file = new File([templateContent], 'undefined-fields.json', {
+        type: 'application/json',
+      });
+
+      const result = await loadFieldsFromFile(file);
+
+      // Should skip undefined/null fields and only return valid ones
+      expect(result).toHaveLength(3);
+      expect(result.every(f => f.id)).toBe(true);
+      expect(result.every(f => f.name === 'valid_field')).toBe(true);
+    });
+
+    it('should throw error when all fields are invalid', async () => {
+      const templateContent = JSON.stringify({
+        version: '1.0',
+        name: 'Invalid Template',
+        fields: [undefined, null, undefined],
+        createdAt: new Date().toISOString(),
+        metadata: {
+          totalFields: 3,
+          fieldTypes: {},
+          hasHebrewFields: false,
+        },
+      });
+
+      const file = new File([templateContent], 'all-invalid.json', {
+        type: 'application/json',
+      });
+
+      await expect(loadFieldsFromFile(file)).rejects.toThrow('לא נמצאו שדות תקינים בקובץ');
+    });
   });
 
   describe('saveFieldsToFile', () => {

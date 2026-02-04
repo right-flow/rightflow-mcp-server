@@ -529,7 +529,23 @@ export function EditorPage() {
       console.log(`✓ Loaded ${loadedFields.length} fields from template`);
     } catch (error) {
       console.error('Error loading fields:', error);
-      alert(`שגיאה בטעינת שדות: ${error instanceof Error ? error.message : 'שגיאה לא ידועה'}`);
+
+      // Use ErrorDialog for better error display with copy functionality
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה לא ידועה';
+      setErrorDialogTitle('שגיאה בכפרוס הטופס');
+      setErrorDialogErrors([
+        errorMessage,
+        '',
+        'פרטים טכניים:',
+        `קובץ: ${file.name}`,
+        `סוג שגיאה: ${error instanceof Error ? error.name : 'Unknown'}`,
+        '',
+        'אנא בדוק שהקובץ כולל:',
+        '• מערך fields תקין',
+        '• כל שדה כולל: id, type, name, x, y, width, height, pageNumber',
+        '• סוגי שדות נתמכים: text, checkbox, radio, dropdown, signature',
+      ]);
+      setErrorDialogOpen(true);
     }
 
     // Reset input so same file can be loaded again

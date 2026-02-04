@@ -146,40 +146,58 @@ export async function loadFieldsFromFile(file: File): Promise<FieldDefinition[]>
     console.warn(`Template version ${template.version} may not be fully compatible`);
   }
 
-  // Validate field structure
-  const validatedFields = template.fields.filter((field) => {
-    // Detailed validation logging
-    const validations = {
-      hasId: !!field.id,
-      hasType: !!field.type,
-      hasPageNumber: typeof field.pageNumber === 'number',
-      hasX: typeof field.x === 'number',
-      hasY: typeof field.y === 'number',
-      hasWidth: typeof field.width === 'number',
-      hasHeight: typeof field.height === 'number',
-      hasName: typeof field.name === 'string',
-      validType: ['text', 'checkbox', 'radio', 'dropdown', 'signature'].includes(field.type),
-    };
-
-    const isValid = Object.values(validations).every((v) => v === true);
-
-    if (!isValid) {
-      console.warn(`Invalid field skipped:`, field);
-      console.warn(`Validation results:`, validations);
+  // Validate field structure - handle undefined/null fields gracefully
+  const validatedFields = template.fields.filter((field, index) => {
+    // Check if field is undefined or null
+    if (!field || typeof field !== 'object') {
+      console.warn(`Invalid field at index ${index}: field is ${field === null ? 'null' : 'undefined'}`);
       return false;
     }
 
-    return true;
+    // Detailed validation logging
+    try {
+      const validations = {
+        hasId: !!field.id,
+        hasType: !!field.type,
+        hasPageNumber: typeof field.pageNumber === 'number',
+        hasX: typeof field.x === 'number',
+        hasY: typeof field.y === 'number',
+        hasWidth: typeof field.width === 'number',
+        hasHeight: typeof field.height === 'number',
+        hasName: typeof field.name === 'string',
+        validType: ['text', 'checkbox', 'radio', 'dropdown', 'signature'].includes(field.type),
+      };
+
+      const isValid = Object.values(validations).every((v) => v === true);
+
+      if (!isValid) {
+        console.warn(`Invalid field at index ${index}:`, field);
+        console.warn(`Validation results:`, validations);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`Error validating field at index ${index}:`, error);
+      return false;
+    }
   });
 
   if (validatedFields.length === 0) {
-    throw new Error('לא נמצאו שדות תקינים בקובץ');
+    const totalFields = template.fields.length;
+    throw new Error(
+      `לא נמצאו שדות תקינים בקובץ. ` +
+      `נמצאו ${totalFields} שדות בסך הכל, אך כולם נכשלו בבדיקת התקינות. ` +
+      `אנא בדוק את מבנה הקובץ ב-console לפרטים נוספים.`
+    );
   }
 
-  if (validatedFields.length < template.fields.length) {
+  const skippedCount = template.fields.length - validatedFields.length;
+  if (skippedCount > 0) {
     console.warn(
-      `Some invalid fields were skipped (${template.fields.length - validatedFields.length} fields)`,
+      `Some invalid fields were skipped (${skippedCount} out of ${template.fields.length} fields)`,
     );
+    console.warn('Check console logs above for details about invalid fields');
   }
 
   // Normalize fields - ensure station has default value for backward compatibility
