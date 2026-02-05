@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './styles/index.css';
+import { useAppStore } from './store/appStore';
+import { getTranslations } from './i18n/translations';
 
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -10,18 +12,25 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       immediate: true,
       onNeedRefresh() {
         // Show update notification to user
+        const { language } = useAppStore.getState();
+        const t = getTranslations(language);
+
         const shouldUpdate = confirm(
-          'גרסה חדשה של האפליקציה זמינה! \nלחץ אישור כדי לעדכן עכשיו.',
+          `${t.pwaNewVersionTitle}\n\n${t.pwaNewVersionMessage}`,
         );
         if (shouldUpdate) {
           updateSW(true);
         }
       },
       onOfflineReady() {
-        console.log('✅ האפליקציה מוכנה לעבודה במצב לא מקוון');
+        const { language } = useAppStore.getState();
+        const t = getTranslations(language);
+        console.log(`✅ ${t.pwaOfflineReady}`);
       },
       onRegistered(registration: ServiceWorkerRegistration | undefined) {
-        console.log('✅ Service Worker נרשם בהצלחה');
+        const { language } = useAppStore.getState();
+        const t = getTranslations(language);
+        console.log(`✅ ${t.pwaRegistered}`);
 
         // Check for updates every hour
         if (registration) {
@@ -31,7 +40,9 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
         }
       },
       onRegisterError(error: Error) {
-        console.error('❌ שגיאה ברישום Service Worker:', error);
+        const { language } = useAppStore.getState();
+        const t = getTranslations(language);
+        console.error(`❌ ${t.pwaRegistrationError}:`, error);
       },
     });
   }).catch(error => {

@@ -57,7 +57,7 @@ export function DashboardPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error(direction === 'rtl' ? 'טעינת הטפסים נכשלה' : 'Failed to load forms');
+      if (!response.ok) throw new Error(t.failedToLoadForms);
       const data = await response.json();
       setForms(data.forms || []);
     } catch (err) {
@@ -81,13 +81,13 @@ export function DashboardPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: direction === 'rtl' ? 'טופס ללא כותרת' : 'Untitled Form',
+          name: t.untitledForm,
           description: '',
           fields: [
             {
               id: 'field_1',
               type: 'text',
-              label: direction === 'rtl' ? 'שדה טקסט' : 'Text Field',
+              label: t.textField,
               required: false,
             }
           ],
@@ -145,8 +145,8 @@ export function DashboardPage() {
               key={item.id}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${item.active
-                  ? 'bg-secondary text-primary'
-                  : 'text-muted-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-foreground'
+                ? 'bg-secondary text-primary'
+                : 'text-muted-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-foreground'
                 }`}
             >
               <item.icon className="w-4 h-4" />
@@ -233,7 +233,7 @@ export function DashboardPage() {
             </div>
             <h2 className="text-xl font-bold mb-2">{t.noFormsFound}</h2>
             <p className="text-muted-foreground max-w-sm text-sm">
-              {searchQuery ? t.noResultsFor.replace('{query}', searchQuery) : 'עדיין לא יצרת טפסים. התחל עכשיו.'}
+              {searchQuery ? t.noResultsFor.replace('{query}', searchQuery) : t.noFormsYetDescription}
             </p>
             {!searchQuery && (
               <button onClick={handleCreateForm} className="btn-primary mt-8">

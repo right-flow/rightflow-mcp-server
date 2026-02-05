@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   MoreVertical,
   Edit2,
@@ -13,7 +13,7 @@ import {
 import type { FormRecord } from '../../services/forms/forms.service';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@clerk/clerk-react';
-import { useDirection } from '../../i18n';
+import { useTranslation, useDirection } from '../../i18n';
 
 interface FormCardProps {
   form: FormRecord;
@@ -27,25 +27,26 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const { getToken } = useAuth();
+  const t = useTranslation();
   const direction = useDirection();
 
-  const formattedDate = new Date(form.updatedAt || form.created_at).toLocaleDateString('he-IL', {
+  const formattedDate = new Date(form.updated_at || form.created_at).toLocaleDateString('he-IL', {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
   });
 
   const statusBadge = {
-    draft: { label: 'טיוטה', className: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
-    published: { label: 'מפורסם', className: 'bg-green-50 text-green-700 border-green-200' },
-    archived: { label: 'בארכיון', className: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
+    draft: { label: t.draft, className: 'bg-zinc-100 text-zinc-600 border-zinc-200' },
+    published: { label: t.published, className: 'bg-green-50 text-green-700 border-green-200' },
+    archived: { label: t.archived, className: 'bg-zinc-100 text-zinc-500 border-zinc-200' },
   };
 
   const badge = statusBadge[form.status] || statusBadge.draft;
   const publicUrl = form.status === 'published' ? `${window.location.origin}/f/${form.slug}` : null;
 
   async function handleDelete() {
-    if (!confirm(direction === 'rtl' ? 'למחוק טופס זה?' : 'Delete this form?')) return;
+    if (!confirm(t.deleteFormConfirm)) return;
     try {
       const token = await getToken();
       const res = await fetch(`/api/forms?id=${form.id}`, {
@@ -98,14 +99,14 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
                     className={`absolute top-full ${direction === 'rtl' ? 'left-0' : 'right-0'} mt-1 w-44 bg-white dark:bg-zinc-800 border border-border rounded-lg shadow-xl z-50 py-1`}
                   >
                     <button onClick={() => { setIsMenuOpen(false); onEdit(); }} className="w-full flex items-center justify-between px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-sm font-medium">
-                      ערוך <Edit2 className="w-4 h-4" />
+                      {t.edit} <Edit2 className="w-4 h-4" />
                     </button>
                     <button onClick={() => { setIsMenuOpen(false); onViewResponses(); }} className="w-full flex items-center justify-between px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-sm font-medium">
-                      תגובות <MessageSquare className="w-4 h-4" />
+                      {t.responses} <MessageSquare className="w-4 h-4" />
                     </button>
                     <div className="h-px bg-border my-1" />
                     <button onClick={() => { setIsMenuOpen(false); handleDelete(); }} className="w-full flex items-center justify-between px-4 py-2 hover:bg-red-50 dark:hover:bg-red-950/50 text-red-600 text-sm font-medium">
-                      מחק <Trash2 className="w-4 h-4" />
+                      {t.delete} <Trash2 className="w-4 h-4" />
                     </button>
                   </motion.div>
                 </>
@@ -121,7 +122,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
           {form.title}
         </h3>
         <p className="text-sm text-muted-foreground line-clamp-2 h-10 mb-6">
-          {form.description || 'אין תיאור לטופס זה.'}
+          {form.description || t.noDescription}
         </p>
 
         <div className="mt-auto space-y-3">
@@ -134,12 +135,12 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>{form.fields?.length || 0} שדות</span>
+                <span>{t.fieldsCount.replace('{count}', (form.fields?.length || 0).toString())}</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
               <FileText className="w-3.5 h-3.5" />
-              <span>1 עמוד</span>
+              <span>{t.onePage}</span>
             </div>
           </div>
 
@@ -151,7 +152,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
             <button
               onClick={onEdit}
               className="flex items-center justify-center w-8 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              title="עריכה"
+              title={t.edit}
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
@@ -159,7 +160,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
             <button
               onClick={handleCopy}
               className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-              title="העתק קישור"
+              title={t.copyLink}
             >
               {copied ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <ExternalLink className="w-3.5 h-3.5" />}
             </button>
@@ -167,7 +168,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
             <button
               onClick={onSendWhatsApp}
               className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors bg-green-500/10 text-green-600 hover:bg-green-500/20"
-              title="שלח בוואטסאפ"
+              title={t.sendWhatsApp}
             >
               <MessageCircle className="w-3.5 h-3.5" />
             </button>
@@ -175,7 +176,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
             <button
               onClick={onViewResponses}
               className="flex items-center justify-center gap-1.5 px-3 h-8 bg-blue-500/10 text-blue-600 rounded-lg hover:bg-blue-500/20 transition-colors text-xs font-medium ms-auto"
-              title="צפה בתגובות"
+              title={t.viewResponses}
             >
               <MessageSquare className="w-3.5 h-3.5" />
             </button>

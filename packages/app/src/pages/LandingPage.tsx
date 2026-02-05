@@ -75,15 +75,15 @@ export function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{isRtl ? 'פיצ׳רים' : 'Features'}</a>
-            <a href="#use-cases" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{isRtl ? 'מקרי שימוש' : 'Use Cases'}</a>
-            <a href="#integrations" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{isRtl ? 'אינטגרציות' : 'Integrations'}</a>
+            <a href="#features" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{t.featuresLabel}</a>
+            <a href="#use-cases" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{t.useCasesLabel}</a>
+            <a href="#integrations" className="text-sm font-semibold text-slate-600 hover:text-[#0A1551] transition-colors">{t.integrationsLabel}</a>
           </div>
 
           <div className="flex items-center gap-4">
             <LanguageSelector />
             <a href="https://app.rightflow.co.il/sign-in" className="hidden sm:block text-sm font-bold text-[#0A1551] hover:bg-slate-50 px-4 py-2 rounded-lg transition-colors">
-              {isRtl ? 'התחברות' : 'Login'}
+              {t.loginLabel}
             </a>
             <a href="https://app.rightflow.co.il/sign-up" className="bg-[#FF6100] hover:bg-[#E65700] text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 text-sm uppercase tracking-wide">
               {t.getStarted}
@@ -140,7 +140,7 @@ export function LandingPage() {
                     ))}
                   </div>
                   <div className="text-sm font-bold text-slate-500">
-                    <span className="text-[#0A1551]">500+</span> {isRtl ? 'צוותי שטח מרוצים בישראל' : 'Satisfied field teams in Israel'}
+                    <span className="text-[#0A1551]">500+</span> {t.satisfiedTeams}
                   </div>
                 </div>
               </motion.div>
@@ -166,7 +166,7 @@ export function LandingPage() {
                         </div>
                         <span className="font-bold tracking-wide uppercase text-xs">Certified Field-Ready</span>
                       </div>
-                      <h3 className="text-2xl font-bold">{isRtl ? 'טפסים חכמים באמת' : 'Truly Intelligent Forms'}</h3>
+                      <h3 className="text-2xl font-bold">{t.trulyIntelligentForms}</h3>
                     </div>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export function LandingPage() {
                   </div>
                   <div>
                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Sync Status</div>
-                    <div className="text-sm font-bold text-slate-800">{isRtl ? 'אופליין פעיל' : 'Offline Ready'}</div>
+                    <div className="text-sm font-bold text-slate-800">{t.offlineReady}</div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -195,10 +195,10 @@ export function LandingPage() {
           <div className="container mx-auto px-6">
             <div className="text-center max-w-3xl mx-auto mb-20">
               <h2 className="text-4xl md:text-5xl font-black text-[#0A1551] mb-6">
-                {isRtl ? 'הכלים הנכונים לעבודה בשטח' : 'The right tools for the field'}
+                {t.rightToolsForField}
               </h2>
               <p className="text-lg text-slate-600 font-medium">
-                RightFlow 2.0 {isRtl ? 'נבנה מאפס כדי לתת מענה לאתגרים של עובדי שטח ישראלים.' : 'was built from the ground up to solve the challenges of Israeli field teams.'}
+                RightFlow 2.0 {t.builtFromScratch}
               </p>
             </div>
 
@@ -232,7 +232,7 @@ export function LandingPage() {
             <div className="flex flex-col lg:flex-row gap-20 items-center">
               <div className="lg:w-1/3 space-y-8">
                 <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
-                  {isRtl ? 'מכל נישה, בכל מקום' : 'Any niche, anywhere'}
+                  {t.anyNicheAnywhere}
                 </h2>
                 <div className="flex flex-col gap-3">
                   {NICHES.map((niche) => (
@@ -278,7 +278,7 @@ export function LandingPage() {
                         </p>
                         <div className="pt-6">
                           <button className="text-[#FF6100] font-black flex items-center gap-2 hover:gap-3 transition-all">
-                            {isRtl ? 'קרא עוד על המקרה' : 'Read use case'}
+                            {t.readUseCase}
                             {isRtl ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
                           </button>
                         </div>
@@ -310,12 +310,10 @@ export function LandingPage() {
                     No-Code Ready
                   </div>
                   <h2 className="text-4xl md:text-5xl font-black">
-                    {isRtl ? 'מתחברים לעולם שלכם' : 'Connect to your world'}
+                    {t.connectToYourWorld}
                   </h2>
                   <p className="text-slate-300 text-lg leading-relaxed font-medium">
-                    {isRtl
-                      ? 'הזרם נתונים ישירות ל-CRM, לניהול הפרויקטים או לכל מערכת אוטומציה שאתה כבר עובד איתה.'
-                      : 'Stream data directly to your CRM, project management tool, or any automation platform you already use.'}
+                    {t.streamDataDirectly}
                   </p>
 
                   <div className="grid grid-cols-2 gap-6 pt-4">
@@ -382,10 +380,10 @@ export function LandingPage() {
           <div className="container mx-auto px-6 text-center space-y-12 relative z-10">
             <div className="max-w-3xl mx-auto space-y-6">
               <h2 className="text-5xl md:text-7xl font-black text-[#0A1551]">
-                {isRtl ? 'הנייר נגמר, התזרים מתחיל' : 'Ready to go paperless?'}
+                {t.readyToGoPaperless}
               </h2>
               <p className="text-xl text-slate-600 font-medium max-w-xl mx-auto">
-                {isRtl ? 'הצטרפו למהפכת ה-Mobile-First של עובדי השטח בישראל.' : 'Join the Mobile-First revolution for field workers in Israel.'}
+                {t.joinMobileFirst}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
@@ -393,11 +391,11 @@ export function LandingPage() {
                 {t.getStarted}
               </a>
               <button className="bg-[#0A1551] hover:bg-[#1E2B7A] text-white text-xl font-bold px-12 py-6 rounded-2xl shadow-xl transition-all leading-none">
-                {isRtl ? 'צור קשר' : 'Contact Us'}
+                {t.contactUs}
               </button>
             </div>
             <p className="text-slate-400 font-bold text-sm">
-              {isRtl ? 'אין צורך בכרטיס אשראי • 14 יום ניסיון כלול' : 'No credit card required • 14-day free trial included'}
+              {t.noCreditCard}
             </p>
           </div>
 

@@ -24,7 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation, useDirection } from '@/i18n';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, Language } from '@/store/appStore';
 
 interface TopToolbarProps {
   currentPage: number;
@@ -187,7 +187,12 @@ export const TopToolbar = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLanguage(language === 'he' ? 'en' : 'he')}
+            onClick={() => {
+              const languages: Language[] = ['he', 'en', 'ar'];
+              const currentIndex = languages.indexOf(language);
+              const nextIndex = (currentIndex + 1) % languages.length;
+              setLanguage(languages[nextIndex]);
+            }}
             className="h-9 rounded-xl font-bold text-[10px] uppercase"
           >
             <Languages className="w-4 h-4 mr-1.5" />

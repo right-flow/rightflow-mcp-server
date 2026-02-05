@@ -412,6 +412,42 @@ export interface Translations {
   'language.autoDetect.message': string;
   'language.autoDetect.dontAskAgain': string;
 
+  // Landing Page (More)
+  featuresLabel: string;
+  useCasesLabel: string;
+  integrationsLabel: string;
+  loginLabel: string;
+  satisfiedTeams: string;
+  trulyIntelligentForms: string;
+  offlineReady: string;
+  rightToolsForField: string;
+  builtFromScratch: string;
+  anyNicheAnywhere: string;
+  readUseCase: string;
+  connectToYourWorld: string;
+  streamDataDirectly: string;
+  readyToGoPaperless: string;
+  joinMobileFirst: string;
+  contactUs: string;
+  noCreditCard: string;
+
+  // PWA/System
+  pwaNewVersionTitle: string;
+  pwaNewVersionMessage: string;
+  pwaOfflineReady: string;
+  pwaRegistered: string;
+  pwaRegistrationError: string;
+
+  failedToLoadForms: string;
+  noFormsYetDescription: string;
+  deleteFormConfirm: string;
+  noDescription: string;
+  onePage: string;
+  copyLink: string;
+  viewResponses: string;
+  fieldsCount: string;
+  sendWhatsApp: string;
+
   // Common (additional)
   'common.yes': string;
   'common.no': string;
@@ -789,7 +825,7 @@ const hebrewTranslations: Translations = {
   createNewForm: 'יצירת טופס חדש',
   createFirstForm: 'צור את הטופס הראשון שלך',
   searchFormsPlaceholder: 'חיפוש טפסים...',
-  manageFormsDescription: 'ניהול ומעקב אחר טפסי ה-PDF שלך.',
+  manageFormsDescription: 'ניהול ומעקב אחר טפסי ה-PDF שלך (עברית וערבית).',
   freePlan: 'תוכנית חינמית',
   loadingDashboard: 'טוען לוח בקרה...',
   noResultsFor: 'לא נמצאו תוצאות עבור "{query}". נסה חיפוש אחר.',
@@ -845,9 +881,9 @@ const hebrewTranslations: Translations = {
   heroSubtitle: 'בונה טפסי ה-PDF היחיד עם תמיכה מלאה בעברית, עבודה ללא אינטרנט ודיגיטציה מבוססת AI לצוותי שטח.',
   getStarted: 'התחל בחינם',
   viewDemo: 'צפה בדמו',
-  featureHebrewTitle: 'עברית שפת אם',
-  featureHebrewDesc: 'תמיכה מלאה ב-RTL עם רינדור מושלם וטיפול דו-כיווני (Bidi).',
-  featureAiTitle: 'דיגיטציה ב-AI',
+  featureHebrewTitle: 'עברית וערבית כשפת אם',
+  featureHebrewDesc: 'תמיכה מלאה ב-RTL עבור עברית וערבית, עם תצוגה מושלמת וטיפול בטקסט דו-כיווני (BiDi).',
+  featureAiTitle: 'זיהוי שדות AI',
   featureAiDesc: 'הפוך טפסים פיזיים לדיגיטליים בתוך שניות באמצעות מנוע ה-OCR שלנו.',
   featureOfflineTitle: 'מאובטח ואופליין',
   featureOfflineDesc: 'איסוף נתונים ללא צורך בחיבור לאינטרנט. מוצפן ומאוחסן בענן ישראלי.',
@@ -910,6 +946,42 @@ const hebrewTranslations: Translations = {
   'language.autoDetect.title': 'זוהתה שפה אחרת',
   'language.autoDetect.message': 'נראה שאתה כותב ב{language}. האם לשנות את שפת האפליקציה?',
   'language.autoDetect.dontAskAgain': 'אל תשאל שוב',
+
+  // Landing Page (More)
+  featuresLabel: 'פיצ׳רים',
+  useCasesLabel: 'מקרי שימוש',
+  integrationsLabel: 'אינטגרציות',
+  loginLabel: 'התחברות',
+  satisfiedTeams: '500+ צוותי שטח מרוצים בישראל',
+  trulyIntelligentForms: 'טפסים חכמים באמת',
+  offlineReady: 'אופליין פעיל',
+  rightToolsForField: 'הכלים הנכונים לעבודה בשטח',
+  builtFromScratch: 'RightFlow 2.0 נבנה מאפס כדי לתת מענה לאתגרים של עובדי שטח בישראל.',
+  anyNicheAnywhere: 'מכל נישה, בכל מקום',
+  readUseCase: 'קרא עוד על המקרה',
+  connectToYourWorld: 'מתחברים לעולם שלכם',
+  streamDataDirectly: 'הזרם נתונים ישירות ל-CRM, לניהול הפרויקטים או לכל מערכת אוטומציה שאתה כבר עובד איתה.',
+  readyToGoPaperless: 'הנייר נגמר, התזרים מתחיל',
+  joinMobileFirst: 'הצטרפו למהפכת ה-Mobile-First של עובדי שטח בישראל.',
+  contactUs: 'צור קשר',
+  noCreditCard: 'אין צורך בכרטיס אשראי • 14 יום ניסיון כלול',
+
+  // PWA/System
+  pwaNewVersionTitle: 'גרסה חדשה זמינה',
+  pwaNewVersionMessage: 'גרסה חדשה של האפליקציה זמינה! לחץ אישור כדי לעדכן עכשיו.',
+  pwaOfflineReady: 'האפליקציה מוכנה לעבודה במצב לא מקוון',
+  pwaRegistered: 'Service Worker נרשם בהצלחה',
+  pwaRegistrationError: 'שגיאה ברישום Service Worker',
+
+  failedToLoadForms: 'טעינת הטפסים נכשלה',
+  noFormsYetDescription: 'עדיין לא יצרת טפסים. התחל עכשיו.',
+  deleteFormConfirm: 'למחוק טופס זה?',
+  noDescription: 'אין תיאור לטופס זה.',
+  onePage: '1 עמוד',
+  copyLink: 'העתק קישור',
+  viewResponses: 'צפה בתגובות',
+  fieldsCount: '{count} שדות',
+  sendWhatsApp: 'שלח בוואטסאפ',
 
   // Common (additional)
   'common.yes': 'כן',
@@ -1288,7 +1360,7 @@ const englishTranslations: Translations = {
   createNewForm: 'Create New Form',
   createFirstForm: 'Create Your First Form',
   searchFormsPlaceholder: 'Search your forms...',
-  manageFormsDescription: 'Manage and monitor your Hebrew PDF forms.',
+  manageFormsDescription: 'Manage and monitor your Hebrew & Arabic PDF forms.',
   freePlan: 'Free Plan',
   loadingDashboard: 'Initializing Dashboard...',
   noResultsFor: 'No results for "{query}". Try a different search.',
@@ -1344,8 +1416,8 @@ const englishTranslations: Translations = {
   heroSubtitle: 'The only PDF form builder with native RTL support, offline-first reliability, and AI-powered digitization for Israeli field sales teams.',
   getStarted: 'Get Started Free',
   viewDemo: 'View Demo',
-  featureHebrewTitle: 'Native Hebrew',
-  featureHebrewDesc: 'Full RTL support with perfect rendering and bidirectional text handling.',
+  featureHebrewTitle: 'Native Hebrew & Arabic',
+  featureHebrewDesc: 'Full RTL support for both Hebrew and Arabic with perfect rendering and bidirectional text handling.',
   featureAiTitle: 'AI Digitization',
   featureAiDesc: 'Turn paper forms into digital interfaces in seconds using our advanced AI engine.',
   featureOfflineTitle: 'Secure & Offline',
@@ -1409,6 +1481,42 @@ const englishTranslations: Translations = {
   'language.autoDetect.title': 'Different Language Detected',
   'language.autoDetect.message': 'It looks like you\'re typing in {language}. Switch app language?',
   'language.autoDetect.dontAskAgain': 'Don\'t ask again',
+
+  // Landing Page (More)
+  featuresLabel: 'Features',
+  useCasesLabel: 'Use Cases',
+  integrationsLabel: 'Integrations',
+  loginLabel: 'Login',
+  satisfiedTeams: '500+ Satisfied field teams in Israel',
+  trulyIntelligentForms: 'Truly Intelligent Forms',
+  offlineReady: 'Offline Ready',
+  rightToolsForField: 'The right tools for the field',
+  builtFromScratch: 'RightFlow 2.0 was built from the ground up to solve field team challenges.',
+  anyNicheAnywhere: 'Any niche, anywhere',
+  readUseCase: 'Read use case',
+  connectToYourWorld: 'Connect to your world',
+  streamDataDirectly: 'Stream data directly to your CRM, project management tool, or any automation platform.',
+  readyToGoPaperless: 'Ready to go paperless?',
+  joinMobileFirst: 'Join the Mobile-First revolution for field workers.',
+  contactUs: 'Contact Us',
+  noCreditCard: 'No credit card required • 14-day free trial included',
+
+  // PWA/System
+  pwaNewVersionTitle: 'New Version Available',
+  pwaNewVersionMessage: 'A new version of the app is available! Click OK to update now.',
+  pwaOfflineReady: 'App is ready to work offline',
+  pwaRegistered: 'Service Worker registered successfully',
+  pwaRegistrationError: 'Error registering Service Worker',
+
+  failedToLoadForms: 'Failed to load forms',
+  noFormsYetDescription: 'You haven\'t created any forms yet. Start now.',
+  deleteFormConfirm: 'Delete this form?',
+  noDescription: 'No description for this form.',
+  onePage: '1 page',
+  copyLink: 'Copy Link',
+  viewResponses: 'View Responses',
+  fieldsCount: '{count} fields',
+  sendWhatsApp: 'Send via WhatsApp',
 
   // Common (additional)
   'common.yes': 'Yes',
@@ -1590,7 +1698,7 @@ const arabicTranslations: Translations = {
 
   // Language selector
   language: 'اللغة',
-  hebrew: 'עברית',
+  hebrew: 'عبري',
   english: 'English',
   arabic: 'العربية',
 
@@ -1787,7 +1895,7 @@ const arabicTranslations: Translations = {
   createNewForm: 'إنشاء نموذج جديد',
   createFirstForm: 'أنشئ نموذجك الأول',
   searchFormsPlaceholder: 'البحث عن النماذج...',
-  manageFormsDescription: 'إدارة ومراقبة نماذج PDF الخاصة بك.',
+  manageFormsDescription: 'إدارة ومراقبة نماذج PDF الخاصة بك (العربية والعبرية).',
   freePlan: 'الخطة المجانية',
   loadingDashboard: 'جاري تحميل لوحة التحكم...',
   noResultsFor: 'لا توجد نتائج لـ "{query}". جرب بحثًا آخر.',
@@ -1843,8 +1951,8 @@ const arabicTranslations: Translations = {
   heroSubtitle: 'منشئ نماذج PDF الوحيد مع دعم RTL أصلي، موثوقية غير متصلة بالإنترنت، ورقمنة مدعومة بالذكاء الاصطناعي لفرق المبيعات الميدانية.',
   getStarted: 'ابدأ مجانًا',
   viewDemo: 'عرض توضيحي',
-  featureHebrewTitle: 'العربية الأصلية',
-  featureHebrewDesc: 'دعم كامل لـ RTL مع عرض مثالي ومعالجة نص ثنائي الاتجاه.',
+  featureHebrewTitle: 'دعم العربية والعبرية',
+  featureHebrewDesc: 'دعم كامل لـ RTL للعربية والعبرية مع عرض مثالي ومعالجة نص ثنائي الاتجاه.',
   featureAiTitle: 'رقمنة بالذكاء الاصطناعي',
   featureAiDesc: 'حول النماذج الورقية إلى واجهات رقمية في ثوانٍ باستخدام محرك OCR المتقدم.',
   featureOfflineTitle: 'آمن وغير متصل',
@@ -1908,6 +2016,42 @@ const arabicTranslations: Translations = {
   'language.autoDetect.title': 'تم اكتشاف لغة مختلفة',
   'language.autoDetect.message': 'يبدو أنك تكتب بـ {language}. تبديل لغة التطبيق؟',
   'language.autoDetect.dontAskAgain': 'لا تسأل مرة أخرى',
+
+  // Landing Page (More)
+  featuresLabel: 'ميزات',
+  useCasesLabel: 'حالات الاستخدام',
+  integrationsLabel: 'تكاملات',
+  loginLabel: 'تسجيل الدخول',
+  satisfiedTeams: 'أكثر من 500 فريق ميداني راضٍ',
+  trulyIntelligentForms: 'نماذج ذكية حقًا',
+  offlineReady: 'جاهز للعمل بدون إنترنت',
+  rightToolsForField: 'الأدوات المناسبة للعمل الميداني',
+  builtFromScratch: 'تم بناء RightFlow 2.0 من الألف إلى الياء لحل تحديات الفرق الميدانية.',
+  anyNicheAnywhere: 'أي مكان، أي مجال',
+  readUseCase: 'اقرأ حالة الاستخدام',
+  connectToYourWorld: 'اتصل بعالمكم',
+  streamDataDirectly: 'قم ببث البيانات مباشرة إلى نظام إدارة علاقات العملاء (CRM) أو إدارة المشاريع أو أي نظام أتمتة.',
+  readyToGoPaperless: 'هل أنت جاهز للتحول الرقمي؟',
+  joinMobileFirst: 'انضم إلى ثورة الهاتف المحمول أولاً للعاملين الميدانيين.',
+  contactUs: 'اتصل بنا',
+  noCreditCard: 'لا حاجة لبطاقة ائتمان • تشمل فترة تجريبية لمدة 14 يومًا',
+
+  // PWA/System
+  pwaNewVersionTitle: 'نسخة جديدة متاحة',
+  pwaNewVersionMessage: 'نسخة جديدة من التطبيق متاحة! انقر فوق موافق للتحديث الآن.',
+  pwaOfflineReady: 'التطبيق جاهז للعمل دون اتصال بالإنترنت',
+  pwaRegistered: 'تم تسجيل Service Worker بنجاح',
+  pwaRegistrationError: 'خطأ في تسجيل Service Worker',
+
+  failedToLoadForms: 'فشل تحميل النماذج',
+  noFormsYetDescription: 'لم تقم بإنشاء أي نماذج بعد. ابدأ الآن.',
+  deleteFormConfirm: 'هل تريد حذف هذا النموذج؟',
+  noDescription: 'لا يوجد وصف لهذا النموذج.',
+  onePage: 'صفحة واحدة',
+  copyLink: 'نسخ الرابط',
+  viewResponses: 'عرض الردود',
+  fieldsCount: '{count} حقول',
+  sendWhatsApp: 'إرسال عبر واتساب',
 
   // Common (additional)
   'common.yes': 'نعم',
@@ -1992,6 +2136,8 @@ const arabicTranslations: Translations = {
   'workflow.conditional.op.in': 'في',
   'workflow.conditional.op.notIn': 'ليس في',
   'workflow.conditional.removeRule': 'إزالة القاعدة',
+  'workflow.conditional.removeGroup': 'إزالة المجموعة',
+  'workflow.conditional.maxDepth': 'تم الوصول إلى أقصى عمق للتداخل (3 مستويات)',
 };
 
 const translations: Record<Language, Translations> = {
