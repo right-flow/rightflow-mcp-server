@@ -68,7 +68,55 @@ export default defineConfig({
     port: 3000,
     open: true,
     proxy: {
-      '/api': {
+      // WhatsApp API routes go to new backend on 3003
+      // CRITICAL: Must come FIRST to match before the generic /api rules
+      '/api/v1': {
+        target: 'http://localhost:3003',
+        changeOrigin: true,
+        ws: true,
+      },
+      // Specific old API routes go to dev-server.mjs on 3002
+      '/api/forms': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/responses': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/billing': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/extract-fields': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/health': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/generate-html': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/plans': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/webhooks': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/public-form': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/form-versions': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+      },
+      '/api/forms-publish': {
         target: 'http://localhost:3002',
         changeOrigin: true,
       },

@@ -40,11 +40,16 @@ export function QrCodeDialog({
       apiClient.setAuthToken(token);
 
       const qr = await whatsappService.getQrCode(channelId);
+
+      if (!qr.data) {
+        throw new Error('QR code data is empty');
+      }
+
       setQrData(qr.data);
       setStatus('scan');
       setError(null);
-    } catch {
-      setError(t.qrExpired);
+    } catch (err: any) {
+      setError(err.message || t.qrExpired);
       setStatus('error');
     }
   }, [channelId, getToken, t.qrExpired]);
@@ -100,7 +105,7 @@ export function QrCodeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t.scanQrCode}</DialogTitle>
+          <DialogTitle className="text-center">{t.scanQrCode}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-4">

@@ -97,8 +97,19 @@ export class WahaClient {
 
   async getQrCode(name: string): Promise<WahaQrCode> {
     try {
-      const { data } = await this.http.get(`/api/${name}/auth/qr`);
-      return data;
+      // WAHA returns QR code as a PNG image, not JSON
+      // We need to get it as arraybuffer and convert to base64
+      const { data } = await this.http.get(`/api/${name}/auth/qr`, {
+        responseType: 'arraybuffer',
+      });
+
+      // Convert arraybuffer to base64
+      const base64 = Buffer.from(data).toString('base64');
+
+      return {
+        mimetype: 'image/png',
+        data: base64,
+      };
     } catch (error) {
       this.handleError('getQrCode', error);
       throw error;
