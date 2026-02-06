@@ -15,6 +15,10 @@ import { ResponsesListPage } from './pages/ResponsesListPage';
 import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import WhatsAppChannelsPage from './pages/WhatsAppChannelsPage';
+import { BillingPage } from './pages/BillingPage';
+import { SubscriptionPage } from './components/billing/subscription/SubscriptionPage';
+import { UsageDashboard } from './components/billing/usage/UsageDashboard';
+import { BillingHistoryPage } from './components/billing/history/BillingHistoryPage';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 // Landing URL from environment variable
@@ -179,6 +183,34 @@ const router = createBrowserRouter([
         <ReportsPage />
       </AuthGuard>
     ),
+  },
+
+  // Billing routes
+  {
+    path: '/billing',
+    element: (
+      <AuthGuard>
+        <BillingPage />
+      </AuthGuard>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/billing/subscription" replace />,
+      },
+      {
+        path: 'subscription',
+        element: <SubscriptionPage />,
+      },
+      {
+        path: 'usage',
+        element: <UsageDashboard />,
+      },
+      {
+        path: 'history',
+        element: <BillingHistoryPage />,
+      },
+    ],
   },
 
   // 404 Not Found

@@ -373,6 +373,11 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
               : s,
           ),
         }));
+
+        // Track field customization for onboarding progress
+        if (!localStorage.getItem('onboarding_has_customized')) {
+          localStorage.setItem('onboarding_has_customized', 'true');
+        }
       },
       deleteField: (id) => {
         const _fieldToDelete = state.fields.find(f => f.id === id);
@@ -426,6 +431,11 @@ export const useTemplateEditorStore = create<TemplateEditorStore>((set, get) => 
           ),
           lastUpdatedFieldId: fieldId,
         }));
+
+        // Track field customization for onboarding progress
+        if (!localStorage.getItem('onboarding_has_customized')) {
+          localStorage.setItem('onboarding_has_customized', 'true');
+        }
       },
     });
 

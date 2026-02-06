@@ -20,6 +20,9 @@ import { SendFormLinkDialog } from '../components/whatsapp/SendFormLinkDialog';
 import type { FormRecord } from '../services/forms/forms.service';
 import { useMigrationOnMount } from '../utils/localStorageMigration';
 import { useTranslation, useDirection } from '../i18n';
+import { HelpWidget } from '../components/onboarding/HelpWidget';
+import { ProgressChecklist } from '../components/onboarding/ProgressChecklist';
+import { SmartUpgradeManager } from '../components/onboarding/SmartUpgradeManager';
 
 export function DashboardPage() {
   const { isSignedIn, isLoaded, user } = useUser();
@@ -32,6 +35,13 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [whatsAppForm, setWhatsAppForm] = useState<FormRecord | null>(null);
+  const [responsesCount, setResponsesCount] = useState(0);
+  const [hasCustomized, setHasCustomized] = useState(
+    localStorage.getItem('onboarding_has_customized') === 'true'
+  );
+  const [hasShared, setHasShared] = useState(
+    localStorage.getItem('onboarding_has_shared') === 'true'
+  );
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -42,6 +52,7 @@ export function DashboardPage() {
   useEffect(() => {
     if (isSignedIn && user) {
       loadForms();
+      loadUsageData();
       useMigrationOnMount(user.id, user.primaryEmailAddress?.id);
     }
   }, [isSignedIn, user]);
@@ -64,6 +75,22 @@ export function DashboardPage() {
       setError(err instanceof Error ? err.message : 'Failed to load forms');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadUsageData() {
+    try {
+      const orgId = user?.organizationMemberships?.[0]?.organization?.id;
+      if (!orgId) return;
+
+      const usageResponse = await fetch(`/api/v1/billing/usage/${orgId}`);
+      if (!usageResponse.ok) return; // Fail silently
+
+      const usageData = await usageResponse.json();
+      setResponsesCount(usageData.responsesUsed || 0);
+    } catch (error) {
+      // Fail silently - onboarding still works with 0 responses
+      console.warn('Failed to load usage data:', error);
     }
   }
 
@@ -114,6 +141,26 @@ export function DashboardPage() {
   const filteredForms = forms.filter(f =>
     f.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  // Handle WhatsApp share - track for onboarding
+  function handleSendWhatsApp(form: FormRecord) {
+    setWhatsAppForm(form);
+    if (!hasShared) {
+      setHasShared(true);
+      localStorage.setItem('onboarding_has_shared', 'true');
+    }
+  }
+
+  // Restart tutorial handler
+  function handleRestartTutorial() {
+    // Reset onboarding progress
+    localStorage.removeItem('onboarding_has_customized');
+    localStorage.removeItem('onboarding_has_shared');
+    setHasCustomized(false);
+    setHasShared(false);
+    // Could also navigate to a tutorial page or show a guided tour
+    console.log('Tutorial restarted');
+  }
 
   if (!isLoaded) {
     return (
@@ -250,7 +297,7 @@ export function DashboardPage() {
                 onDelete={loadForms}
                 onEdit={() => navigate(`/editor/${form.id}`)}
                 onViewResponses={() => navigate(`/responses/${form.id}`)}
-                onSendWhatsApp={() => setWhatsAppForm(form)}
+                onSendWhatsApp={() => handleSendWhatsApp(form)}
               />
             ))}
           </div>
@@ -265,6 +312,17 @@ export function DashboardPage() {
           formUrl={`${window.location.origin}/f/${whatsAppForm.slug}`}
         />
       )}
+
+      {/* Onboarding Components */}
+      <SmartUpgradeManager />
+      <ProgressChecklist
+        formsCount={forms.length}
+        isPublished={forms.some(f => f.status === 'published')}
+        responsesCount={responsesCount}
+        hasCustomized={hasCustomized}
+        hasShared={hasShared}
+      />
+      <HelpWidget onRestartTutorial={handleRestartTutorial} />
     </div>
   );
 }
