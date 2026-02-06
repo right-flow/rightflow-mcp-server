@@ -20,12 +20,15 @@
     "packages/app/src/services/workflowTemplateService.ts",
     "packages/app/src/types/workflow-template.ts",
     "packages/app/src/pages/WorkflowDesignerPage.tsx",
-    "packages/app/src/components/billing/**",
+    "packages/app/src/components/billing/subscription/**",
+    "packages/app/src/components/billing/usage/**",
+    "packages/app/src/components/billing/common/**",
     "packages/app/src/components/dashboard/TierBadge.tsx",
     "packages/app/src/components/dashboard/UsageStatsCard.tsx",
     "packages/app/src/components/notifications/LanguageSuggestionToast.tsx",
     "packages/app/src/components/onboarding/SmartUpgradeManager.tsx",
     "packages/app/src/components/editor/DraggableField.tsx",
-    "packages/app/src/components/forms/templates/formTemplates.ts"
+    "packages/app/src/components/forms/templates/formTemplates.ts",
+    "packages/app/src/components/forms/FormBuilder.tsx"
   ]
 }
