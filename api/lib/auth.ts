@@ -61,13 +61,15 @@ export async function getAuthContext(req: VercelRequest): Promise<AuthContext | 
     }
 
     // Return full auth context
+    // Cast sessionClaims to access metadata properties
+    const claims = sessionClaims as any;
     return {
       userId: user.id,
       orgId: clerkOrgId,
       orgRole: clerkOrgRole,
       user: {
         id: user.id,
-        publicMetadata: sessionClaims.public_metadata || sessionClaims.publicMetadata || {},
+        publicMetadata: claims.public_metadata || claims.publicMetadata || {},
       },
     };
   } catch (error) {

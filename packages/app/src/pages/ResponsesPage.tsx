@@ -4,7 +4,7 @@ import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
 import { ResponseExportButton } from '../components/responses/ResponseExportButton';
 import { useTranslation, useDirection } from '../i18n';
 import { motion } from 'framer-motion';
-import { Calendar, MessageSquare, ArrowLeft, Layout, Search, Bell, HelpCircle, FileText, BarChart3, Settings } from 'lucide-react';
+import { Calendar, MessageSquare, ArrowLeft, Layout, Search, Bell, HelpCircle, FileText, BarChart3, Settings, AlertCircle } from 'lucide-react';
 
 interface Response {
   id: string;
@@ -107,6 +107,9 @@ export function ResponsesPage() {
 
         <div className="mt-auto space-y-1 pt-6 border-t border-border">
           <button className="sidebar-link"><HelpCircle className="w-4 h-4" />{t.helpCenter}</button>
+          <div className="px-3 py-2 text-xs text-muted-foreground text-center">
+            גרסה 2.4.2
+          </div>
         </div>
       </aside>
 

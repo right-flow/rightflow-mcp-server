@@ -103,6 +103,9 @@ export function ResponsesListPage() {
                         <MessageSquare className="w-5 h-5" />
                         {t.helpCenter}
                     </button>
+                    <div className="px-3 py-2 text-xs text-muted-foreground text-center">
+                        גרסה 2.4.2
+                    </div>
                 </div>
             </aside>
 

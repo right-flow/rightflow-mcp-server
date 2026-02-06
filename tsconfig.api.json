@@ -37,6 +37,8 @@
     "packages/app/src/components/forms/FormBuilder.tsx",
     "packages/app/src/services/workflowPersistence.ts",
     "packages/app/src/services/workflowTemplateService.ts",
+    "packages/app/src/services/pdfFieldMapper.ts",
+    "packages/app/src/services/templateService.ts",
     "packages/app/src/types/workflow-template.ts",
     "node_modules",
     "dist",

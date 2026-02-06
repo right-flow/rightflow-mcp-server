@@ -207,6 +207,9 @@ export function DashboardPage() {
             <HelpCircle className="w-4 h-4" />
             {t.helpCenter}
           </button>
+          <div className="px-3 py-2 text-xs text-muted-foreground text-center">
+            גרסה 2.4.2
+          </div>
         </div>
       </aside>
 

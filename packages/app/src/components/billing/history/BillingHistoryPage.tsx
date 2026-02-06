@@ -3,13 +3,13 @@
 // Purpose: Container page for billing history and payment methods
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { Invoice, PaymentMethodInfo } from '../../../api/types';
 import { InvoiceTable } from './InvoiceTable';
 import { PaymentMethodCard } from './PaymentMethodCard';
 import { useToast } from '../../../hooks/useToast';
 
 interface BillingHistoryPageProps {
-  orgId: string;
   className?: string;
 }
 
@@ -18,9 +18,10 @@ interface BillingHistoryPageProps {
  * Orchestrates invoice history and payment method management
  */
 export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
-  orgId,
   className = '',
 }) => {
+  const { orgId } = useAuth();
+  const effectiveOrgId = orgId || 'org_demo';
   const { success, error: showError } = useToast();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -31,7 +32,7 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
   // Load billing history on mount
   useEffect(() => {
     loadBillingHistory();
-  }, [orgId]);
+  }, [effectiveOrgId]);
 
   // Load billing history
   const loadBillingHistory = async () => {
@@ -48,7 +49,7 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
       const mockInvoices: Invoice[] = [
         {
           id: '1',
-          orgId,
+          orgId: effectiveOrgId,
           invoiceNumber: 'INV-2026-001',
           status: 'paid',
           amount: 9900, // 99.00 ILS
@@ -64,7 +65,7 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
         },
         {
           id: '2',
-          orgId,
+          orgId: effectiveOrgId,
           invoiceNumber: 'INV-2025-012',
           status: 'paid',
           amount: 9900,

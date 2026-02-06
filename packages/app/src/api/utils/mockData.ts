@@ -43,7 +43,7 @@ export const mockSubscription: Subscription = {
       advancedReports: false,
       apiAccess: false,
       prioritySupport: false,
-      abandonmentTracking: 'view',
+      abandonmentTracking: true,
       whatsappIntegration: true,
     },
     isActive: true,
@@ -92,7 +92,7 @@ export const mockPlans: Plan[] = [
       advancedReports: false, // בסיסי (גרפים)
       apiAccess: false,
       prioritySupport: false,
-      abandonmentTracking: 'view', // צפייה בלבד (ללא תזכורות)
+      abandonmentTracking: true, // צפייה בלבד (ללא תזכורות)
       whatsappIntegration: true, // בסיסיות (WhatsApp)
     },
     isActive: true,
@@ -113,7 +113,7 @@ export const mockPlans: Plan[] = [
       advancedReports: true, // השוואת נתונים היסטוריים
       apiAccess: false,
       prioritySupport: false,
-      abandonmentTracking: 'auto', // תזכורות אוטו' (SMS/Mail)
+      abandonmentTracking: true, // תזכורות אוטו' (SMS/Mail)
       whatsappIntegration: true, // פרימיום (WhatsApp, SMS, Mail)
       smsIntegration: true,
       emailIntegration: true,
@@ -125,7 +125,7 @@ export const mockPlans: Plan[] = [
     id: 'plan_enterprise',
     name: 'ENTERPRISE',
     displayName: 'Enterprise',
-    priceMonthly: null, // מותאם אישית
+    priceMonthly: 0, // מותאם אישית (custom pricing)
     priceYearly: null, // מותאם אישית
     maxForms: -1, // ללא הגבלה
     maxSubmissionsPerMonth: 5000, // 5,000+
@@ -136,7 +136,7 @@ export const mockPlans: Plan[] = [
       advancedReports: true, // מודל מסקנות והמלצות AI
       apiAccess: true, // API ו-Webhooks מלאים
       prioritySupport: true,
-      abandonmentTracking: 'full', // ניתוח משפך המרה מלא
+      abandonmentTracking: true, // ניתוח משפך המרה מלא
       whatsappIntegration: true,
       smsIntegration: true,
       emailIntegration: true,
@@ -223,9 +223,11 @@ export const mockInvoices: Invoice[] = [
     status: 'paid',
     amount: 9900,
     currency: 'ILS',
-    dueDate: new Date('2026-02-01'),
+    periodStart: new Date('2026-01-01'),
+    periodEnd: new Date('2026-01-31'),
+    issuedAt: new Date('2026-01-25'),
+    dueAt: new Date('2026-02-01'),
     paidAt: new Date('2026-02-01'),
-    createdAt: new Date('2026-01-25'),
     downloadUrl: '/invoices/INV-2026-001.pdf',
   },
   {
@@ -235,9 +237,11 @@ export const mockInvoices: Invoice[] = [
     status: 'paid',
     amount: 9900,
     currency: 'ILS',
-    dueDate: new Date('2026-01-01'),
+    periodStart: new Date('2025-12-01'),
+    periodEnd: new Date('2025-12-31'),
+    issuedAt: new Date('2025-12-25'),
+    dueAt: new Date('2026-01-01'),
     paidAt: new Date('2026-01-01'),
-    createdAt: new Date('2025-12-25'),
     downloadUrl: '/invoices/INV-2026-002.pdf',
   },
 ];
@@ -254,6 +258,7 @@ export const mockPaymentMethods: PaymentMethodInfo[] = [
     expiryMonth: 12,
     expiryYear: 2027,
     isDefault: true,
+    createdAt: new Date('2025-06-15'),
   },
 ];
 
