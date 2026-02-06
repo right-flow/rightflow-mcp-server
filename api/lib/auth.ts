@@ -17,6 +17,10 @@ export interface AuthContext {
   userId: string;
   orgId: string | null;
   orgRole: 'admin' | 'basic_member' | null;
+  user: {
+    id: string;
+    publicMetadata?: any;
+  };
 }
 
 /**
@@ -61,6 +65,10 @@ export async function getAuthContext(req: VercelRequest): Promise<AuthContext | 
       userId: user.id,
       orgId: clerkOrgId,
       orgRole: clerkOrgRole,
+      user: {
+        id: user.id,
+        publicMetadata: sessionClaims.public_metadata || sessionClaims.publicMetadata || {},
+      },
     };
   } catch (error) {
     console.error('Auth error:', error);
