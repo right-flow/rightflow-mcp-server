@@ -43,8 +43,9 @@ export function requireFeature(feature: Feature) {
     }
 
     // Check feature access
-    const accessControl = new AccessControl(auth.userId);
-    const result = await accessControl.canAccessFeature(feature);
+    const accessControl = new AccessControl();
+    const userTier = accessControl.getUserTier(auth.user);
+    const result = accessControl.canAccessFeature(userTier, feature);
 
     if (!result.allowed) {
       return res.status(403).json({
@@ -96,8 +97,9 @@ export function checkLimit(limit: FeatureLimit, currentCount: number) {
     }
 
     // Check limit
-    const accessControl = new AccessControl(auth.userId);
-    const result = await accessControl.checkLimit(limit, currentCount);
+    const accessControl = new AccessControl();
+    const userTier = accessControl.getUserTier(auth.user);
+    const result = accessControl.checkLimit(userTier, limit, currentCount);
 
     if (!result.allowed) {
       return res.status(429).json({
@@ -146,8 +148,8 @@ export function requireTier(minTier: UserTier) {
     }
 
     // Get user tier
-    const accessControl = new AccessControl(auth.userId);
-    const userTier = await accessControl.getUserTier();
+    const accessControl = new AccessControl();
+    const userTier = accessControl.getUserTier(auth.user);
 
     // Check if tier is sufficient
     const tierHierarchy = [

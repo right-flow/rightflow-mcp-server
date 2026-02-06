@@ -22,6 +22,7 @@
   },
   "include": [
     "api/**/*",
+    "packages/app/backend/src/**/*",
     "packages/app/src/lib/**/*",
     "packages/app/src/services/**/*",
     "packages/app/src/store/**/*",
@@ -32,6 +33,7 @@
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
+    "**/__tests__/**",
     "node_modules",
     "dist",
     "dist-api"
