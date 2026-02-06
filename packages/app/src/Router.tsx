@@ -31,15 +31,14 @@ const router = createBrowserRouter([
     element: <Navigate to="/dashboard" replace />,
   },
 
-  // Public authentication routes
+  // Public authentication routes (Clerk with Virtual Routing)
   {
-    path: '/sign-in',
+    path: '/sign-in/*',
     element: (
       <div className="min-h-screen flex items-center justify-center bg-secondary/30">
         <div className="max-w-md w-full space-y-8">
           <SignIn
-            routing="path"
-            path="/sign-in"
+            routing="virtual"
             afterSignInUrl="/dashboard"
             appearance={{
               elements: {
@@ -65,13 +64,12 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/sign-up',
+    path: '/sign-up/*',
     element: (
       <div className="min-h-screen flex items-center justify-center bg-secondary/30">
         <div className="max-w-md w-full space-y-8">
           <SignUp
-            routing="path"
-            path="/sign-up"
+            routing="virtual"
             afterSignUpUrl="/dashboard"
             appearance={{
               elements: {
