@@ -424,7 +424,7 @@ function processAzureResults(
 
           for (const word of lineWords) {
             const wordContent = word.content?.trim();
-            if (!wordContent) continue;
+            if (!wordContent || !word.polygon) continue;
             const wBox = convertBoundingPolygon(word.polygon, pageInfo);
 
             if (!labelBuffer) {

@@ -34,6 +34,10 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/__tests__/**",
+    "packages/app/src/components/forms/FormBuilder.tsx",
+    "packages/app/src/services/workflowPersistence.ts",
+    "packages/app/src/services/workflowTemplateService.ts",
+    "packages/app/src/types/workflow-template.ts",
     "node_modules",
     "dist",
     "dist-api"
