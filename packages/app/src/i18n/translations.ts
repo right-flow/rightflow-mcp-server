@@ -448,6 +448,15 @@ export interface Translations {
   fieldsCount: string;
   sendWhatsApp: string;
 
+  // Onboarding Progress Checklist
+  onboardingTitle: string;
+  onboardingCompleted: string;
+  onboardingCreateForm: string;
+  onboardingCustomize: string;
+  onboardingPublish: string;
+  onboardingFirstResponse: string;
+  onboardingShare: string;
+
   // Common (additional)
   'common.yes': string;
   'common.no': string;
@@ -982,6 +991,15 @@ const hebrewTranslations: Translations = {
   viewResponses: 'צפה בתגובות',
   fieldsCount: '{count} שדות',
   sendWhatsApp: 'שלח בוואטסאפ',
+
+  // Onboarding Progress Checklist
+  onboardingTitle: 'הפק את המקסימום מ-RightFlow',
+  onboardingCompleted: 'מתוך {total} הושלמו {completed}',
+  onboardingCreateForm: 'צור את הטופס הראשון שלך',
+  onboardingCustomize: 'התאם אישית שדות בטופס',
+  onboardingPublish: 'פרסם טופס',
+  onboardingFirstResponse: 'קבל תגובה ראשונה',
+  onboardingShare: 'שתף בוואטסאפ',
 
   // Common (additional)
   'common.yes': 'כן',
@@ -1518,6 +1536,15 @@ const englishTranslations: Translations = {
   fieldsCount: '{count} fields',
   sendWhatsApp: 'Send via WhatsApp',
 
+  // Onboarding Progress Checklist
+  onboardingTitle: 'Get the most out of RightFlow',
+  onboardingCompleted: '{completed} of {total} completed',
+  onboardingCreateForm: 'Create your first form',
+  onboardingCustomize: 'Customize form fields',
+  onboardingPublish: 'Publish form',
+  onboardingFirstResponse: 'Receive first response',
+  onboardingShare: 'Share via WhatsApp',
+
   // Common (additional)
   'common.yes': 'Yes',
   'common.no': 'No',
@@ -2052,6 +2079,15 @@ const arabicTranslations: Translations = {
   viewResponses: 'عرض الردود',
   fieldsCount: '{count} حقول',
   sendWhatsApp: 'إرسال عبر واتساب',
+
+  // Onboarding Progress Checklist
+  onboardingTitle: 'احصل على أقصى استفادة من RightFlow',
+  onboardingCompleted: 'تم إكمال {completed} من {total}',
+  onboardingCreateForm: 'إنشاء النموذج الأول الخاص بك',
+  onboardingCustomize: 'تخصيص حقول النموذج',
+  onboardingPublish: 'نشر النموذج',
+  onboardingFirstResponse: 'تلقي أول استجابة',
+  onboardingShare: 'مشاركة عبر واتساب',
 
   // Common (additional)
   'common.yes': 'نعم',

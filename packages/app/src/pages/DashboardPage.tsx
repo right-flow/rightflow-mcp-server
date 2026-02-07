@@ -68,10 +68,17 @@ export function DashboardPage() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
+      // Don't show error for 404 (new user with no forms) - just show empty state
+      if (response.status === 404) {
+        setForms([]);
+        return;
+      }
+
       if (!response.ok) throw new Error(t.failedToLoadForms);
       const data = await response.json();
       setForms(data.forms || []);
     } catch (err) {
+      // Only show error if it's not a "no forms" situation
       setError(err instanceof Error ? err.message : 'Failed to load forms');
     } finally {
       setIsLoading(false);

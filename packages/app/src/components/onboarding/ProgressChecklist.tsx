@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { CheckCircle, Circle, ChevronDown } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 export interface ProgressChecklistProps {
   formsCount?: number;
@@ -30,36 +31,37 @@ export function ProgressChecklist({
   hasShared = false,
 }: ProgressChecklistProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const t = useTranslation();
 
   // Determine completion status for each item
   const items: ChecklistItem[] = [
     {
       id: 'create-form',
-      label: 'Create your first form',
+      label: t.onboardingCreateForm,
       icon: '📝',
       completed: formsCount > 0,
     },
     {
       id: 'customize',
-      label: 'Customize form fields',
+      label: t.onboardingCustomize,
       icon: '✏️',
       completed: hasCustomized,
     },
     {
       id: 'publish',
-      label: 'Publish form',
+      label: t.onboardingPublish,
       icon: '🚀',
       completed: isPublished,
     },
     {
       id: 'first-response',
-      label: 'Receive first response',
+      label: t.onboardingFirstResponse,
       icon: '📊',
       completed: responsesCount > 0,
     },
     {
       id: 'share',
-      label: 'Share via WhatsApp',
+      label: t.onboardingShare,
       icon: '📱',
       completed: hasShared,
     },
@@ -93,10 +95,10 @@ export function ProgressChecklist({
           <div className="flex items-center justify-between mb-2">
             <div>
               <h3 className="text-sm font-semibold text-foreground">
-                Get the most out of RightFlow
+                {t.onboardingTitle}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {completedCount} of {totalCount} completed
+                {t.onboardingCompleted.replace('{completed}', completedCount.toString()).replace('{total}', totalCount.toString())}
               </p>
             </div>
             <ChevronDown
