@@ -1,9 +1,10 @@
 // Quick Actions Widget
 // Created: 2026-02-07
+// Updated: 2026-02-07 - Hide mobile-only buttons on desktop
 // Purpose: Large touch-friendly action buttons for field workers (mobile-first)
 
 import { useNavigate } from 'react-router-dom';
-import { FileText, Camera, QrCode, MapPin, Plus, History } from 'lucide-react';
+import { FileText, Plus, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 
 interface QuickAction {
@@ -18,69 +19,31 @@ interface QuickAction {
 export function QuickActionsWidget() {
   const navigate = useNavigate();
 
+  // Desktop-friendly actions only
+  // Mobile-only actions (QR scan, Camera, GPS) removed for desktop version
   const actions: QuickAction[] = [
     {
-      id: 'new-submission',
-      label: 'הגשה חדשה',
+      id: 'new-form',
+      label: 'טופס חדש',
       icon: <Plus className="w-6 h-6" />,
-      description: 'מלא טופס חדש',
-      action: () => navigate('/forms'),
+      description: 'צור טופס חדש',
+      action: () => navigate('/editor'),
       color: 'bg-primary text-primary-foreground',
     },
     {
-      id: 'scan-qr',
-      label: 'סרוק QR',
-      icon: <QrCode className="w-6 h-6" />,
-      description: 'פתח טופס בסריקה',
-      action: () => {
-        // TODO: Open QR scanner
-        console.log('Open QR scanner');
-      },
-      color: 'bg-blue-500 text-white',
-    },
-    {
-      id: 'take-photo',
-      label: 'צלם תמונה',
-      icon: <Camera className="w-6 h-6" />,
-      description: 'הוסף תמונה לדוח',
-      action: () => {
-        // TODO: Open camera
-        console.log('Open camera');
-      },
-      color: 'bg-amber-500 text-white',
-    },
-    {
-      id: 'get-location',
-      label: 'מיקום GPS',
-      icon: <MapPin className="w-6 h-6" />,
-      description: 'סמן מיקום נוכחי',
-      action: () => {
-        // TODO: Get current location
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              console.log('Location:', pos.coords.latitude, pos.coords.longitude);
-            },
-            (err) => console.error('Location error:', err)
-          );
-        }
-      },
-      color: 'bg-green-500 text-white',
-    },
-    {
-      id: 'my-submissions',
-      label: 'ההגשות שלי',
+      id: 'my-responses',
+      label: 'תגובות',
       icon: <History className="w-6 h-6" />,
-      description: 'צפה בהיסטוריה',
-      action: () => navigate('/responses?user=me'),
+      description: 'צפה בתגובות',
+      action: () => navigate('/responses'),
       color: 'bg-zinc-600 text-white',
     },
     {
       id: 'my-forms',
       label: 'הטפסים שלי',
       icon: <FileText className="w-6 h-6" />,
-      description: 'טפסים מוקצים',
-      action: () => navigate('/forms?assigned=me'),
+      description: 'ניהול טפסים',
+      action: () => navigate('/responses'),
       color: 'bg-purple-500 text-white',
     },
   ];

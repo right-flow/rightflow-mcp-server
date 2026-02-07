@@ -46,7 +46,7 @@ export function ResponsesPage() {
       setError(null);
       const token = await getToken();
 
-      const formResponse = await fetch(`/api/forms?id=${formId}`, {
+      const formResponse = await fetch(`/api/v1/forms/${formId}`, {
         headers: { Authorization: `Bearer ${token}` },
         signal,
       });
@@ -58,7 +58,7 @@ export function ResponsesPage() {
         }
       }
 
-      const response = await fetch(`/api/responses?formId=${formId}`, {
+      const response = await fetch(`/api/v1/submissions?formId=${formId}`, {
         headers: { Authorization: `Bearer ${token}` },
         signal,
       });
@@ -69,7 +69,8 @@ export function ResponsesPage() {
       }
 
       const data = await response.json();
-      setResponses(data.responses || []);
+      // Handle both old and new API response formats
+      setResponses(data.data || data.responses || []);
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Failed to load responses');

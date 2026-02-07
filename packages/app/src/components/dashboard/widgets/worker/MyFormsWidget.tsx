@@ -227,7 +227,7 @@ export function MyFormsWidget() {
         {/* View all link */}
         {forms.length > 4 && (
           <button
-            onClick={() => navigate('/forms?assigned=me')}
+            onClick={() => navigate('/responses')}
             className="w-full mt-4 py-2 text-sm text-primary hover:underline"
           >
             צפה בכל {forms.length} הטפסים →

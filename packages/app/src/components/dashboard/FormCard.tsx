@@ -49,7 +49,7 @@ export function FormCard({ form, onDelete, onEdit, onViewResponses, onSendWhatsA
     if (!confirm(t.deleteFormConfirm)) return;
     try {
       const token = await getToken();
-      const res = await fetch(`/api/forms?id=${form.id}`, {
+      const res = await fetch(`/api/v1/forms/${form.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

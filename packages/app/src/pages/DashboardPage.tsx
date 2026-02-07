@@ -2,9 +2,7 @@
 // Created: 2026-02-07
 // Purpose: Routes users to appropriate dashboard based on their role
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useUser, useOrganization } from '@clerk/clerk-react';
+import { useOrganization, CreateOrganization } from '@clerk/clerk-react';
 import { RoleProvider, useRole } from '../contexts/RoleContext';
 import { AdminDashboard } from '../components/dashboard/layouts/AdminDashboard';
 import { ManagerDashboard } from '../components/dashboard/layouts/ManagerDashboard';
@@ -17,19 +15,12 @@ import { SmartUpgradeManager } from '../components/onboarding/SmartUpgradeManage
  * Wraps content with RoleProvider for RBAC functionality
  */
 export function DashboardPage() {
-  const { isSignedIn, isLoaded } = useUser();
+  // Note: AuthGuard already handles authentication redirect
+  // This component only renders when user is authenticated
   const { organization, isLoaded: orgLoaded } = useOrganization();
-  const navigate = useNavigate();
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      navigate('/');
-    }
-  }, [isLoaded, isSignedIn, navigate]);
-
-  // Show loading while Clerk loads
-  if (!isLoaded || !orgLoaded) {
+  // Show loading while Clerk organization loads
+  if (!orgLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
@@ -40,12 +31,33 @@ export function DashboardPage() {
     );
   }
 
-  // Get organization ID - use organization ID or fallback to empty string
-  // This allows the RoleProvider to handle the error case gracefully
-  const orgId = organization?.id || '';
+  // If no organization, show create organization screen
+  if (!organization) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-secondary/30">
+        <div className="max-w-md w-full space-y-6 text-center">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">ברוכים הבאים ל-RightFlow</h1>
+            <p className="text-muted-foreground">
+              כדי להתחיל, יש ליצור ארגון או להצטרף לארגון קיים
+            </p>
+          </div>
+          <CreateOrganization
+            afterCreateOrganizationUrl="/dashboard"
+            appearance={{
+              elements: {
+                rootBox: 'shadow-xl rounded-xl overflow-hidden border border-border',
+                card: 'bg-white dark:bg-black',
+              },
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <RoleProvider orgId={orgId}>
+    <RoleProvider orgId={organization.id}>
       <DashboardContent />
     </RoleProvider>
   );
@@ -108,7 +120,9 @@ function DashboardContent() {
       {renderDashboard()}
 
       {/* Onboarding Components - shown on all dashboards */}
+      {/* TODO: Re-enable SmartUpgradeManager when billing routes are mounted
       <SmartUpgradeManager />
+      */}
       <HelpWidget onRestartTutorial={() => console.log('Tutorial restarted')} />
     </>
   );

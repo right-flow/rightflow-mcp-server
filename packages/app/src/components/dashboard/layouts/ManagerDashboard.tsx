@@ -37,7 +37,7 @@ export function ManagerDashboard() {
       const token = await getToken();
       if (!token) throw new Error('No authentication token available');
 
-      const response = await fetch('/api/forms', {
+      const response = await fetch('/api/v1/forms', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -61,7 +61,7 @@ export function ManagerDashboard() {
       const token = await getToken();
       if (!token) throw new Error('No authentication token available');
 
-      const response = await fetch('/api/forms', {
+      const response = await fetch('/api/v1/forms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +182,7 @@ export function ManagerDashboard() {
         {filteredForms.length > 8 && (
           <div className="mt-4 text-center">
             <button
-              onClick={() => navigate('/forms')}
+              onClick={() => navigate('/responses')}
               className="text-primary hover:underline text-sm"
             >
               צפה בכל {filteredForms.length} הטפסים →

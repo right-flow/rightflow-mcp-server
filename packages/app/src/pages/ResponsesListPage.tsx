@@ -32,7 +32,7 @@ export function ResponsesListPage() {
         try {
             setIsLoading(true);
             const token = await getToken();
-            const response = await fetch('/api/forms', {
+            const response = await fetch('/api/v1/forms', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -40,7 +40,8 @@ export function ResponsesListPage() {
 
             if (response.ok) {
                 const data = await response.json();
-                setForms(data.forms || []);
+                // Handle both old and new API response formats
+                setForms(data.data || data.forms || []);
             }
         } catch (error) {
             console.error('Failed to load forms:', error);
