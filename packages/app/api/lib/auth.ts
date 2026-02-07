@@ -3,6 +3,7 @@
  * Shared JWT verification logic using Clerk with Organization support
  */
 
+import crypto from 'crypto';
 import type { VercelRequest } from '@vercel/node';
 import { clerkService } from '../../src/services/auth/clerk.service';
 import { getDb } from '../../src/lib/db';
@@ -46,14 +47,45 @@ export async function getAuthContext(req: VercelRequest): Promise<AuthContext | 
 
     // Look up database user by Clerk ID
     const db = getDb();
-    const user = await db('users')
+    let user = await db('users')
       .where('clerk_id', clerkUserId)
       .whereNull('deleted_at')
       .first('id');
 
+    // Just-in-time user creation: If user doesn't exist, create them now
+    // This handles cases where Clerk webhook hasn't fired yet or failed
     if (!user) {
-      console.error(`No database user found for Clerk ID: ${clerkUserId}`);
-      return null;
+      console.log(`User not found in database, creating just-in-time for Clerk ID: ${clerkUserId}`);
+
+      try {
+        // Fetch user data from Clerk to get email
+        const clerkUser = await clerkService.getUserByClerkId(clerkUserId);
+
+        if (!clerkUser || !clerkUser.email) {
+          console.error(`Failed to fetch user data from Clerk for ID: ${clerkUserId}`);
+          return null;
+        }
+
+        // Create user in database
+        const userId = crypto.randomUUID();
+        const tenantType = clerkUser.publicMetadata?.tenant_type || 'rightflow';
+
+        await db('users').insert({
+          id: userId,
+          clerk_id: clerkUserId,
+          email: clerkUser.email,
+          tenant_type: tenantType,
+          created_at: new Date(),
+        });
+
+        console.log(`Successfully created user just-in-time: ${userId} (${clerkUser.email})`);
+
+        // Re-fetch user to return
+        user = { id: userId };
+      } catch (createError) {
+        console.error(`Failed to create user just-in-time:`, createError);
+        return null;
+      }
     }
 
     // Return full auth context
