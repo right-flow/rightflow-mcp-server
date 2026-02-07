@@ -4,10 +4,10 @@
  * Landing page now served separately from rightflow.co.il
  */
 
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { EditorPage } from './pages/EditorPage';
-import { EditorPageV2 } from './pages/EditorPageV2';
 import { DashboardPage } from './pages/DashboardPage';
 import { FormViewerPage } from './pages/FormViewerPage';
 import { ResponsesPage } from './pages/ResponsesPage';
@@ -15,11 +15,14 @@ import { ResponsesListPage } from './pages/ResponsesListPage';
 import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import WhatsAppChannelsPage from './pages/WhatsAppChannelsPage';
-import { BillingPage } from './pages/BillingPage';
-import { SubscriptionPage } from './components/billing/subscription/SubscriptionPage';
-import { UsageDashboard } from './components/billing/usage/UsageDashboard';
 import { BillingHistoryPage } from './components/billing/history/BillingHistoryPage';
 import { AuthGuard } from './components/auth/AuthGuard';
+
+// Lazy load pages with TypeScript compilation issues (excluded from build)
+const EditorPageV2 = lazy(() => import('./pages/EditorPageV2').then(m => ({ default: m.EditorPageV2 })));
+const BillingPage = lazy(() => import('./pages/BillingPage').then(m => ({ default: m.BillingPage })));
+const SubscriptionPage = lazy(() => import('./components/billing/subscription/SubscriptionPage').then(m => ({ default: m.SubscriptionPage })));
+const UsageDashboard = lazy(() => import('./components/billing/usage/UsageDashboard').then(m => ({ default: m.UsageDashboard })));
 
 // Landing URL from environment variable
 const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://rightflow.co.il';
@@ -130,7 +133,9 @@ const router = createBrowserRouter([
     path: '/editor-v2',
     element: (
       <AuthGuard>
-        <EditorPageV2 />
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">טוען...</div>}>
+          <EditorPageV2 />
+        </Suspense>
       </AuthGuard>
     ),
   },
@@ -138,7 +143,9 @@ const router = createBrowserRouter([
     path: '/editor-v2/:formId',
     element: (
       <AuthGuard>
-        <EditorPageV2 />
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">טוען...</div>}>
+          <EditorPageV2 />
+        </Suspense>
       </AuthGuard>
     ),
   },
@@ -188,7 +195,9 @@ const router = createBrowserRouter([
     path: '/billing',
     element: (
       <AuthGuard>
-        <BillingPage />
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">טוען...</div>}>
+          <BillingPage />
+        </Suspense>
       </AuthGuard>
     ),
     children: [
@@ -198,11 +207,19 @@ const router = createBrowserRouter([
       },
       {
         path: 'subscription',
-        element: <SubscriptionPage />,
+        element: (
+          <Suspense fallback={<div className="p-8 text-center">טוען...</div>}>
+            <SubscriptionPage />
+          </Suspense>
+        ),
       },
       {
         path: 'usage',
-        element: <UsageDashboard />,
+        element: (
+          <Suspense fallback={<div className="p-8 text-center">טוען...</div>}>
+            <UsageDashboard />
+          </Suspense>
+        ),
       },
       {
         path: 'history',
