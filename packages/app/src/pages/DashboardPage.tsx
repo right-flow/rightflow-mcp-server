@@ -8,8 +8,7 @@ import { useUser, useOrganization } from '@clerk/clerk-react';
 import { RoleProvider, useRole } from '../contexts/RoleContext';
 import { AdminDashboard } from '../components/dashboard/layouts/AdminDashboard';
 import { ManagerDashboard } from '../components/dashboard/layouts/ManagerDashboard';
-// Worker dashboard will be added in Phase 3
-// import { WorkerDashboard } from '../components/dashboard/layouts/WorkerDashboard';
+import { WorkerDashboard } from '../components/dashboard/layouts/WorkerDashboard';
 import { HelpWidget } from '../components/onboarding/HelpWidget';
 import { SmartUpgradeManager } from '../components/onboarding/SmartUpgradeManager';
 
@@ -97,9 +96,7 @@ function DashboardContent() {
       case 'manager':
         return <ManagerDashboard />;
       case 'worker':
-        // TODO: Phase 3 - WorkerDashboard
-        // For now, workers see the Manager dashboard (team-focused view)
-        return <ManagerDashboard />;
+        return <WorkerDashboard />;
       default:
         // Fallback to Admin dashboard if role is unknown
         return <AdminDashboard />;

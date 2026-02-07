@@ -16,6 +16,7 @@ import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import WhatsAppChannelsPage from './pages/WhatsAppChannelsPage';
 import { BillingHistoryPage } from './components/billing/history/BillingHistoryPage';
+import { UserManagementPage } from './pages/UserManagementPage';
 import { AuthGuard } from './components/auth/AuthGuard';
 
 // Lazy load pages with TypeScript compilation issues (excluded from build)
@@ -181,13 +182,12 @@ const router = createBrowserRouter([
       </AuthGuard>
     ),
   },
-  // User management route (Phase 3 - full implementation)
-  // For now, redirects to organization settings
+  // User management page (Admin only)
   {
     path: '/organization/users',
     element: (
       <AuthGuard>
-        <Navigate to="/organization" replace />
+        <UserManagementPage />
       </AuthGuard>
     ),
   },

@@ -12,6 +12,7 @@ import { WelcomeCard } from '../widgets/shared/WelcomeCard';
 import { BillingOverviewWidget } from '../widgets/admin/BillingOverviewWidget';
 import { TeamOverviewWidget } from '../widgets/admin/TeamOverviewWidget';
 import { SubmissionAnalyticsWidget } from '../widgets/admin/SubmissionAnalyticsWidget';
+import { UserManagementWidget } from '../widgets/admin/user-management';
 import { FormCard } from '../FormCard';
 import { useTranslation } from '../../../i18n';
 import type { FormRecord } from '../../../services/forms/forms.service';
@@ -107,9 +108,14 @@ export function AdminDashboard() {
       <WelcomeCard actionButton={createButton} />
 
       {/* Admin Widgets Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <BillingOverviewWidget />
         <SubmissionAnalyticsWidget />
+      </div>
+
+      {/* User Management Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <UserManagementWidget />
         <TeamOverviewWidget />
       </div>
 
