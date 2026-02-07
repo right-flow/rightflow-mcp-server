@@ -5,7 +5,17 @@
  */
 
 import { useState } from 'react';
-import { CheckCircle, Circle, ChevronDown } from 'lucide-react';
+import {
+  CheckCircle,
+  Circle,
+  ChevronDown,
+  FileText,
+  Edit3,
+  Rocket,
+  BarChart3,
+  Share2,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 
 export interface ProgressChecklistProps {
@@ -19,7 +29,7 @@ export interface ProgressChecklistProps {
 interface ChecklistItem {
   id: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   completed: boolean;
 }
 
@@ -38,31 +48,31 @@ export function ProgressChecklist({
     {
       id: 'create-form',
       label: t.onboardingCreateForm,
-      icon: '📝',
+      icon: FileText,
       completed: formsCount > 0,
     },
     {
       id: 'customize',
       label: t.onboardingCustomize,
-      icon: '✏️',
+      icon: Edit3,
       completed: hasCustomized,
     },
     {
       id: 'publish',
       label: t.onboardingPublish,
-      icon: '🚀',
+      icon: Rocket,
       completed: isPublished,
     },
     {
       id: 'first-response',
       label: t.onboardingFirstResponse,
-      icon: '📊',
+      icon: BarChart3,
       completed: responsesCount > 0,
     },
     {
       id: 'share',
       label: t.onboardingShare,
-      icon: '📱',
+      icon: Share2,
       completed: hasShared,
     },
   ];
@@ -130,18 +140,22 @@ export function ProgressChecklist({
         {!isCollapsed && (
           <div className="p-4 pt-0">
             <ul className="space-y-2" role="list">
-              {items.map((item) => (
-                <li key={item.id} className="flex items-center gap-2">
-                  {item.completed ? (
-                    <CheckCircle className="text-green-500 flex-shrink-0" size={16} />
-                  ) : (
-                    <Circle className="text-gray-300 flex-shrink-0" size={16} />
-                  )}
-                  <span className={item.completed ? 'line-through text-gray-500' : ''}>
-                    {item.icon} {item.label}
-                  </span>
-                </li>
-              ))}
+              {items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.id} className="flex items-center gap-2">
+                    {item.completed ? (
+                      <CheckCircle className="text-green-500 flex-shrink-0" size={16} />
+                    ) : (
+                      <Circle className="text-gray-300 flex-shrink-0" size={16} />
+                    )}
+                    <Icon className="flex-shrink-0 w-4 h-4 text-muted-foreground" />
+                    <span className={item.completed ? 'line-through text-gray-500' : ''}>
+                      {item.label}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

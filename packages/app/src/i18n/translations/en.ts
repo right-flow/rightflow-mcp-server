@@ -286,6 +286,8 @@ export const en: Translations = {
   myForms: 'My Forms',
   responses: 'Responses',
   helpCenter: 'Help Center',
+  teamManagement: 'Team Management',
+  billing: 'Billing',
   noFormsFound: 'No forms found',
   createNewForm: 'Create New Form',
   createFirstForm: 'Create Your First Form',

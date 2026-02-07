@@ -286,6 +286,8 @@ export const he: Translations = {
   myForms: 'הטפסים שלי',
   responses: 'תגובות',
   helpCenter: 'מרכז עזרה',
+  teamManagement: 'ניהול צוות',
+  billing: 'חיוב',
   noFormsFound: 'לא נמצאו טפסים',
   createNewForm: 'יצירת טופס חדש',
   createFirstForm: 'צור את הטופס הראשון שלך',

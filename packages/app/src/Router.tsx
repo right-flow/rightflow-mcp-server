@@ -181,6 +181,16 @@ const router = createBrowserRouter([
       </AuthGuard>
     ),
   },
+  // User management route (Phase 3 - full implementation)
+  // For now, redirects to organization settings
+  {
+    path: '/organization/users',
+    element: (
+      <AuthGuard>
+        <Navigate to="/organization" replace />
+      </AuthGuard>
+    ),
+  },
   {
     path: '/reports',
     element: (

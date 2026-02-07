@@ -284,6 +284,8 @@ export interface Translations {
   myForms: string;
   responses: string;
   helpCenter: string;
+  teamManagement: string;
+  billing: string;
   noFormsFound: string;
   createNewForm: string;
   createFirstForm: string;

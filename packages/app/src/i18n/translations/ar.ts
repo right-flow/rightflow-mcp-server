@@ -286,6 +286,8 @@ export const ar: Translations = {
   myForms: 'نماذجي',
   responses: 'الردود',
   helpCenter: 'مركز المساعدة',
+  teamManagement: 'إدارة الفريق',
+  billing: 'الفوترة',
   noFormsFound: 'لم يتم العثور على نماذج',
   createNewForm: 'إنشاء نموذج جديد',
   createFirstForm: 'أنشئ نموذجك الأول',
