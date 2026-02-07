@@ -544,16 +544,3 @@ export const ar: Translations = {
   'workflow.conditional.maxDepth': 'تم الوصول إلى أقصى عمق للتداخل (3 مستويات)',
 };
 
-const translations: Record<Language, Translations> = {
-  he: hebrewTranslations,
-  en: englishTranslations,
-  ar: arabicTranslations,
-};
-
-export function getTranslations(language: Language): Translations {
-  return translations[language];
-}
-
-export function t(language: Language, key: keyof Translations): string {
-  return translations[language][key];
-}
