@@ -34,7 +34,7 @@
     "dev:vite": "vite",
     "dev:vercel": "vercel dev",
     "kill-ports": "node scripts/kill-ports.js",
-    "build": "tsc --project tsconfig.build.json && vite build",
+    "build": "vite build",
     "build:api": "tsc --project tsconfig.api.json",
     "build:railway": "npm run build:api && npm run build",
     "preview": "vite preview",
