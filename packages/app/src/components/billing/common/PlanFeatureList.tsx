@@ -19,6 +19,7 @@ export const PlanFeatureList: React.FC<PlanFeatureListProps> = ({ plan, classNam
   // Get feature descriptions based on pricing plan document
   const getFeatureList = (plan: Plan): string[] => {
     const features: string[] = [];
+    const planFeatures = plan.features as any;
 
     // 1. מספר טפסים (Number of forms)
     if (plan.maxForms === -1) {
@@ -47,13 +48,13 @@ export const PlanFeatureList: React.FC<PlanFeatureListProps> = ({ plan, classNam
 
     // 4. מעקב נטישה (Abandonment tracking)
     let abandonment = 'ללא';
-    if (plan.features.abandonmentTracking === false || !plan.features.abandonmentTracking) {
+    if (planFeatures.abandonmentTracking === false || !planFeatures.abandonmentTracking) {
       abandonment = 'ללא';
-    } else if (plan.features.abandonmentTracking === 'view') {
+    } else if (planFeatures.abandonmentTracking === 'view') {
       abandonment = 'צפייה בלבד (ללא תזכורות)';
-    } else if (plan.features.abandonmentTracking === 'auto') {
+    } else if (planFeatures.abandonmentTracking === 'auto') {
       abandonment = 'תזכורות אוטו\' (SMS/Mail)';
-    } else if (plan.features.abandonmentTracking === 'full') {
+    } else if (planFeatures.abandonmentTracking === 'full') {
       abandonment = 'ניתוח משפך המרה מלא';
     }
     features.push(`מעקב נטישה: ${abandonment}`);

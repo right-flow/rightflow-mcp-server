@@ -13,7 +13,12 @@ interface TierBadgeProps {
 }
 
 export function TierBadge({ tier, size = 'md' }: TierBadgeProps) {
-  const config = {
+  const config: Record<UserTier, { label: string; icon: typeof Star; className: string }> = {
+    [UserTier.GUEST]: {
+      label: 'GUEST',
+      icon: Star,
+      className: 'bg-gray-50 text-gray-500 border-gray-200',
+    },
     [UserTier.FREE]: {
       label: 'FREE',
       icon: Star,

@@ -10,6 +10,7 @@ import { PWAInstallPrompt } from './pwa/PWAInstallPrompt';
 import { IOSInstallBanner } from './pwa/IOSInstallBanner';
 import { syncManager } from './sync/syncManager';
 import { db } from './db/indexedDB';
+import { useAppStore } from './store/appStore';
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -18,6 +19,15 @@ if (!CLERK_PUBLISHABLE_KEY) {
 }
 
 function App() {
+  const language = useAppStore((state) => state.language);
+
+  // Sync RTL direction to document root
+  useEffect(() => {
+    const direction = language === 'he' || language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', direction);
+    document.documentElement.setAttribute('lang', language);
+  }, [language]);
+
   useEffect(() => {
     // Initialize IndexedDB and Sync Manager on app start
     const initializeOfflineSupport = async () => {

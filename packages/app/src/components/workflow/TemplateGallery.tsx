@@ -6,13 +6,7 @@ import { Search, Grid, List, Clock, Tag, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 
 interface TemplateGalleryProps {
   onSelectTemplate: (template: WorkflowTemplate) => void;
@@ -61,18 +55,13 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
           )}
         </div>
         <div className="flex gap-2">
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as TemplateSortBy)}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="usage-desc">{t('workflow.template.sort.mostUsed')}</SelectItem>
-              <SelectItem value="usage-asc">{t('workflow.template.sort.leastUsed')}</SelectItem>
-              <SelectItem value="date-desc">{t('workflow.template.sort.newest')}</SelectItem>
-              <SelectItem value="date-asc">{t('workflow.template.sort.oldest')}</SelectItem>
-              <SelectItem value="name-asc">{t('workflow.template.sort.nameAZ')}</SelectItem>
-              <SelectItem value="name-desc">{t('workflow.template.sort.nameZA')}</SelectItem>
-            </SelectContent>
+          <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as TemplateSortBy)} className="w-48">
+            <option value="usage-desc">{t('workflow.template.sort.mostUsed')}</option>
+            <option value="usage-asc">{t('workflow.template.sort.leastUsed')}</option>
+            <option value="date-desc">{t('workflow.template.sort.newest')}</option>
+            <option value="date-asc">{t('workflow.template.sort.oldest')}</option>
+            <option value="name-asc">{t('workflow.template.sort.nameAZ')}</option>
+            <option value="name-desc">{t('workflow.template.sort.nameZA')}</option>
           </Select>
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -106,7 +95,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
       </div>
 
       {/* Category Tabs */}
-      <Tabs value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as WorkflowCategory | 'all')}>
+      <Tabs defaultValue="all" value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as WorkflowCategory | 'all')}>
         <TabsList className="w-full overflow-x-auto">
           {categories.map((cat) => (
             <TabsTrigger key={cat} value={cat} className="flex-shrink-0">

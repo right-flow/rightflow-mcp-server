@@ -7,6 +7,7 @@ import logger from '../utils/logger';
  *
  * This middleware runs AFTER authenticateJWT.
  * It ensures the user exists in our database (upsert).
+ * IMPORTANT: Does NOT overwrite existing role - allows DB-based role management
  */
 export async function syncUser(req: Request, _res: Response, next: NextFunction) {
   try {
@@ -15,7 +16,7 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       return next();
     }
 
-    const { id: clerkUserId, organizationId, email, name, role } = req.user;
+    const { id: clerkUserId, organizationId, email, name, role: clerkRole } = req.user;
 
     // 1. Upsert organization (if doesn't exist)
     await query(
@@ -29,38 +30,61 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       [organizationId, (name?.split(' ')[0] || 'User') + "'s Organization"], // Default org name
     );
 
-    // 2. Upsert user
-    const result = await query(
-      `
-      INSERT INTO users (
-        clerk_user_id,
-        organization_id,
-        email,
-        name,
-        role
-      )
-      VALUES (
-        $1,
-        (SELECT id FROM organizations WHERE clerk_org_id = $2),
-        $3,
-        $4,
-        $5
-      )
-      ON CONFLICT (clerk_user_id) DO UPDATE
-      SET
-        email = $3,
-        name = $4,
-        role = $5,
-        updated_at = NOW()
-      RETURNING id
-    `,
-      [clerkUserId, organizationId, email, name, role],
+    // 2. Check if user exists and get their current role
+    const existingUser = await query<{ id: string; role: string }>(
+      `SELECT id, role FROM users WHERE clerk_user_id = $1`,
+      [clerkUserId],
     );
+
+    let dbRole: string;
+    let dbUserId: string;
+
+    if (existingUser.length > 0) {
+      // User exists - keep their database role, only update email/name
+      dbRole = existingUser[0].role;
+      dbUserId = existingUser[0].id;
+      await query(
+        `
+        UPDATE users
+        SET email = $2, name = $3, updated_at = NOW()
+        WHERE clerk_user_id = $1
+        `,
+        [clerkUserId, email, name],
+      );
+    } else {
+      // New user - insert with Clerk role (defaults to 'worker')
+      const result = await query<{ id: string }>(
+        `
+        INSERT INTO users (
+          clerk_user_id,
+          organization_id,
+          email,
+          name,
+          role
+        )
+        VALUES (
+          $1,
+          (SELECT id FROM organizations WHERE clerk_org_id = $2),
+          $3,
+          $4,
+          $5
+        )
+        RETURNING id
+        `,
+        [clerkUserId, organizationId, email, name, clerkRole],
+      );
+      dbRole = clerkRole;
+      dbUserId = result[0]?.id;
+    }
+
+    // 3. Update req.user with the database role (overrides Clerk default)
+    req.user.role = dbRole;
 
     logger.debug('User synced to database', {
       clerkUserId,
-      dbUserId: result[0]?.id,
+      dbUserId,
       email,
+      role: dbRole,
     });
 
     next();

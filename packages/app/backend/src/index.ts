@@ -10,6 +10,8 @@ import submissionsRouter from './routes/v1/submissions';
 import formsRouter from './routes/v1/forms';
 import webhooksRouter from './routes/v1/webhooks';
 import analyticsRouter from './routes/v1/analytics';
+import activityRouter from './routes/v1/activity';
+import usersRouter from './routes/v1/users';
 import connectorsRouter from './routes/v1/integrations/connectors';
 import mappingsRouter from './routes/v1/integrations/mappings';
 import whatsappRouter from './routes/v1/whatsapp';
@@ -61,10 +63,12 @@ app.get('/health', async (_req, res) => {
 });
 
 // API routes
+app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/submissions', submissionsRouter);
 app.use('/api/v1/forms', formsRouter);
 app.use('/api/v1/webhooks', webhooksRouter);
 app.use('/api/v1/analytics', analyticsRouter);
+app.use('/api/v1/activity', activityRouter);
 app.use('/api/v1/integrations/connectors', connectorsRouter);
 app.use('/api/v1/integrations/mappings', mappingsRouter);
 app.use('/api/v1/whatsapp', whatsappRouter);

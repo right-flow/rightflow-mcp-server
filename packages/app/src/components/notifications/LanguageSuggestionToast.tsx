@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from '@/i18n/useTranslation';
 import { X } from 'lucide-react';
 import type { Language } from '@/store/appStore';
@@ -32,6 +32,22 @@ export function LanguageSuggestionToast({
   const [isVisible, setIsVisible] = useState(true);
   const [dontAskAgain, setDontAskAgain] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    if (dontAskAgain) {
+      localStorage.setItem('languageDetection_dontAsk', 'true');
+    }
+    onDismiss();
+    setIsVisible(false);
+  }, [dontAskAgain, onDismiss]);
+
+  const handleAccept = useCallback(() => {
+    if (dontAskAgain) {
+      localStorage.setItem('languageDetection_dontAsk', 'true');
+    }
+    onAccept();
+    setIsVisible(false);
+  }, [dontAskAgain, onAccept]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       handleDismiss();
@@ -39,22 +55,6 @@ export function LanguageSuggestionToast({
 
     return () => clearTimeout(timer);
   }, [autoCloseMs, handleDismiss]);
-
-  const handleAccept = () => {
-    if (dontAskAgain) {
-      localStorage.setItem('languageDetection_dontAsk', 'true');
-    }
-    onAccept();
-    setIsVisible(false);
-  };
-
-  const handleDismiss = () => {
-    if (dontAskAgain) {
-      localStorage.setItem('languageDetection_dontAsk', 'true');
-    }
-    onDismiss();
-    setIsVisible(false);
-  };
 
   if (!isVisible) return null;
 

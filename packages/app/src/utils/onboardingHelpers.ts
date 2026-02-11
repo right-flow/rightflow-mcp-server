@@ -6,11 +6,11 @@
 
 /**
  * Calculate number of days since a given date
- * @param dateString - ISO date string
+ * @param dateInput - ISO date string or Date object
  * @returns Number of days elapsed
  */
-export function calculateDaysSince(dateString: string): number {
-  const date = new Date(dateString);
+export function calculateDaysSince(dateInput: string | Date): number {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));

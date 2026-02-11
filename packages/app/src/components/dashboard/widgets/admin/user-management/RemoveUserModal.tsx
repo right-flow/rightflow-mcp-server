@@ -4,7 +4,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { X, AlertTriangle, Loader2 } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
+import { useTranslation } from '../../../../../i18n';
 import type { UserProfile } from '../../../../../api/types/role';
 
 interface RemoveUserModalProps {
@@ -16,6 +17,7 @@ interface RemoveUserModalProps {
 
 export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserModalProps) {
   const { getToken } = useAuth();
+  const t = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,12 +38,12 @@ export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserMo
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error?.message || 'שגיאה בהסרת המשתמש');
+        throw new Error(data.error?.message || t['dashboard.widgets.userManagement.removeUser.error']);
       }
 
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בהסרת המשתמש');
+      setError(err instanceof Error ? err.message : t['dashboard.widgets.userManagement.removeUser.error']);
     } finally {
       setLoading(false);
     }
@@ -66,22 +68,22 @@ export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserMo
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold flex items-center gap-2 text-destructive">
-            <AlertTriangle className="w-5 h-5" />
-            הסרת משתמש
+            <MaterialIcon name="warning" size="md" />
+            {t['dashboard.widgets.userManagement.removeUser.title']}
           </h2>
           <button
             onClick={handleClose}
             disabled={loading}
             className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5" />
+            <MaterialIcon name="close" size="md" />
           </button>
         </div>
 
         {/* Content */}
         <div className="mb-6">
           <p className="text-sm text-muted-foreground mb-4">
-            האם אתה בטוח שברצונך להסיר את המשתמש הזה מהארגון?
+            {t['dashboard.widgets.userManagement.removeUser.confirm']}
           </p>
 
           {/* User Info */}
@@ -94,13 +96,13 @@ export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserMo
                 .slice(0, 2) || user.email[0].toUpperCase()}
             </div>
             <div>
-              <div className="font-medium">{user.name || 'ללא שם'}</div>
+              <div className="font-medium">{user.name || t['dashboard.widgets.userManagement.noName']}</div>
               <div className="text-xs text-muted-foreground">{user.email}</div>
             </div>
           </div>
 
           <p className="text-xs text-muted-foreground mt-4">
-            פעולה זו תסיר את גישת המשתמש לארגון. ניתן להזמין אותו מחדש בעתיד.
+            {t['dashboard.widgets.userManagement.removeUser.description']}
           </p>
         </div>
 
@@ -119,7 +121,7 @@ export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserMo
             disabled={loading}
             className="flex-1 py-2 border border-border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors disabled:opacity-50"
           >
-            ביטול
+            {t.cancel}
           </button>
           <button
             type="button"
@@ -129,11 +131,11 @@ export function RemoveUserModal({ user, open, onClose, onSuccess }: RemoveUserMo
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                מסיר...
+                <MaterialIcon name="progress_activity" size="sm" className="animate-spin" />
+                {t['dashboard.widgets.userManagement.removeUser.removing']}
               </>
             ) : (
-              'הסר משתמש'
+              t['dashboard.widgets.userManagement.removeUser.title']
             )}
           </button>
         </div>

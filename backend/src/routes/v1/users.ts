@@ -137,6 +137,46 @@ router.get('/', requireRole('admin'), async (req, res, next) => {
 });
 
 /**
+ * GET /api/v1/users/stats
+ * Get user statistics for organization
+ * Auth: Admin or Manager
+ * NOTE: This route MUST be defined before /:id to avoid being caught by the param route
+ */
+router.get('/stats', requireRole('manager'), async (req, res, next) => {
+  try {
+    const { organizationId } = req.user!;
+
+    const result = await query(
+      `
+      SELECT
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN role = 'admin' THEN 1 END) as admin_count,
+        COUNT(CASE WHEN role = 'manager' THEN 1 END) as manager_count,
+        COUNT(CASE WHEN role = 'worker' THEN 1 END) as worker_count
+      FROM users u
+      JOIN organizations o ON u.organization_id = o.id
+      WHERE o.clerk_organization_id = $1
+        AND u.deleted_at IS NULL
+      `,
+      [organizationId]
+    );
+
+    const stats = result[0];
+
+    res.json({
+      totalUsers: parseInt(stats.total_users, 10),
+      roleDistribution: {
+        admin: parseInt(stats.admin_count, 10),
+        manager: parseInt(stats.manager_count, 10),
+        worker: parseInt(stats.worker_count, 10),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/v1/users/:id
  * Get specific user by ID
  * Auth: Admin or self
@@ -204,12 +244,13 @@ router.get('/:id', async (req, res, next) => {
 router.patch(
   '/:id/role',
   requireRole('admin'),
-  validateRequest(updateRoleSchema),
   async (req, res, next) => {
     try {
+      // Validate request body
+      const { role: newRole } = validateRequest(updateRoleSchema, req.body);
+
       const { organizationId, id: currentClerkUserId } = req.user!;
       const { id: userId } = req.params;
-      const { role: newRole } = req.body;
 
       // Get user to update
       const userResult = await query(
@@ -283,10 +324,10 @@ router.patch(
 router.post(
   '/invite',
   requireRole('admin'),
-  validateRequest(inviteUserSchema),
   async (req, res, next) => {
     try {
-      const { email, role } = req.body;
+      // Validate request body
+      const { email, role } = validateRequest(inviteUserSchema, req.body);
 
       // In a real implementation, this would:
       // 1. Send invite via Clerk Organizations API
@@ -366,45 +407,6 @@ router.delete('/:id', requireRole('admin'), async (req, res, next) => {
     res.json({
       success: true,
       message: 'User removed from organization',
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/users/stats
- * Get user statistics for organization
- * Auth: Admin or Manager
- */
-router.get('/stats', requireRole('manager'), async (req, res, next) => {
-  try {
-    const { organizationId } = req.user!;
-
-    const result = await query(
-      `
-      SELECT
-        COUNT(*) as total_users,
-        COUNT(CASE WHEN role = 'admin' THEN 1 END) as admin_count,
-        COUNT(CASE WHEN role = 'manager' THEN 1 END) as manager_count,
-        COUNT(CASE WHEN role = 'worker' THEN 1 END) as worker_count
-      FROM users u
-      JOIN organizations o ON u.organization_id = o.id
-      WHERE o.clerk_organization_id = $1
-        AND u.deleted_at IS NULL
-      `,
-      [organizationId]
-    );
-
-    const stats = result[0];
-
-    res.json({
-      totalUsers: parseInt(stats.total_users, 10),
-      roleDistribution: {
-        admin: parseInt(stats.admin_count, 10),
-        manager: parseInt(stats.manager_count, 10),
-        worker: parseInt(stats.worker_count, 10),
-      },
     });
   } catch (error) {
     next(error);

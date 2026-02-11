@@ -5,6 +5,7 @@
  */
 
 import { getAllTemplates } from '@/data/formTemplates';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 
 export interface QuickStartCardProps {
   onTemplateSelect: (templateId: string) => void;
@@ -18,7 +19,9 @@ export function QuickStartCard({ onTemplateSelect, onCreateBlank }: QuickStartCa
     <div className="flex flex-col items-center justify-center min-h-[500px] p-8">
       {/* Main Heading */}
       <div className="text-center mb-12">
-        <div className="text-5xl mb-4">🎯</div>
+        <div className="mb-4">
+          <MaterialIcon name="my_location" size="2xl" className="text-primary" />
+        </div>
         <h2 className="text-3xl font-bold text-foreground mb-2">
           Create your first form in 2 minutes
         </h2>
@@ -37,8 +40,8 @@ export function QuickStartCard({ onTemplateSelect, onCreateBlank }: QuickStartCa
             className="flex flex-col items-center p-6 bg-white dark:bg-zinc-900 border-2 border-border rounded-xl hover:border-primary hover:shadow-lg transition-all duration-200 cursor-pointer group"
           >
             {/* Icon */}
-            <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-200">
-              {template.icon}
+            <div className="mb-4 group-hover:scale-110 transition-transform duration-200">
+              <MaterialIcon name={template.icon} size="2xl" className="text-primary" />
             </div>
 
             {/* Title (Hebrew) */}

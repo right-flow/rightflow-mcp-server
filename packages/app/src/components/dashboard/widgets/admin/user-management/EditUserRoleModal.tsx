@@ -4,8 +4,9 @@
 
 import { useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import { X, UserCog, Shield, Briefcase, HardHat, Loader2, Trash2 } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { RemoveUserModal } from './RemoveUserModal';
+import { useTranslation } from '../../../../../i18n';
 import type { UserProfile, UserRole } from '../../../../../api/types/role';
 
 interface EditUserRoleModalProps {
@@ -17,6 +18,7 @@ interface EditUserRoleModalProps {
 
 export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRoleModalProps) {
   const { getToken } = useAuth();
+  const t = useTranslation();
   const [role, setRole] = useState<UserRole>(user.role);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +49,12 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error?.message || 'שגיאה בעדכון התפקיד');
+        throw new Error(data.error?.message || t['dashboard.widgets.userManagement.editRole.error']);
       }
 
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'שגיאה בעדכון התפקיד');
+      setError(err instanceof Error ? err.message : t['dashboard.widgets.userManagement.editRole.error']);
     } finally {
       setLoading(false);
     }
@@ -84,15 +86,15 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <UserCog className="w-5 h-5 text-primary" />
-              עריכת משתמש
+              <MaterialIcon name="manage_accounts" size="md" className="text-primary" />
+              {t['dashboard.widgets.userManagement.editRole.title']}
             </h2>
             <button
               onClick={handleClose}
               disabled={loading}
               className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5" />
+              <MaterialIcon name="close" size="md" />
             </button>
           </div>
 
@@ -106,7 +108,7 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
                 .slice(0, 2) || user.email[0].toUpperCase()}
             </div>
             <div>
-              <div className="font-semibold">{user.name || 'ללא שם'}</div>
+              <div className="font-semibold">{user.name || t['dashboard.widgets.userManagement.noName']}</div>
               <div className="text-sm text-muted-foreground">{user.email}</div>
             </div>
           </div>
@@ -114,51 +116,48 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
           <form onSubmit={handleSubmit}>
             {/* Role Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">תפקיד</label>
+              <label className="block text-sm font-medium mb-2">{t['dashboard.widgets.userManagement.addUser.roleLabel']}</label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setRole('admin')}
                   disabled={loading}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${
-                    role === 'admin'
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${role === 'admin'
                       ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'border-border hover:border-purple-300'
-                  }`}
+                    }`}
                 >
-                  <Shield className={`w-5 h-5 ${role === 'admin' ? 'text-purple-500' : 'text-muted-foreground'}`} />
+                  <MaterialIcon name="shield" size="md" className={role === 'admin' ? 'text-purple-500' : 'text-muted-foreground'} />
                   <span className={`text-xs font-medium ${role === 'admin' ? 'text-purple-600 dark:text-purple-400' : ''}`}>
-                    מנהל
+                    {t['dashboard.role.admin']}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('manager')}
                   disabled={loading}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${
-                    role === 'manager'
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${role === 'manager'
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-border hover:border-blue-300'
-                  }`}
+                    }`}
                 >
-                  <Briefcase className={`w-5 h-5 ${role === 'manager' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                  <MaterialIcon name="work" size="md" className={role === 'manager' ? 'text-blue-500' : 'text-muted-foreground'} />
                   <span className={`text-xs font-medium ${role === 'manager' ? 'text-blue-600 dark:text-blue-400' : ''}`}>
-                    מנהל צוות
+                    {t['dashboard.role.manager']}
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole('worker')}
                   disabled={loading}
-                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${
-                    role === 'worker'
+                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-colors ${role === 'worker'
                       ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
                       : 'border-border hover:border-amber-300'
-                  }`}
+                    }`}
                 >
-                  <HardHat className={`w-5 h-5 ${role === 'worker' ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                  <MaterialIcon name="construction" size="md" className={role === 'worker' ? 'text-amber-500' : 'text-muted-foreground'} />
                   <span className={`text-xs font-medium ${role === 'worker' ? 'text-amber-600 dark:text-amber-400' : ''}`}>
-                    עובד
+                    {t['dashboard.role.worker']}
                   </span>
                 </button>
               </div>
@@ -178,9 +177,9 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
                 onClick={() => setShowRemoveModal(true)}
                 disabled={loading}
                 className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50"
-                title="הסר משתמש"
+                title={t['dashboard.widgets.userManagement.removeUser.title']}
               >
-                <Trash2 className="w-5 h-5" />
+                <MaterialIcon name="delete" size="md" />
               </button>
               <button
                 type="button"
@@ -188,7 +187,7 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
                 disabled={loading}
                 className="flex-1 py-2 border border-border rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors disabled:opacity-50"
               >
-                ביטול
+                {t.cancel}
               </button>
               <button
                 type="submit"
@@ -197,11 +196,11 @@ export function EditUserRoleModal({ user, open, onClose, onSuccess }: EditUserRo
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    שומר...
+                    <MaterialIcon name="progress_activity" size="sm" className="animate-spin" />
+                    {t['dashboard.widgets.userManagement.editRole.saving']}
                   </>
                 ) : (
-                  'שמור שינויים'
+                  t['dashboard.widgets.userManagement.editRole.save']
                 )}
               </button>
             </div>

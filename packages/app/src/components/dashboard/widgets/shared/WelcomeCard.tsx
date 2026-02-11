@@ -1,5 +1,6 @@
 // Welcome Card Widget
 // Created: 2026-02-07
+// Updated: 2026-02-08 - Added i18n support
 // Purpose: Welcome message with user name and role
 
 import { useUser } from '@clerk/clerk-react';
@@ -17,19 +18,19 @@ export function WelcomeCard({ actionButton }: WelcomeCardProps) {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'בוקר טוב';
-    if (hour < 17) return 'צהריים טובים';
-    return 'ערב טוב';
+    if (hour < 12) return t['dashboard.greeting.morning'];
+    if (hour < 17) return t['dashboard.greeting.afternoon'];
+    return t['dashboard.greeting.evening'];
   };
 
   const getRoleMessage = () => {
     switch (role) {
       case 'admin':
-        return 'הנה סקירה של הארגון שלך';
+        return t['dashboard.greeting.adminMessage'];
       case 'manager':
-        return 'הנה סקירה של הצוות שלך';
+        return t['dashboard.greeting.managerMessage'];
       case 'worker':
-        return 'הנה הטפסים שמוקצים לך';
+        return t['dashboard.greeting.workerMessage'];
       default:
         return t.manageFormsDescription;
     }
@@ -38,10 +39,10 @@ export function WelcomeCard({ actionButton }: WelcomeCardProps) {
   return (
     <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {getGreeting()}, {user?.firstName || 'משתמש'}
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          {getGreeting()}, {user?.firstName || t['dashboard.greeting.defaultUser']}
         </h1>
-        <p className="text-muted-foreground mt-1">{getRoleMessage()}</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{getRoleMessage()}</p>
       </div>
       {actionButton}
     </div>

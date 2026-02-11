@@ -3,9 +3,10 @@
 // Purpose: React Context for role-based access control (RBAC)
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useAuth } from '@clerk/clerk-react';
+import { useTranslation } from '../i18n';
 import { roleApi } from '../api/roleApi';
 import { UserProfile, Permissions, UserRole, ROLE_PERMISSIONS } from '../api/types';
-import { getUserFriendlyErrorMessage, logError } from '../api/utils/errorHandler';
 
 /**
  * Role context type definition
@@ -72,6 +73,10 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Get Clerk's getToken function
+  const { getToken } = useAuth();
+  const t = useTranslation();
+
   /**
    * Load user role from API
    */
@@ -86,17 +91,24 @@ export const RoleProvider: React.FC<RoleProviderProps> = ({
       setLoading(true);
       setError(null);
 
-      const userData = await roleApi.getCurrentUser();
+      // Get token from Clerk
+      const token = await getToken();
+      if (!token) {
+        setError(t['dashboard.errors.generic']); // Using generic error as it fits best
+        setLoading(false);
+        return;
+      }
+
+      const userData = await roleApi.getCurrentUser(token);
       setUser(userData);
     } catch (err) {
-      const errorMessage = getUserFriendlyErrorMessage(err);
+      const errorMessage = err instanceof Error ? err.message : t['dashboard.errorLoadingProfile'];
       setError(errorMessage);
-      logError(err, 'RoleContext.refreshRole');
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, getToken]);
 
   /**
    * Clear error state

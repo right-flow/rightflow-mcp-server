@@ -64,6 +64,7 @@ const listSubmissionsSchema = z.object({
 /**
  * GET /api/v1/submissions
  * List submissions with filters
+ * Note: Uses actual DB schema (responses table, org_id, title)
  */
 router.get('/', async (req, res, next) => {
   try {
@@ -72,33 +73,36 @@ router.get('/', async (req, res, next) => {
     // Validate query params
     const filters = validateRequest(listSubmissionsSchema, req.query);
 
-    // Build dynamic WHERE clause
-    const conditions: string[] = ['s.organization_id = $1', 's.deleted_at IS NULL'];
-    const params: any[] = [organizationId];
+    // First get the org's UUID from clerk_organization_id
+    const orgs = await query(
+      'SELECT id FROM organizations WHERE clerk_organization_id = $1',
+      [organizationId],
+    );
+
+    if (orgs.length === 0) {
+      res.json({ data: [], pagination: { page: 1, limit: filters.limit, total: 0, totalPages: 0 } });
+      return;
+    }
+
+    const orgUuid = orgs[0].id;
+
+    // Build dynamic WHERE clause using responses table
+    const conditions: string[] = ['f.org_id = $1'];
+    const params: any[] = [orgUuid];
     let paramIndex = 2;
 
     if (filters.formId) {
-      conditions.push(`s.form_id = $${paramIndex++}`);
+      conditions.push(`r.form_id = $${paramIndex++}`);
       params.push(filters.formId);
     }
 
-    if (filters.status) {
-      conditions.push(`s.status = $${paramIndex++}`);
-      params.push(filters.status);
-    }
-
-    if (filters.submittedById) {
-      conditions.push(`s.submitted_by_id = $${paramIndex++}`);
-      params.push(filters.submittedById);
-    }
-
     if (filters.fromDate) {
-      conditions.push(`s.created_at >= $${paramIndex++}`);
+      conditions.push(`r.submitted_at >= $${paramIndex++}`);
       params.push(filters.fromDate);
     }
 
     if (filters.toDate) {
-      conditions.push(`s.created_at <= $${paramIndex++}`);
+      conditions.push(`r.submitted_at <= $${paramIndex++}`);
       params.push(filters.toDate);
     }
 
@@ -111,21 +115,19 @@ router.get('/', async (req, res, next) => {
     const submissions = await query(
       `
       SELECT
-        s.id,
-        s.form_id AS "formId",
-        f.name AS "formName",
-        s.submitted_by_id AS "submittedById",
-        u.name AS "submittedByName",
-        s.data,
-        s.metadata,
-        s.status,
-        s.created_at AS "createdAt",
-        s.updated_at AS "updatedAt"
-      FROM submissions s
-      LEFT JOIN forms f ON s.form_id = f.id
-      LEFT JOIN users u ON s.submitted_by_id = u.id
+        r.id,
+        r.form_id AS "formId",
+        f.title AS "formName",
+        r.data,
+        r.metadata,
+        'submitted' AS status,
+        r.submitted_at AS "createdAt",
+        r.submitted_at AS "updatedAt",
+        'Unknown' AS "submittedByName"
+      FROM responses r
+      LEFT JOIN forms f ON r.form_id = f.id
       WHERE ${whereClause}
-      ORDER BY s.created_at DESC
+      ORDER BY r.submitted_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `,
       [...params, limit, offset],
@@ -133,7 +135,7 @@ router.get('/', async (req, res, next) => {
 
     // Get total count
     const [{ count }] = await query<{ count: string }>(
-      `SELECT COUNT(*) as count FROM submissions s WHERE ${whereClause}`,
+      `SELECT COUNT(*) as count FROM responses r LEFT JOIN forms f ON r.form_id = f.id WHERE ${whereClause}`,
       params,
     );
 

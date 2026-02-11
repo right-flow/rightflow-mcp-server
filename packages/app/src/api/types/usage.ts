@@ -11,6 +11,9 @@ export interface Usage {
   billingPeriodStart: Date;
   billingPeriodEnd: Date;
   totalSubmissions: number;
+  formsCreated: number;
+  submissionsThisMonth: number;
+  storageUsedMB: number;
   quotaLimit: number;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +28,13 @@ export interface QuotaInfo {
   remaining: number;
   percentUsed: number;
   overageAmount: number;
+  // Additional fields for UI
+  formsUsed: number;
+  formsLimit: number;
+  submissionsThisMonth: number;
+  submissionsLimit: number;
+  storageUsedMB: number;
+  storageLimitMB: number;
 }
 
 /**
@@ -72,6 +82,16 @@ export interface QuotaCheckResult {
 }
 
 /**
+ * Daily usage entry for breakdown table
+ */
+export interface UsageEntry {
+  date: string;
+  formsCreated: number;
+  submissions: number;
+  storageUsedMB: number;
+}
+
+/**
  * Per-form usage breakdown
  */
 export interface FormUsage {
@@ -90,6 +110,7 @@ export interface UsageDetails {
   percentUsed: number;
   overageAmount: number;
   formsBreakdown: FormUsage[];
+  dailyBreakdown?: UsageEntry[];
 }
 
 /**

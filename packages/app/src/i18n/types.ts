@@ -59,8 +59,236 @@ export interface Translations {
   add: string;
   remove: string;
   edit: string;
+  'common.loading': string;
+  'common.tryAgain': string;
+  'common.yes': string;
+  'common.no': string;
+  'common.true': string;
+  'common.false': string;
+  'common.clearSearch': string;
 
-  // Messages
+  // Navigation & Common UI (Used in Dashboard Sidebar)
+  overview: string;
+  myForms: string;
+  analytics: string;
+  responses: string;
+  automation: string;
+  teamManagement: string;
+  billing: string;
+  settingsTitle: string; // Renamed to avoid 'settings' collision
+  helpCenter: string;
+  untitledForm: string;
+
+  // Language names
+  language: string;
+  hebrew: string;
+  english: string;
+  arabic: string;
+  featuresLabel: string;
+  useCasesLabel: string;
+  integrationsLabel: string;
+  loginLabel: string;
+  getStarted: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  viewDemo: string;
+  satisfiedTeams: string;
+  trulyIntelligentForms: string;
+  offlineReady: string;
+  rightToolsForField: string;
+  builtFromScratch: string;
+  anyNicheAnywhere: string;
+  readUseCase: string;
+  connectToYourWorld: string;
+  streamDataDirectly: string;
+  socialProofTitle: string;
+  readyToGoPaperless: string;
+  joinMobileFirst: string;
+  contactUs: string;
+  noCreditCard: string;
+
+  // Theme
+  darkMode: string;
+  lightMode: string;
+
+  // Dashboard Page & Initialization
+  'dashboard.header.search': string;
+  'dashboard.loading': string;
+  'dashboard.loadingDashboard': string;
+  'dashboard.errorLoadingProfile': string;
+  'dashboard.welcome.title': string;
+  'dashboard.welcome.description': string;
+  'dashboard.welcome.createOrg': string;
+  'dashboard.sidebar.version': string;
+  'dashboard.sidebar.upgradeNow': string;
+  'dashboard.sidebar.smartFormManagement': string;
+  'dashboard.sidebar.packageUsage': string;
+  'dashboard.sidebar.forms': string;
+  'dashboard.sidebar.submissions': string;
+  'dashboard.sidebar.storage': string;
+  'dashboard.error.formsLimit': string;
+  'dashboard.error.submissionsLimit': string;
+  'dashboard.error.storageLimit': string;
+  'dashboard.errors.failedToLoadForms': string;
+  'dashboard.errors.failedToCreateForm': string;
+  'dashboard.errors.generic': string;
+
+  // Dashboard Stats
+  'dashboard.stats.totalSubmissions': string;
+  'dashboard.stats.monthlyViews': string;
+  'dashboard.stats.activeForms': string;
+  'dashboard.stats.completedForms': string;
+  'dashboard.stats.completionRate': string;
+  'dashboard.stats.conversionRate': string;
+  'dashboard.stats.avgResponseTime': string;
+  'dashboard.stats.growth': string;
+  'dashboard.stats.sinceLastMonth': string;
+
+  // Admin Dashboard
+  'dashboard.admin.totalOrganizations': string;
+  'dashboard.admin.systemHealth': string;
+  'dashboard.admin.activeUsers': string;
+  'dashboard.admin.newSubmissions': string;
+  'dashboard.admin.completionRate': string;
+  'dashboard.admin.pendingApprovals': string;
+  'dashboard.admin.usageTrends': string;
+  'dashboard.admin.recentActivity': string;
+  'dashboard.admin.formPerformance': string;
+  'dashboard.header.sendFormLink': string;
+  'dashboard.sidebar.ofQuota': string;
+  'dashboard.formPerformance.title': string;
+  'dashboard.recentActivity.title': string;
+  'dashboard.usageTrends.title': string;
+  'dashboard.usageTrends.dateRange': string;
+  'dashboard.usageTrends.exportReport': string;
+
+  // Demo data - Recent Activity
+  'dashboard.demo.activity.formCompleted': string;
+  'dashboard.demo.activity.formCompletedBy': string;
+  'dashboard.demo.activity.linkSent': string;
+  'dashboard.demo.activity.linkSentDetails': string;
+  'dashboard.demo.activity.automationUpdate': string;
+  'dashboard.demo.activity.automationDetails': string;
+
+  // Activity titles (i18n-compatible)
+  'dashboard.activity.submitted': string;
+  'dashboard.activity.approved': string;
+  'dashboard.activity.rejected': string;
+  'dashboard.activity.draft': string;
+  'dashboard.activity.anonymousUser': string;
+
+  // Demo data - Form Performance
+  'dashboard.demo.forms.serviceJoin': string;
+  'dashboard.demo.forms.techSupport': string;
+  'dashboard.demo.forms.satisfaction': string;
+  'dashboard.demo.forms.jobApplication': string;
+
+  // Months
+  'dashboard.months.january': string;
+  'dashboard.months.february': string;
+  'dashboard.months.march': string;
+  'dashboard.months.april': string;
+  'dashboard.months.may': string;
+  'dashboard.months.june': string;
+  'dashboard.months.july': string;
+  'dashboard.months.august': string;
+  'dashboard.months.september': string;
+  'dashboard.months.october': string;
+  'dashboard.months.november': string;
+  'dashboard.months.december': string;
+
+  // Greetings & Role specific
+  'dashboard.greeting.morning': string;
+  'dashboard.greeting.afternoon': string;
+  'dashboard.greeting.evening': string;
+  'dashboard.greeting.defaultUser': string;
+  'dashboard.greeting.adminMessage': string;
+  'dashboard.greeting.managerMessage': string;
+  'dashboard.greeting.workerMessage': string;
+  'dashboard.role.admin': string;
+  'dashboard.role.manager': string;
+  'dashboard.role.worker': string;
+  'dashboard.role.user': string;
+
+  // My Forms Widget
+  'dashboard.myForms.title': string;
+  'dashboard.myForms.pending': string;
+  'dashboard.myForms.pendingCount': string;
+  'dashboard.myForms.completed': string;
+  'dashboard.myForms.overdue': string;
+  'dashboard.myForms.noForms': string;
+  'dashboard.myForms.completedRecently': string;
+  'dashboard.myForms.viewAll': string;
+  'dashboard.myForms.daily': string;
+  'dashboard.myForms.weekly': string;
+  'dashboard.myForms.monthly': string;
+  'dashboard.myForms.once': string;
+  'dashboard.myForms.soon': string;
+  'dashboard.myForms.inHours': string;
+  'dashboard.myForms.inDays': string;
+  'dashboard.myForms.overduePast': string;
+
+  // Shared Widget Status & Time
+  'dashboard.status.pending': string;
+  'dashboard.status.approved': string;
+  'dashboard.status.rejected': string;
+  'dashboard.time.now': string;
+  'dashboard.time.ago': string;
+  'dashboard.time.mins': string;
+  'dashboard.time.hours': string;
+  'dashboard.time.days': string;
+  'dashboard.common.viewAll': string;
+  loadingDashboard: string; // Added for compatibility with some components
+
+  // Widgets
+  'dashboard.widgets.recentSubmissions.title': string;
+  'dashboard.widgets.recentSubmissions.empty': string;
+  'dashboard.widgets.quickActions.title': string;
+  'dashboard.widgets.quickActions.newForm': string;
+  'dashboard.widgets.quickActions.newFormDesc': string;
+  'dashboard.widgets.quickActions.responses': string;
+  'dashboard.widgets.quickActions.responsesDesc': string;
+  'dashboard.widgets.quickActions.myForms': string;
+  'dashboard.widgets.quickActions.myFormsDesc': string;
+  'dashboard.widgets.teamPerformance.title': string;
+  'dashboard.widgets.teamPerformance.weeklySubmissions': string;
+  'dashboard.widgets.teamPerformance.avgPerPerson': string;
+  'dashboard.widgets.teamPerformance.topPerformer': string;
+  'dashboard.widgets.teamPerformance.teamMembers': string;
+  'dashboard.widgets.teamPerformance.today': string;
+  'dashboard.widgets.pendingApprovals.title': string;
+  'dashboard.widgets.pendingApprovals.urgent': string;
+  'dashboard.widgets.pendingApprovals.low': string;
+  'dashboard.widgets.pendingApprovals.approvedToday': string;
+  'dashboard.widgets.pendingApprovals.rejectedToday': string;
+  'dashboard.widgets.pendingApprovals.empty': string;
+  'dashboard.widgets.pendingApprovals.viewAll': string;
+  'dashboard.widgets.userManagement.title': string;
+  'dashboard.widgets.userManagement.invite': string;
+  'dashboard.widgets.userManagement.admins': string;
+  'dashboard.widgets.userManagement.managers': string;
+  'dashboard.widgets.userManagement.workers': string;
+  'dashboard.widgets.userManagement.empty': string;
+  'dashboard.widgets.userManagement.removeUser.title': string;
+  'dashboard.widgets.userManagement.removeUser.confirm': string;
+  'dashboard.widgets.userManagement.removeUser.description': string;
+  'dashboard.widgets.userManagement.removeUser.removing': string;
+  'dashboard.widgets.userManagement.removeUser.error': string;
+  'dashboard.widgets.userManagement.noName': string;
+  'dashboard.widgets.userManagement.addUser.title': string;
+  'dashboard.widgets.userManagement.addUser.emailLabel': string;
+  'dashboard.widgets.userManagement.addUser.roleLabel': string;
+  'dashboard.widgets.userManagement.addUser.emailRequired': string;
+  'dashboard.widgets.userManagement.addUser.error': string;
+  'dashboard.widgets.userManagement.addUser.success': string;
+  'dashboard.widgets.userManagement.addUser.sending': string;
+  'dashboard.widgets.userManagement.addUser.send': string;
+  'dashboard.widgets.userManagement.editRole.title': string;
+  'dashboard.widgets.userManagement.editRole.saving': string;
+  'dashboard.widgets.userManagement.editRole.save': string;
+  'dashboard.widgets.userManagement.editRole.error': string;
+
+  // Messages (Restored from previous)
   noPdfLoaded: string;
   noFieldsToSave: string;
   noFieldsToExport: string;
@@ -70,8 +298,7 @@ export interface Translations {
   fieldsImported: string;
   downloadSuccess: string;
 
-  // Settings
-  settingsTitle: string;
+  // Settings Panel
   textFieldSettings: string;
   checkboxFieldSettings: string;
   radioFieldSettings: string;
@@ -89,17 +316,7 @@ export interface Translations {
   defaultHeight: string;
   resetToDefaults: string;
 
-  // Language selector
-  language: string;
-  hebrew: string;
-  english: string;
-  arabic: string;
-
-  // Theme
-  darkMode: string;
-  lightMode: string;
-
-  // Field list sidebar
+  // Field List & Sections
   fieldsList: string;
   searchFields: string;
   noFields: string;
@@ -111,14 +328,12 @@ export interface Translations {
   useToolsAbove: string;
   general: string;
   deleteField: string;
-
-  // Sections (NEW - v2.0)
   addSection: string;
   renameSection: string;
   deleteSection: string;
   ungrouped: string;
 
-  // Field properties panel
+  // Field Properties
   fieldName: string;
   fieldLabel: string;
   required: string;
@@ -172,7 +387,7 @@ export interface Translations {
   widthLabel: string;
   heightLabel: string;
 
-  // Static text properties
+  // Static Text
   content: string;
   textAlignment: string;
   alignLeft: string;
@@ -190,19 +405,18 @@ export interface Translations {
   color: string;
   enterStaticText: string;
 
-  // Recovery dialog
+  // Recovery & Dialogs
   recoveryTitle: string;
   recoveryMessage: string;
   restore: string;
   discard: string;
-
-  // Upload warning
   uploadWarningTitle: string;
   uploadWarningMessage: string;
   newDocument: string;
   newVersion: string;
+  deleteConfirmMessage: string;
 
-  // AI extraction
+  // AI & HTML
   aiExtractionTitle: string;
   aiExtractionInProgress: string;
   aiExtractionSuccess: string;
@@ -210,19 +424,15 @@ export interface Translations {
   replaceOrMerge: string;
   replace: string;
   merge: string;
-
-  // HTML preview
   htmlPreviewTitle: string;
   downloadHtml: string;
   copyHtml: string;
   copied: string;
-
-  // Reprocess page
   reprocessPage: string;
   reprocessConfirm: string;
   reprocessSuccess: string;
 
-  // Multi-select properties panel
+  // Multi-edit
   multiEdit: string;
   fieldsSelected: string;
   fieldTypes: string;
@@ -233,12 +443,10 @@ export interface Translations {
   mixed: string;
   multiSelectTip: string;
 
-  // Sidebar tabs
+  // Sidebar Tabs
   extractedFields: string;
   jsonView: string;
   documentHistory: string;
-
-  // JSON view tab
   jsonReadOnly: string;
   copyJson: string;
   jsonCopied: string;
@@ -248,7 +456,7 @@ export interface Translations {
   sortByPosition: string;
   showOriginalOrder: string;
 
-  // Document history tab
+  // Document History
   noDocumentHistory: string;
   documents: string;
   documentName: string;
@@ -263,7 +471,7 @@ export interface Translations {
   kb: string;
   mb: string;
 
-  // Field validation
+  // Validation & Bull/Workflow
   fieldValidation: string;
   active: string;
   suggestedType: string;
@@ -274,45 +482,33 @@ export interface Translations {
   validators: string;
   validationMultiHint: string;
 
-  deleteConfirmMessage: string;
-
-  // Dashboard
-  dashboard: string;
+  // Dashboard Miscellaneous
   backToDashboard: string;
   backToSettings: string;
-  overview: string;
-  myForms: string;
-  responses: string;
-  helpCenter: string;
-  teamManagement: string;
-  billing: string;
   noFormsFound: string;
   createNewForm: string;
   createFirstForm: string;
   searchFormsPlaceholder: string;
   manageFormsDescription: string;
   freePlan: string;
-  loadingDashboard: string;
+  viewAllFormsCount: string;
   noResultsFor: string;
-
-  // Additional Toolbar
   viewHistory: string;
   publish: string;
   publishing: string;
   currentDocument: string;
-  untitledForm: string;
   draft: string;
   published: string;
   archived: string;
   export: string;
 
-  // Conditional Logic
+  // Conditional Logic (Workflow)
   conditionalLogic: string;
   addRule: string;
   when: string;
   equals: string;
   notEquals: string;
-  contains: string;
+  // contains: string; // Already defined above
   isEmpty: string;
   isNotEmpty: string;
   then: string;
@@ -320,8 +516,8 @@ export interface Translations {
   hide: string;
   require: string;
   unrequire: string;
-  selectField: string;
-  enterValue: string;
+  // selectField: string; // Already defined above
+  // enterValue: string; // Already defined above
   and: string;
   or: string;
   defaultVisibility: string;
@@ -329,54 +525,19 @@ export interface Translations {
   hidden: string;
   noRules: string;
 
-  // Offline/PWA
+  // Offline/PWA (Legacy items used by some logic)
   online: string;
   offline: string;
-  syncing: string;
   pendingItems: string;
   syncNow: string;
+  syncNowLower?: string;
   syncError: string;
   lastSynced: string;
   noConnection: string;
   connectionRestored: string;
   itemsWaitingToSync: string;
 
-  // Landing Page
-  heroTitle: string;
-  heroSubtitle: string;
-  getStarted: string;
-  viewDemo: string;
-  featureHebrewTitle: string;
-  featureHebrewDesc: string;
-  featureAiTitle: string;
-  featureAiDesc: string;
-  featureOfflineTitle: string;
-  featureOfflineDesc: string;
-  socialProofTitle: string;
-
-  // Landing Page V3 Niches
-  medicalTitle: string;
-  medicalDesc: string;
-  technicalTitle: string;
-  technicalDesc: string;
-  constructionTitle: string;
-  constructionDesc: string;
-  salesTitle: string;
-  salesDesc: string;
-  securityTitle: string;
-  securityDesc: string;
-
-  // New Features Grid
-  pwaTitle: string;
-  pwaDesc: string;
-  offlineFirstTitle: string;
-  offlineFirstDesc: string;
-  signatureSmoothingTitle: string;
-  signatureSmoothingDesc: string;
-  aiDetectionTitle: string;
-  aiDetectionDesc: string;
-
-  // WhatsApp
+  // WhatsApp Widget
   whatsappChannels: string;
   whatsappManageChannelsDesc: string;
   connectNewWhatsapp: string;
@@ -407,38 +568,16 @@ export interface Translations {
   messagesSentLabel: string;
   refreshStatus: string;
 
-  // Language Auto-Detection
-  'language.autoDetect.title': string;
-  'language.autoDetect.message': string;
-  'language.autoDetect.dontAskAgain': string;
+  // Onboarding
+  onboardingTitle: string;
+  onboardingCompleted: string;
+  onboardingCreateForm: string;
+  onboardingCustomize: string;
+  onboardingPublish: string;
+  onboardingFirstResponse: string;
+  onboardingShare: string;
 
-  // Landing Page (More)
-  featuresLabel: string;
-  useCasesLabel: string;
-  integrationsLabel: string;
-  loginLabel: string;
-  satisfiedTeams: string;
-  trulyIntelligentForms: string;
-  offlineReady: string;
-  rightToolsForField: string;
-  builtFromScratch: string;
-  anyNicheAnywhere: string;
-  readUseCase: string;
-  connectToYourWorld: string;
-  streamDataDirectly: string;
-  readyToGoPaperless: string;
-  joinMobileFirst: string;
-  contactUs: string;
-  noCreditCard: string;
-
-  // PWA/System
-  pwaNewVersionTitle: string;
-  pwaNewVersionMessage: string;
-  pwaOfflineReady: string;
-  pwaRegistered: string;
-  pwaRegistrationError: string;
-
-  failedToLoadForms: string;
+  // Form Management (Additional)
   noFormsYetDescription: string;
   deleteFormConfirm: string;
   noDescription: string;
@@ -448,20 +587,7 @@ export interface Translations {
   fieldsCount: string;
   sendWhatsApp: string;
 
-  // Onboarding Progress Checklist
-  onboardingTitle: string;
-  onboardingCompleted: string;
-  onboardingCreateForm: string;
-  onboardingCustomize: string;
-  onboardingPublish: string;
-  onboardingFirstResponse: string;
-  onboardingShare: string;
-
-  // Common (additional)
-  'common.yes': string;
-  'common.no': string;
-
-  // Workflow - Approval Chain
+  // Workflow (Additional)
   'workflow.approval.chainSettings': string;
   'workflow.approval.overallTimeout': string;
   'workflow.approval.hours': string;
@@ -490,12 +616,14 @@ export interface Translations {
   'workflow.approval.selectUser': string;
   'workflow.approval.selectRole': string;
 
-  // Workflow - Template Gallery
+  // Workflow Template
   'workflow.template.gallery': string;
   'workflow.template.searchPlaceholder': string;
   'workflow.template.allCategories': string;
+  'workflow.template.category.all': string;
   'workflow.template.category.approval': string;
   'workflow.template.category.dataCollection': string;
+  'workflow.template.category.data-collection': string;
   'workflow.template.category.automation': string;
   'workflow.template.category.conditional': string;
   'workflow.template.category.integration': string;
@@ -508,6 +636,12 @@ export interface Translations {
   'workflow.template.sort.dateAsc': string;
   'workflow.template.sort.nameAsc': string;
   'workflow.template.sort.nameDesc': string;
+  'workflow.template.sort.mostUsed': string;
+  'workflow.template.sort.leastUsed': string;
+  'workflow.template.sort.newest': string;
+  'workflow.template.sort.oldest': string;
+  'workflow.template.sort.nameAZ': string;
+  'workflow.template.sort.nameZA': string;
   'workflow.template.viewGrid': string;
   'workflow.template.viewList': string;
   'workflow.template.used': string;
@@ -516,30 +650,46 @@ export interface Translations {
   'workflow.template.exportTemplate': string;
   'workflow.template.deleteTemplate': string;
   'workflow.template.importTemplate': string;
+  'workflow.template.search': string;
+  'workflow.template.noTemplates': string;
+  'workflow.template.noResults': string;
+  'workflow.template.empty': string;
+  'workflow.template.system': string;
   'workflow.template.storageUsed': string;
   'workflow.template.storageWarning': string;
-  'workflow.template.noTemplates': string;
 
-  // Workflow - Conditional Logic
-  'workflow.conditional.builder': string;
-  'workflow.conditional.addGroup': string;
-  'workflow.conditional.addRule': string;
-  'workflow.conditional.operator.and': string;
-  'workflow.conditional.operator.or': string;
-  'workflow.conditional.field': string;
-  'workflow.conditional.operator': string;
-  'workflow.conditional.value': string;
-  'workflow.conditional.op.eq': string;
-  'workflow.conditional.op.ne': string;
-  'workflow.conditional.op.gt': string;
-  'workflow.conditional.op.lt': string;
-  'workflow.conditional.op.gte': string;
-  'workflow.conditional.op.lte': string;
-  'workflow.conditional.op.contains': string;
-  'workflow.conditional.op.exists': string;
-  'workflow.conditional.op.in': string;
-  'workflow.conditional.op.notIn': string;
-  'workflow.conditional.removeRule': string;
-  'workflow.conditional.removeGroup': string;
-  'workflow.conditional.maxDepth': string;
+  // Workflow Condition (Builder)
+  'workflow.condition.rootGroup': string;
+  'workflow.condition.nestedGroup': string;
+  'workflow.condition.addCondition': string;
+  'workflow.condition.addGroup': string;
+  'workflow.condition.operator.eq': string;
+  'workflow.condition.operator.ne': string;
+  'workflow.condition.operator.gt': string;
+  'workflow.condition.operator.lt': string;
+  'workflow.condition.operator.gte': string;
+  'workflow.condition.operator.lte': string;
+  'workflow.condition.operator.contains': string;
+  'workflow.condition.operator.exists': string;
+  'workflow.condition.operator.in': string;
+  'workflow.condition.operator.notIn': string;
+  'workflow.condition.selectField': string;
+  'workflow.condition.enterValue': string;
+
+  // Language Auto Detect
+  'language.autoDetect.title': string;
+  'language.autoDetect.message': string;
+  'language.autoDetect.dontAskAgain': string;
+
+  // PWA/Update
+  pwaNewVersionTitle: string;
+  pwaNewVersionMessage: string;
+  pwaOfflineReady: string;
+  pwaRegistered: string;
+  pwaRegistrationError: string;
+  syncing: string;
+  // Placeholder keys for compatibility
+  contains: string;
+  selectField: string;
+  enterValue: string;
 }

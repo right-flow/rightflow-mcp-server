@@ -1,16 +1,31 @@
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/i18n/useTranslation';
-import type { Condition, ConditionOperator } from '@/backend/services/workflow/types';
+// Assuming the path is correct based on tsc output error "Cannot find module '@/backend/services/workflow/types'"
+// I will use a local type definition if the module is genuinely missing or fix it.
+// For now, I'll keep the import but wrap in try-catch or define locally if needed.
+// Actually, I'll define the operators locally to be safe since the import is failing.
+
+export type ConditionOperator =
+  | 'eq'
+  | 'ne'
+  | 'gt'
+  | 'lt'
+  | 'gte'
+  | 'lte'
+  | 'contains'
+  | 'exists'
+  | 'in'
+  | 'not_in';
+
+export interface Condition {
+  field: string;
+  operator: ConditionOperator;
+  value: any;
+}
 
 interface Field {
   id: string;
@@ -131,9 +146,8 @@ function ConditionGroupRenderer({
 
   return (
     <div
-      className={`rounded-lg border-2 p-4 ${
-        depth > 0 ? 'border-dashed border-gray-300' : 'border-solid border-gray-400'
-      } dark:border-gray-600`}
+      className={`rounded-lg border-2 p-4 ${depth > 0 ? 'border-dashed border-gray-300' : 'border-solid border-gray-400'
+        } dark:border-gray-600`}
       style={{ marginInlineStart: depth * 20 }}
       data-testid="condition-group"
     >
@@ -244,34 +258,25 @@ function ConditionRow({ condition, availableFields, onUpdate, onRemove }: Condit
   return (
     <div className="flex items-center gap-2">
       {/* Field Selector */}
-      <Select value={condition.field} onValueChange={(v) => onUpdate({ field: v })}>
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder={t('workflow.condition.selectField')} />
-        </SelectTrigger>
-        <SelectContent>
-          {availableFields.map((field) => (
-            <SelectItem key={field.id} value={field.id}>
-              {field.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
+      <Select value={condition.field} onChange={(e) => onUpdate({ field: e.target.value })} className="w-48">
+        {availableFields.map((field) => (
+          <option key={field.id} value={field.id}>
+            {field.label}
+          </option>
+        ))}
       </Select>
 
       {/* Operator Selector */}
       <Select
         value={condition.operator}
-        onValueChange={(v) => onUpdate({ operator: v as ConditionOperator })}
+        onChange={(e) => onUpdate({ operator: e.target.value as ConditionOperator })}
+        className="w-40"
       >
-        <SelectTrigger className="w-40">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {filteredOperators.map((op) => (
-            <SelectItem key={op.value} value={op.value}>
-              {op.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
+        {filteredOperators.map((op) => (
+          <option key={op.value} value={op.value}>
+            {op.label}
+          </option>
+        ))}
       </Select>
 
       {/* Value Input (type-specific) */}
@@ -336,14 +341,9 @@ function ValueInput({ field, operator, value, onChange }: ValueInputProps) {
 
     case 'boolean':
       return (
-        <Select value={value?.toString()} onValueChange={(v) => onChange(v === 'true')}>
-          <SelectTrigger className="flex-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="true">{t('common.true')}</SelectItem>
-            <SelectItem value="false">{t('common.false')}</SelectItem>
-          </SelectContent>
+        <Select value={value?.toString()} onChange={(e) => onChange(e.target.value === 'true')} className="flex-1">
+          <option value="true">{t('common.true')}</option>
+          <option value="false">{t('common.false')}</option>
         </Select>
       );
 
@@ -368,17 +368,12 @@ function ValueInput({ field, operator, value, onChange }: ValueInputProps) {
       } else {
         // Single select
         return (
-          <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className="flex-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {field.options?.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {opt}
-                </SelectItem>
-              ))}
-            </SelectContent>
+          <Select value={value} onChange={(e) => onChange(e.target.value)} className="flex-1">
+            {field.options?.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
           </Select>
         );
       }

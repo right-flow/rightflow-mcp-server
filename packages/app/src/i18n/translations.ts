@@ -14,9 +14,21 @@ export function getTranslations(language: Language): Translations {
   return translations[language];
 }
 
-export function t(language: Language, key: keyof Translations): string {
-  return translations[language][key];
+/**
+ * Basic translation function with interpolation support
+ */
+export function translate(language: Language, key: keyof Translations, params?: Record<string, string | number>): string {
+  const text = translations[language][key];
+  if (typeof text !== 'string') return String(key);
+
+  let result = text;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    });
+  }
+  return result;
 }
 
-// Re-export types for backward compatibility
+// Re-export types
 export type { Translations } from './types';

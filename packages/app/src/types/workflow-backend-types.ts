@@ -1,0 +1,56 @@
+/**
+ * Re-export workflow types from backend
+ * This file provides a frontend-accessible path to backend workflow types
+ */
+
+export type {
+  WorkflowStatus,
+  WorkflowNodeType,
+  WorkflowInstanceStatus,
+  WorkflowActionType,
+  WhatsAppSessionStatus,
+  WorkflowTriggerType,
+  NodePosition,
+  WorkflowNode,
+  FormNode,
+  ConditionNode,
+  ActionNode,
+  WaitNode,
+  ApprovalNode,
+  WorkflowConnection,
+  Condition,
+  WorkflowVariable,
+  WorkflowTrigger,
+  WorkflowDefinition,
+  WorkflowConfig,
+  Workflow,
+  WorkflowInstance,
+  WorkflowContext,
+  WorkflowHistoryEntry,
+  WhatsAppWorkflowSession,
+  WhatsAppFormField,
+  FieldValidation,
+  WorkflowTemplate,
+  ActionConfig,
+  WebhookAuth,
+  RetryPolicy,
+  EscalationRule,
+  NotificationConfig,
+  BusinessHours,
+  WorkflowScheduledTask,
+  WorkflowAnalytics,
+  NodeMetrics,
+  BottleneckInfo,
+  WorkflowWebhook,
+  WorkflowListResponse,
+  WorkflowInstanceListResponse,
+  WorkflowExecutionResponse,
+  WorkflowStatusResponse,
+} from '../../backend/src/services/workflow/types';
+
+export {
+  WorkflowError,
+  WorkflowValidationError,
+  WorkflowExecutionError,
+  WorkflowTimeoutError,
+} from '../../backend/src/services/workflow/types';

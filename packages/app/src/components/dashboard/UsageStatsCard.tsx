@@ -31,7 +31,8 @@ export function UsageStatsCard({ userId, tier }: UsageStatsCardProps) {
   });
 
   // Define limits based on tier
-  const limits = {
+  const limits: Record<UserTier, { forms: number; submissions: number }> = {
+    [UserTier.GUEST]: { forms: 1, submissions: 5 },
     [UserTier.FREE]: { forms: 10, submissions: 100 },
     [UserTier.PRO]: { forms: Infinity, submissions: Infinity },
     [UserTier.ENTERPRISE]: { forms: Infinity, submissions: Infinity },

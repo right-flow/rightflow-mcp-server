@@ -3,8 +3,9 @@
 // Purpose: Display team member performance metrics for managers
 
 import { useEffect, useState } from 'react';
-import { Users, TrendingUp, TrendingDown, Award, Activity } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
+import { useTranslation } from '../../../../i18n';
 
 interface TeamMember {
   id: string;
@@ -24,6 +25,7 @@ interface TeamPerformanceData {
 }
 
 export function TeamPerformanceWidget() {
+  const t = useTranslation();
   const [data, setData] = useState<TeamPerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,22 +36,14 @@ export function TeamPerformanceWidget() {
   async function loadTeamPerformance() {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call to /api/v1/analytics/team-performance
-
-      // Mock data
-      const mockMembers: TeamMember[] = [
-        { id: '1', name: 'יעל כהן', role: 'worker', submissionsToday: 8, submissionsWeek: 42, trend: 'up', trendPercent: 15 },
-        { id: '2', name: 'דני לוי', role: 'worker', submissionsToday: 6, submissionsWeek: 35, trend: 'stable', trendPercent: 0 },
-        { id: '3', name: 'מיכל אברהם', role: 'worker', submissionsToday: 5, submissionsWeek: 28, trend: 'down', trendPercent: -8 },
-        { id: '4', name: 'אורי דוד', role: 'worker', submissionsToday: 4, submissionsWeek: 25, trend: 'up', trendPercent: 12 },
-      ];
-
-      setData({
-        totalSubmissions: 145,
-        avgPerPerson: 36.25,
-        topPerformer: mockMembers[0],
-        members: mockMembers,
-      });
+      // Fetch team performance from API
+      const response = await fetch('/api/v1/analytics/team-performance');
+      if (response.ok) {
+        const responseData = await response.json();
+        setData(responseData);
+      } else {
+        setData(null);
+      }
     } catch (err) {
       console.error('Failed to load team performance:', err);
     } finally {
@@ -60,11 +54,11 @@ export function TeamPerformanceWidget() {
   const getTrendIcon = (trend: TeamMember['trend']) => {
     switch (trend) {
       case 'up':
-        return <TrendingUp className="w-3 h-3 text-green-500" />;
+        return <MaterialIcon name="trending_up" size="xs" className="text-green-500" />;
       case 'down':
-        return <TrendingDown className="w-3 h-3 text-red-500" />;
+        return <MaterialIcon name="trending_down" size="xs" className="text-red-500" />;
       default:
-        return <Activity className="w-3 h-3 text-zinc-400" />;
+        return <MaterialIcon name="trending_flat" size="xs" className="text-zinc-400" />;
     }
   };
 
@@ -81,16 +75,16 @@ export function TeamPerformanceWidget() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 animate-pulse">
         <CardHeader>
-          <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-32" />
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32" />
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-16 bg-zinc-200 dark:bg-zinc-700 rounded" />
+            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 bg-zinc-200 dark:bg-zinc-700 rounded" />
+                <div key={i} className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
               ))}
             </div>
           </div>
@@ -104,34 +98,36 @@ export function TeamPerformanceWidget() {
   }
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Users className="w-5 h-5 text-primary" />
-          ביצועי צוות
+          <span className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg">
+            <MaterialIcon name="group" size="md" className="text-green-600 dark:text-green-400" />
+          </span>
+          {t['dashboard.widgets.teamPerformance.title']}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-border">
-          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-            <div className="text-2xl font-bold text-foreground">{data.totalSubmissions}</div>
-            <div className="text-xs text-muted-foreground">הגשות השבוע</div>
+        <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{data.totalSubmissions}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{t['dashboard.widgets.teamPerformance.weeklySubmissions']}</div>
           </div>
-          <div className="text-center p-3 bg-zinc-50 dark:bg-zinc-900 rounded-lg">
-            <div className="text-2xl font-bold text-foreground">{data.avgPerPerson.toFixed(1)}</div>
-            <div className="text-xs text-muted-foreground">ממוצע לאיש</div>
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{data.avgPerPerson.toFixed(1)}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{t['dashboard.widgets.teamPerformance.avgPerPerson']}</div>
           </div>
         </div>
 
         {/* Top Performer */}
         {data.topPerformer && (
-          <div className="flex items-center gap-3 mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-            <Award className="w-5 h-5 text-amber-500" />
+          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-700">
+            <MaterialIcon name="emoji_events" size="md" className="text-amber-500" />
             <div className="flex-1">
-              <div className="text-sm font-medium">{data.topPerformer.name}</div>
-              <div className="text-xs text-muted-foreground">
-                מוביל/ה השבוע עם {data.topPerformer.submissionsWeek} הגשות
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{data.topPerformer.name}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {t['dashboard.widgets.teamPerformance.topPerformer'].replace('{count}', data.topPerformer.submissionsWeek.toString())}
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -145,25 +141,25 @@ export function TeamPerformanceWidget() {
 
         {/* Team Members List */}
         <div className="space-y-2">
-          <div className="text-xs text-muted-foreground mb-2">חברי צוות</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t['dashboard.widgets.teamPerformance.teamMembers']}</div>
           {data.members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-lg transition-colors"
+              className="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors"
             >
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium text-primary">
                   {member.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div>
-                  <div className="text-sm font-medium">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.submissionsToday} היום
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{member.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {member.submissionsToday} {t['dashboard.widgets.teamPerformance.today']}
                   </div>
                 </div>
               </div>
               <div className="text-left">
-                <div className="text-sm font-semibold">{member.submissionsWeek}</div>
+                <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{member.submissionsWeek}</div>
                 <div className="flex items-center gap-1 justify-end">
                   {getTrendIcon(member.trend)}
                   <span className={`text-xs ${getTrendColor(member.trend)}`}>

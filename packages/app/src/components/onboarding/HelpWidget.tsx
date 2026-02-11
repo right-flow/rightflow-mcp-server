@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { HelpCircle, X } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 
 export interface HelpWidgetProps {
   onRestartTutorial?: () => void;
@@ -63,7 +63,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
         className="fixed bottom-4 left-4 w-12 h-12 bg-primary rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary/90 transition-colors"
         aria-label="Help"
       >
-        <HelpCircle className="text-white" size={24} />
+        <MaterialIcon name="help" size="lg" className="text-white" />
       </button>
 
       {/* Help Panel */}
@@ -93,7 +93,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                 className="p-1 hover:bg-secondary rounded transition-colors"
                 aria-label="Close"
               >
-                <X size={20} />
+                <MaterialIcon name="close" size="md" />
               </button>
             </div>
 
@@ -104,7 +104,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                 onClick={handleRestartTutorial}
                 className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                <span>🔄</span>
+                <MaterialIcon name="refresh" size="sm" />
                 <span>Restart Tutorial</span>
               </button>
 

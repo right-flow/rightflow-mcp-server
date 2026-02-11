@@ -1,4 +1,4 @@
-import type { WorkflowDefinition } from '@/backend/services/workflow/types';
+import type { WorkflowDefinition } from './workflow-backend-types';
 import type { Language } from '@/store/appStore';
 
 /**

@@ -17,8 +17,8 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
 
     const { id: clerkUserId, organizationId, email, name, role } = req.user;
 
-    // 1. Upsert organization (if doesn't exist)
-    await query(
+    // 1. Upsert organization and get its ID
+    const orgResult = await query(
       `
       INSERT INTO organizations (clerk_organization_id, name)
       VALUES ($1, $2)
@@ -26,35 +26,34 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       SET updated_at = NOW()
       RETURNING id
     `,
-      [organizationId, (name?.split(' ')[0] || 'User') + "'s Organization"], // Default org name
+      [organizationId, (name?.split(' ')[0] || 'User') + "'s Organization"],
     );
 
-    // 2. Upsert user
+    const dbOrgId = orgResult[0]?.id;
+
+    // 2. Upsert user using clerk_user_id as the unique constraint
+    // Note: clerk_id is a legacy column that mirrors clerk_user_id
     const result = await query(
       `
       INSERT INTO users (
+        clerk_id,
         clerk_user_id,
         organization_id,
         email,
         name,
         role
       )
-      VALUES (
-        $1,
-        (SELECT id FROM organizations WHERE clerk_organization_id = $2),
-        $3,
-        $4,
-        $5
-      )
+      VALUES ($1, $1, $2, $3, $4, $5)
       ON CONFLICT (clerk_user_id) DO UPDATE
       SET
-        email = $3,
-        name = $4,
-        role = $5,
+        organization_id = COALESCE($2, users.organization_id),
+        email = COALESCE($3, users.email),
+        name = COALESCE($4, users.name),
+        role = COALESCE($5, users.role),
         updated_at = NOW()
       RETURNING id
     `,
-      [clerkUserId, organizationId, email, name, role],
+      [clerkUserId, dbOrgId, email, name, role],
     );
 
     logger.debug('User synced to database', {

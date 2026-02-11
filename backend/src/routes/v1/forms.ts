@@ -52,33 +52,47 @@ const updateFormSchema = z.object({
 /**
  * GET /api/v1/forms
  * List all forms
+ * Note: Uses actual DB schema (org_id, title, status, responses)
  */
 router.get('/', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
 
     // Query params
-    const isActive = req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined;
+    const statusFilter = req.query.isActive === 'true' ? 'published' : req.query.isActive === 'false' ? 'draft' : undefined;
 
-    const conditions: string[] = ['organization_id = $1', 'deleted_at IS NULL'];
-    const params: any[] = [organizationId];
+    // First get the org's UUID from clerk_organization_id
+    const orgs = await query(
+      'SELECT id FROM organizations WHERE clerk_organization_id = $1',
+      [organizationId],
+    );
 
-    if (isActive !== undefined) {
-      conditions.push(`is_active = $${params.length + 1}`);
-      params.push(isActive);
+    if (orgs.length === 0) {
+      res.json({ data: [] });
+      return;
+    }
+
+    const orgUuid = orgs[0].id;
+
+    const conditions: string[] = ['org_id = $1', 'deleted_at IS NULL'];
+    const params: any[] = [orgUuid];
+
+    if (statusFilter) {
+      conditions.push(`status = $${params.length + 1}`);
+      params.push(statusFilter);
     }
 
     const forms = await query(
       `
       SELECT
         id,
-        name,
+        title AS "name",
         description,
         fields,
-        is_active AS "isActive",
+        status = 'published' AS "isActive",
         created_at AS "createdAt",
         updated_at AS "updatedAt",
-        (SELECT COUNT(*) FROM submissions WHERE form_id = forms.id AND deleted_at IS NULL) AS "submissionCount"
+        (SELECT COUNT(*) FROM responses WHERE form_id = forms.id) AS "submissionCount"
       FROM forms
       WHERE ${conditions.join(' AND ')}
       ORDER BY created_at DESC

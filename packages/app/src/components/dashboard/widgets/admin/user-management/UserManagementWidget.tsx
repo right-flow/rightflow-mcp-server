@@ -5,10 +5,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { Users, UserPlus, ChevronLeft, Shield, Briefcase, HardHat } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../ui/card';
 import { AddUserModal } from './AddUserModal';
 import { EditUserRoleModal } from './EditUserRoleModal';
+import { useTranslation } from '../../../../../i18n';
 import type { UserProfile, UserRole } from '../../../../../api/types/role';
 
 interface UserStats {
@@ -23,6 +24,7 @@ interface UserStats {
 export function UserManagementWidget() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const t = useTranslation();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,22 +78,26 @@ export function UserManagementWidget() {
   function getRoleIcon(role: UserRole) {
     switch (role) {
       case 'admin':
-        return <Shield className="w-4 h-4 text-purple-500" />;
+        return <MaterialIcon name="shield" size="sm" className="text-purple-500" />;
       case 'manager':
-        return <Briefcase className="w-4 h-4 text-blue-500" />;
+        return <MaterialIcon name="work" size="sm" className="text-blue-500" />;
       case 'worker':
-        return <HardHat className="w-4 h-4 text-amber-500" />;
+        return <MaterialIcon name="construction" size="sm" className="text-amber-500" />;
+      default:
+        return null;
     }
   }
 
   function getRoleLabel(role: UserRole) {
     switch (role) {
       case 'admin':
-        return 'מנהל';
+        return t['dashboard.role.admin'];
       case 'manager':
-        return 'מנהל צוות';
+        return t['dashboard.role.manager'];
       case 'worker':
-        return 'עובד';
+        return t['dashboard.role.worker'];
+      default:
+        return t['dashboard.role.user'];
     }
   }
 
@@ -104,20 +110,20 @@ export function UserManagementWidget() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 animate-pulse">
         <CardHeader>
-          <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-32" />
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32" />
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div className="grid grid-cols-3 gap-2">
-              <div className="h-16 bg-zinc-200 dark:bg-zinc-700 rounded" />
-              <div className="h-16 bg-zinc-200 dark:bg-zinc-700 rounded" />
-              <div className="h-16 bg-zinc-200 dark:bg-zinc-700 rounded" />
+              <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
             </div>
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-zinc-200 dark:bg-zinc-700 rounded" />
+                <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
               ))}
             </div>
           </div>
@@ -128,52 +134,60 @@ export function UserManagementWidget() {
 
   return (
     <>
-      <Card>
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="w-5 h-5 text-primary" />
-              ניהול משתמשים
+              <span className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <MaterialIcon name="group" size="md" className="text-blue-600 dark:text-blue-400" />
+              </span>
+              {t['dashboard.widgets.userManagement.title']}
             </CardTitle>
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-1 text-sm text-primary hover:underline"
             >
-              <UserPlus className="w-4 h-4" />
-              הזמן
+              <MaterialIcon name="person_add" size="sm" />
+              {t['dashboard.widgets.userManagement.invite']}
             </button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Role Distribution */}
           {stats && (
-            <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-border">
-              <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex items-center justify-center gap-1">
-                  <Shield className="w-4 h-4 text-purple-500" />
-                  <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                  <MaterialIcon name="shield" size="sm" className="text-purple-500" />
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {stats.roleDistribution.admin}
                   </span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">מנהלים</div>
+                <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                  {t['dashboard.widgets.userManagement.admins']}
+                </div>
               </div>
-              <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex items-center justify-center gap-1">
-                  <Briefcase className="w-4 h-4 text-blue-500" />
-                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  <MaterialIcon name="work" size="sm" className="text-blue-500" />
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {stats.roleDistribution.manager}
                   </span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">מנהלי צוות</div>
+                <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                  {t['dashboard.widgets.userManagement.managers']}
+                </div>
               </div>
-              <div className="text-center p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex items-center justify-center gap-1">
-                  <HardHat className="w-4 h-4 text-amber-500" />
-                  <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                  <MaterialIcon name="construction" size="sm" className="text-amber-500" />
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {stats.roleDistribution.worker}
                   </span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">עובדים</div>
+                <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                  {t['dashboard.widgets.userManagement.workers']}
+                </div>
               </div>
             </div>
           )}
@@ -181,8 +195,10 @@ export function UserManagementWidget() {
           {/* User List (limited) */}
           {users.length === 0 ? (
             <div className="text-center py-6">
-              <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-50" />
-              <p className="text-muted-foreground text-sm">אין משתמשים</p>
+              <MaterialIcon name="group" size="xl" className="text-gray-400 dark:text-gray-500 mx-auto mb-2 opacity-50" />
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {t['dashboard.widgets.userManagement.empty']}
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -190,7 +206,7 @@ export function UserManagementWidget() {
                 <button
                   key={user.id}
                   onClick={() => setEditingUser(user)}
-                  className="w-full flex items-center justify-between p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-lg transition-colors text-right"
+                  className="w-full flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors rtl:text-right ltr:text-left"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium text-primary">
@@ -201,18 +217,18 @@ export function UserManagementWidget() {
                         .slice(0, 2) || user.email[0].toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-sm font-medium">{user.name || user.email}</div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name || user.email}</div>
                       {user.name && (
-                        <div className="text-xs text-muted-foreground">{user.email}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                       {getRoleIcon(user.role)}
                       {getRoleLabel(user.role)}
                     </span>
-                    <ChevronLeft className="w-4 h-4 text-muted-foreground" />
+                    <MaterialIcon name="chevron_left" size="sm" className="text-gray-400 dark:text-gray-500" />
                   </div>
                 </button>
               ))}
@@ -225,7 +241,7 @@ export function UserManagementWidget() {
               onClick={() => navigate('/organization/users')}
               className="w-full mt-4 py-2 text-sm text-primary hover:underline"
             >
-              צפה בכל {users.length} המשתמשים →
+              {t['dashboard.common.viewAll']} →
             </button>
           )}
         </CardContent>

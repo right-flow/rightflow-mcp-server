@@ -3,8 +3,8 @@
 // Purpose: Display subscription status and usage for admins
 
 import { useEffect, useState } from 'react';
-import { CreditCard, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Progress } from '../../../ui/progress';
 import { useBilling } from '../../../../contexts/BillingContext';
@@ -53,14 +53,14 @@ export function BillingOverviewWidget() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="animate-pulse bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <CardHeader>
-          <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-32" />
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32" />
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-full" />
-            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
           </div>
         </CardContent>
       </Card>
@@ -69,10 +69,10 @@ export function BillingOverviewWidget() {
 
   if (error) {
     return (
-      <Card className="border-red-200 dark:border-red-800">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-red-500">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="flex items-center gap-2 text-red-600">
+            <MaterialIcon name="warning" size="md" />
             <span>שגיאה בטעינת נתוני חיוב</span>
           </div>
         </CardContent>
@@ -85,30 +85,32 @@ export function BillingOverviewWidget() {
   const formsPercent = quotaData ? (quotaData.forms.current / quotaData.forms.limit) * 100 : 0;
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <CreditCard className="w-5 h-5 text-primary" />
+          <span className="p-2 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
+            <MaterialIcon name="credit_card" size="md" className="text-orange-600 dark:text-orange-400" />
+          </span>
           סטטוס חיוב
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Plan Info */}
-        <div className="flex justify-between items-center mb-4 pb-4 border-b border-border">
+        <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <span className="text-sm text-muted-foreground">תוכנית:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">תוכנית:</span>
             <span className="font-semibold mr-2">{subscription?.plan?.displayName || 'Expanded'}</span>
           </div>
           <div className="text-left">
             <span className="font-bold text-lg">₪{subscription?.plan?.priceMonthly ? Math.round(subscription.plan.priceMonthly / 100) : 400}</span>
-            <span className="text-sm text-muted-foreground">/חודש</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">/חודש</span>
           </div>
         </div>
 
         {/* Submissions Usage */}
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">הגשות</span>
+            <span className="text-gray-500 dark:text-gray-400">הגשות</span>
             <span className={getStatusColor(submissionPercent)}>
               {quotaData?.submissions.used}/{quotaData?.submissions.limit} ({submissionPercent}%)
             </span>
@@ -119,7 +121,7 @@ export function BillingOverviewWidget() {
         {/* Forms Usage */}
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">טפסים</span>
+            <span className="text-gray-500 dark:text-gray-400">טפסים</span>
             <span className={getStatusColor(formsPercent)}>
               {quotaData?.forms.current}/{quotaData?.forms.limit} ({Math.round(formsPercent)}%)
             </span>
@@ -131,7 +133,7 @@ export function BillingOverviewWidget() {
         {submissionPercent >= 80 && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
             <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 text-sm">
-              <AlertTriangle className="w-4 h-4" />
+              <MaterialIcon name="warning" size="sm" />
               <span>
                 נותרו {quotaData!.submissions.limit - quotaData!.submissions.used} הגשות
                 {daysUntilRenewal && ` | חידוש בעוד ${daysUntilRenewal} ימים`}
@@ -145,7 +147,7 @@ export function BillingOverviewWidget() {
           onClick={() => navigate('/billing/subscription')}
           className="w-full btn-primary flex items-center justify-center gap-2"
         >
-          <TrendingUp className="w-4 h-4" />
+          <MaterialIcon name="trending_up" size="sm" />
           {submissionPercent >= 80 ? 'שדרג תוכנית' : 'נהל מנוי'}
         </button>
       </CardContent>

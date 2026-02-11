@@ -122,14 +122,14 @@ export const DraggableField: React.FC<DraggableFieldProps> = ({
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
+      {...attributes}
+      {...listeners}
       role="button"
       draggable={!disabled}
       aria-grabbed={isDragging}
       aria-label={label}
       aria-describedby={ariaDescribedBy}
       onClick={handleClick}
-      {...attributes}
-      {...listeners}
     >
       {showHandle && (
         <div

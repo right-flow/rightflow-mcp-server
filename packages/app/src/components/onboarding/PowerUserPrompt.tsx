@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 
 // Analytics stub - replace with actual analytics service (Mixpanel, Amplitude, etc.)
 const analytics = {
@@ -73,7 +74,9 @@ export function PowerUserPrompt({ usage }: PowerUserPromptProps) {
         aria-labelledby="power-user-title"
       >
         <div className="text-center mb-4">
-          <div className="text-5xl mb-3">🎉</div>
+          <div className="mb-3">
+            <MaterialIcon name="celebration" size="2xl" className="text-primary" />
+          </div>
           <h2 id="power-user-title" className="text-2xl font-bold text-foreground mb-2">
             You're a power user!
           </h2>
@@ -88,10 +91,22 @@ export function PowerUserPrompt({ usage }: PowerUserPromptProps) {
           <div className="bg-secondary p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Unlock more with upgrade:</h3>
             <ul className="space-y-1 text-sm">
-              <li>✅ Unlimited forms (currently limited to 3)</li>
-              <li>✅ Unlimited responses (currently 50/month)</li>
-              <li>✅ Priority support</li>
-              <li>✅ Team collaboration</li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="check_circle" size="sm" className="text-green-600" />
+                Unlimited forms (currently limited to 3)
+              </li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="check_circle" size="sm" className="text-green-600" />
+                Unlimited responses (currently 50/month)
+              </li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="check_circle" size="sm" className="text-green-600" />
+                Priority support
+              </li>
+              <li className="flex items-center gap-2">
+                <MaterialIcon name="check_circle" size="sm" className="text-green-600" />
+                Team collaboration
+              </li>
             </ul>
           </div>
         </div>

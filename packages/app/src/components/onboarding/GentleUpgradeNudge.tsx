@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 
 // Analytics stub - replace with actual analytics service (Mixpanel, Amplitude, etc.)
 const analytics = {
@@ -38,7 +39,7 @@ export function GentleUpgradeNudge() {
   return (
     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
       <div className="flex items-start gap-3">
-        <div className="text-2xl">💡</div>
+        <MaterialIcon name="lightbulb" size="lg" className="text-blue-600" />
         <div className="flex-1">
           <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
             Ready to upgrade?

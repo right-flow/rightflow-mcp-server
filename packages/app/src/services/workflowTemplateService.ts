@@ -9,7 +9,7 @@ import type {
   WorkflowCategory,
   TemplateSortBy,
 } from '@/types/workflow-template';
-import type { WorkflowDefinition } from '@/backend/services/workflow/types';
+import type { WorkflowDefinition } from '@/types/workflow-backend-types';
 import { systemWorkflowTemplates } from '@/data/system-workflow-templates';
 
 const STORAGE_KEY = 'rightflow_workflow_templates';

@@ -7,6 +7,8 @@ import React, { useState, useCallback } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import FieldPropertiesPanel from './FieldPropertiesPanel';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
+import { FIELD_TYPE_ICONS } from '@/utils/iconMapping';
 
 // Field type definitions
 export interface FormField {
@@ -43,8 +45,8 @@ export type FieldType =
   | 'divider';
 
 export interface FieldValidation {
-  min?: number;
-  max?: number;
+  min?: number | string; // string for date min
+  max?: number | string; // string for date max
   minLength?: number;
   maxLength?: number;
   pattern?: string;
@@ -80,24 +82,24 @@ interface FormBuilderProps {
   readOnly?: boolean;
 }
 
-// Field palette items
+// Field palette items - using Material Symbol names
 const FIELD_TYPES = [
-  { type: 'text', label: 'Text Field', icon: '📝' },
-  { type: 'password', label: 'Password', icon: '🔒' },
-  { type: 'number', label: 'Number', icon: '🔢' },
-  { type: 'email', label: 'Email', icon: '✉️' },
-  { type: 'phone', label: 'Phone', icon: '📱' },
-  { type: 'date', label: 'Date', icon: '📅' },
-  { type: 'time', label: 'Time', icon: '⏰' },
-  { type: 'datetime', label: 'Date & Time', icon: '📅' },
-  { type: 'textarea', label: 'Text Area', icon: '📄' },
-  { type: 'dropdown', label: 'Dropdown', icon: '▼' },
-  { type: 'radio', label: 'Radio Buttons', icon: '⭕' },
-  { type: 'checkbox', label: 'Checkbox', icon: '☑️' },
-  { type: 'file', label: 'File Upload', icon: '📎' },
-  { type: 'signature', label: 'Signature', icon: '✍️' },
-  { type: 'heading', label: 'Heading', icon: '📌' },
-  { type: 'divider', label: 'Divider', icon: '➖' },
+  { type: 'text', label: 'Text Field', icon: 'edit_note' },
+  { type: 'password', label: 'Password', icon: 'lock' },
+  { type: 'number', label: 'Number', icon: 'tag' },
+  { type: 'email', label: 'Email', icon: 'mail' },
+  { type: 'phone', label: 'Phone', icon: 'phone_iphone' },
+  { type: 'date', label: 'Date', icon: 'calendar_today' },
+  { type: 'time', label: 'Time', icon: 'schedule' },
+  { type: 'datetime', label: 'Date & Time', icon: 'event' },
+  { type: 'textarea', label: 'Text Area', icon: 'article' },
+  { type: 'dropdown', label: 'Dropdown', icon: 'arrow_drop_down' },
+  { type: 'radio', label: 'Radio Buttons', icon: 'radio_button_checked' },
+  { type: 'checkbox', label: 'Checkbox', icon: 'check_box' },
+  { type: 'file', label: 'File Upload', icon: 'attach_file' },
+  { type: 'signature', label: 'Signature', icon: 'draw' },
+  { type: 'heading', label: 'Heading', icon: 'title' },
+  { type: 'divider', label: 'Divider', icon: 'horizontal_rule' },
 ] as const;
 
 // Draggable field type from palette
@@ -117,8 +119,8 @@ const DraggableFieldType: React.FC<{ fieldType: typeof FIELD_TYPES[number] }> = 
         isDragging ? 'opacity-50' : ''
       }`}
     >
-      <div className="flex items-center space-x-2">
-        <span className="text-2xl">{fieldType.icon}</span>
+      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        <MaterialIcon name={fieldType.icon} size="lg" className="text-gray-500" />
         <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
       </div>
     </div>
@@ -154,9 +156,8 @@ const DraggableFormField: React.FC<{
   const ref = React.useRef<HTMLDivElement>(null);
   drag(drop(ref));
 
-  const getFieldIcon = () => {
-    const fieldType = FIELD_TYPES.find(ft => ft.type === field.type);
-    return fieldType?.icon || '📝';
+  const getFieldIconName = () => {
+    return FIELD_TYPE_ICONS[field.type] || 'edit_note';
   };
 
   return (
@@ -168,8 +169,8 @@ const DraggableFormField: React.FC<{
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-xl">{getFieldIcon()}</span>
+          <div className="flex items-center space-x-2 rtl:space-x-reverse mb-2">
+            <MaterialIcon name={getFieldIconName()} size="md" className="text-gray-500" />
             <h4 className="font-semibold text-gray-900">{field.label || 'Untitled Field'}</h4>
             {field.required && <span className="text-red-500">*</span>}
           </div>

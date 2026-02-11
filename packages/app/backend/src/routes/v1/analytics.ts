@@ -199,6 +199,59 @@ router.get('/submissions', async (req, res, next) => {
 });
 
 /**
+ * GET /api/v1/analytics/form-performance
+ * Form completion rates for dashboard widget
+ */
+router.get('/form-performance', async (req, res, next) => {
+  try {
+    const { organizationId } = req.user!;
+
+    // Calculate completion rate per form
+    // Completion = (approved + submitted) / total submissions for each form
+    const formPerformance = await query<{
+      id: string;
+      name: string;
+      total: string;
+      completed: string;
+    }>(
+      `
+      SELECT
+        f.id,
+        f.name,
+        COUNT(s.id) as total,
+        COUNT(CASE WHEN s.status IN ('submitted', 'approved') THEN 1 END) as completed
+      FROM forms f
+      LEFT JOIN submissions s ON f.id = s.form_id AND s.deleted_at IS NULL
+      WHERE f.organization_id = $1
+        AND f.deleted_at IS NULL
+        AND f.is_active = true
+      GROUP BY f.id, f.name
+      HAVING COUNT(s.id) > 0
+      ORDER BY COUNT(s.id) DESC
+      LIMIT 10
+    `,
+      [organizationId],
+    );
+
+    const result = formPerformance.map((row) => {
+      const total = parseInt(row.total);
+      const completed = parseInt(row.completed);
+      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      return {
+        id: row.id,
+        name: row.name,
+        completionRate,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/v1/analytics/webhooks
  * Webhook delivery statistics
  */

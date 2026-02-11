@@ -1,11 +1,12 @@
 // Quick Actions Widget
 // Created: 2026-02-07
-// Updated: 2026-02-07 - Hide mobile-only buttons on desktop
+// Updated: 2026-02-10 - Improved localization
 // Purpose: Large touch-friendly action buttons for field workers (mobile-first)
 
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, History } from 'lucide-react';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
+import { useTranslation } from '../../../../i18n';
 
 interface QuickAction {
   id: string;
@@ -18,40 +19,43 @@ interface QuickAction {
 
 export function QuickActionsWidget() {
   const navigate = useNavigate();
+  const t = useTranslation();
 
   // Desktop-friendly actions only
   // Mobile-only actions (QR scan, Camera, GPS) removed for desktop version
   const actions: QuickAction[] = [
     {
       id: 'new-form',
-      label: 'טופס חדש',
-      icon: <Plus className="w-6 h-6" />,
-      description: 'צור טופס חדש',
+      label: t['dashboard.widgets.quickActions.newForm'],
+      icon: <MaterialIcon name="add" size="lg" />,
+      description: t['dashboard.widgets.quickActions.newFormDesc'],
       action: () => navigate('/editor'),
       color: 'bg-primary text-primary-foreground',
     },
     {
       id: 'my-responses',
-      label: 'תגובות',
-      icon: <History className="w-6 h-6" />,
-      description: 'צפה בתגובות',
+      label: t['dashboard.widgets.quickActions.responses'],
+      icon: <MaterialIcon name="history" size="lg" />,
+      description: t['dashboard.widgets.quickActions.responsesDesc'],
       action: () => navigate('/responses'),
-      color: 'bg-zinc-600 text-white',
+      color: 'bg-gray-600 text-white dark:bg-gray-700',
     },
     {
       id: 'my-forms',
-      label: 'הטפסים שלי',
-      icon: <FileText className="w-6 h-6" />,
-      description: 'ניהול טפסים',
+      label: t['dashboard.widgets.quickActions.myForms'],
+      icon: <MaterialIcon name="description" size="lg" />,
+      description: t['dashboard.widgets.quickActions.myFormsDesc'],
       action: () => navigate('/responses'),
-      color: 'bg-purple-500 text-white',
+      color: 'bg-gray-500 text-white dark:bg-gray-600',
     },
   ];
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">פעולות מהירות</CardTitle>
+        <CardTitle className="text-lg text-gray-900 dark:text-gray-100">
+          {t['dashboard.widgets.quickActions.title']}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

@@ -113,10 +113,12 @@ const FormPreview: React.FC<FormPreviewProps> = ({
       // Number validation
       if (typeof value === 'number' || field.type === 'number') {
         const numValue = typeof value === 'number' ? value : parseFloat(value);
-        if (min !== undefined && numValue < min) {
+        const numMin = typeof min === 'number' ? min : Number(min);
+        const numMax = typeof max === 'number' ? max : Number(max);
+        if (min !== undefined && !isNaN(numMin) && numValue < numMin) {
           return field.validation.customMessage || `${field.label} must be at least ${min}`;
         }
-        if (max !== undefined && numValue > max) {
+        if (max !== undefined && !isNaN(numMax) && numValue > numMax) {
           return field.validation.customMessage || `${field.label} must be at most ${max}`;
         }
       }

@@ -1,7 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+/* Google Fonts - Hebrew optimized + Material Symbols */
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&family=Heebo:wght@400;500;600;700;900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 /* Mobile-specific styles */
 @import './mobile.css';
+
+/* Material Symbols Icon Styling */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
 
 @tailwind base;
 @tailwind components;
@@ -18,8 +36,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary Orange: #ff6200 */
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -35,26 +54,34 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 24 100% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-bg: 0 0% 100%;
+    /* Sidebar Deep Blue: #0a1552 */
+    --sidebar: 231 75% 18%;
+    --sidebar-foreground: 0 0% 100%;
+
+    /* Background Light: #f8f6f5 */
+    --background-light: 30 18% 97%;
+    --sidebar-bg: 231 75% 18%;
     --canvas-bg: 210 40% 98%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Dark Background: #23170f */
+    --background: 24 40% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 24 40% 10%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 24 40% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary Orange stays the same in dark mode */
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -70,7 +97,12 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 24 100% 50%;
+
+    /* Sidebar stays deep blue in dark mode */
+    --sidebar: 231 75% 18%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-bg: 231 75% 18%;
   }
 }
 
@@ -81,7 +113,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Assistant', 'Heebo', 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -91,36 +123,81 @@
   h4,
   h5,
   h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Heebo', 'Assistant', 'Outfit', sans-serif;
     @apply tracking-tight;
   }
 }
 
 @layer components {
   .dashboard-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr;
+    display: flex;
+    flex-direction: row;
     min-height: 100vh;
   }
 
-  [dir="rtl"] .dashboard-grid {
-    grid-template-columns: 280px 1fr;
-  }
-
   .sidebar {
-    @apply flex flex-col border-r border-border bg-card p-6 h-screen sticky top-0;
-  }
-
-  [dir="rtl"] .sidebar {
-    @apply border-r-0 border-l;
+    @apply flex flex-col border-r border-white/10 p-6 h-screen sticky top-0;
+    background-color: hsl(var(--sidebar));
+    color: hsl(var(--sidebar-foreground));
+    width: 280px;
+    flex-shrink: 0;
   }
 
   .main-content {
-    @apply flex-1 p-8 bg-[#f9fafb] dark:bg-zinc-950/20 overflow-y-auto;
+    @apply flex-1 overflow-y-auto;
+    background-color: #f8f6f5;
+  }
+
+  /* RTL: Sidebar on RIGHT side - flexbox reverses automatically with direction:rtl */
+  .dashboard-grid[dir="rtl"] {
+    flex-direction: row-reverse;
+  }
+
+  .dashboard-grid[dir="rtl"] .sidebar {
+    @apply border-r-0 border-l;
+  }
+
+  /* Sidebar navigation styling */
+  .sidebar-nav-item {
+    @apply flex items-center gap-4 px-4 py-3 rounded-lg text-white/70 transition-all;
+  }
+
+  .sidebar-nav-item:hover {
+    @apply bg-white/5;
+  }
+
+  .sidebar-nav-item.active {
+    @apply bg-white/10 text-white font-bold;
+  }
+
+  .dark .main-content {
+    background-color: #23170f;
   }
 
   .premium-card {
-    @apply bg-white dark:bg-zinc-900 border border-border rounded-xl shadow-sm transition-all hover:shadow-md;
+    @apply bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm transition-all hover:shadow-md;
+  }
+
+  /* Dashboard Card - Clean professional style */
+  .dashboard-card {
+    @apply bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm p-6;
+  }
+
+  /* Dashboard Stats Card Icon Containers */
+  .icon-container-blue {
+    @apply p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg;
+  }
+
+  .icon-container-orange {
+    @apply p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg;
+  }
+
+  .icon-container-green {
+    @apply p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg;
+  }
+
+  .icon-container-primary {
+    @apply p-2 bg-orange-50 dark:bg-orange-900/30 text-primary rounded-lg;
   }
 
   .btn-primary {
@@ -152,12 +229,24 @@
 
 @media (max-width: 1024px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
   .sidebar {
     display: none;
   }
+}
+
+/* RTL Layout Override - Outside layer for higher specificity */
+[dir="rtl"] .dashboard-grid,
+.dashboard-grid[dir="rtl"] {
+  flex-direction: row-reverse !important;
+}
+
+[dir="rtl"] .dashboard-grid .sidebar,
+.dashboard-grid[dir="rtl"] .sidebar {
+  border-right: none !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 /* PDF Canvas - Force cursor inheritance for all children */

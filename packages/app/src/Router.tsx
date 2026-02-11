@@ -29,10 +29,20 @@ const UsageDashboard = lazy(() => import('./components/billing/usage/UsageDashbo
 const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'https://rightflow.co.il';
 
 const router = createBrowserRouter([
-  // Root redirect to dashboard (for authenticated users)
+  // Root redirect - AuthGuard will handle auth check and redirect if needed
   {
     path: '/',
-    element: <Navigate to="/dashboard" replace />,
+    element: (
+      <AuthGuard>
+        <Navigate to="/dashboard" replace />
+      </AuthGuard>
+    ),
+  },
+
+  // Legacy login route redirect
+  {
+    path: '/login',
+    element: <Navigate to="/sign-in" replace />,
   },
 
   // Public authentication routes (Clerk with Virtual Routing)

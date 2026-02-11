@@ -20,7 +20,7 @@ export interface FormTemplate {
   nameHe: string; // Hebrew name
   description: string;
   descriptionHe: string; // Hebrew description
-  icon: string; // Emoji icon
+  icon: string; // Material Symbol icon name
   category: 'business' | 'survey' | 'event' | 'feedback';
   fields: FormField[];
 }
@@ -35,7 +35,7 @@ const contactFormTemplate: FormTemplate = {
   nameHe: 'טופס יצירת קשר',
   description: 'Collect contact information from visitors',
   descriptionHe: 'איסוף פרטי יצירת קשר ממבקרים',
-  icon: '📝',
+  icon: 'edit_note',
   category: 'business',
   fields: [
     {
@@ -80,7 +80,7 @@ const surveyTemplate: FormTemplate = {
   nameHe: 'סקר משוב',
   description: 'Gather feedback and ratings',
   descriptionHe: 'איסוף משוב ודירוגים',
-  icon: '📊',
+  icon: 'analytics',
   category: 'survey',
   fields: [
     {
@@ -131,7 +131,7 @@ const registrationTemplate: FormTemplate = {
   nameHe: 'טופס הרשמה',
   description: 'Event sign-ups and registrations',
   descriptionHe: 'הרשמה לאירועים וכנסים',
-  icon: '📋',
+  icon: 'assignment',
   category: 'event',
   fields: [
     {
@@ -197,7 +197,7 @@ const feedbackTemplate: FormTemplate = {
   nameHe: 'טופס משוב',
   description: 'Customer reviews and feedback',
   descriptionHe: 'איסוף ביקורות ומשוב מלקוחות',
-  icon: '💬',
+  icon: 'chat',
   category: 'feedback',
   fields: [
     {

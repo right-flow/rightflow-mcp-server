@@ -209,6 +209,12 @@ export const mockQuotaCheckResult: QuotaCheckResult = {
     remaining: 53,
     percentUsed: 47.0,
     overageAmount: 0,
+    formsUsed: 7,
+    formsLimit: 10,
+    submissionsThisMonth: 47,
+    submissionsLimit: 100,
+    storageUsedMB: 123,
+    storageLimitMB: 500,
   },
 };
 

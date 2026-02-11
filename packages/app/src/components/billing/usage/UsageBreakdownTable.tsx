@@ -76,6 +76,7 @@ export const UsageBreakdownTable: React.FC<UsageBreakdownTableProps> = ({
 
   // Filter data by date range
   const filteredData = useMemo(() => {
+    if (!usageDetails?.dailyBreakdown) return [];
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - filterDays);
 
@@ -83,7 +84,7 @@ export const UsageBreakdownTable: React.FC<UsageBreakdownTableProps> = ({
       const entryDate = new Date(entry.date);
       return entryDate >= cutoffDate;
     });
-  }, [usageDetails.dailyBreakdown, filterDays]);
+  }, [usageDetails?.dailyBreakdown, filterDays]);
 
   // Sort data
   const sortedData = useMemo(() => {

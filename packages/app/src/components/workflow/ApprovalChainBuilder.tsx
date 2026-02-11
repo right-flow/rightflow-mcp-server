@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { Plus, Trash2, MoveUp, MoveDown, Users, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { useTranslation } from '@/i18n/useTranslation';
 
 // Define types (matching ADR-007)
@@ -142,20 +136,13 @@ export function ApprovalChainBuilder({
             </label>
             <Select
               value={chain.onTimeout}
-              onValueChange={(v) =>
-                onChange({ ...chain, onTimeout: v as 'fail' | 'escalate' | 'auto-approve' })
+              onChange={(e) =>
+                onChange({ ...chain, onTimeout: e.target.value as 'fail' | 'escalate' | 'auto-approve' })
               }
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fail">{t('workflow.approval.timeout.fail')}</SelectItem>
-                <SelectItem value="escalate">{t('workflow.approval.timeout.escalate')}</SelectItem>
-                <SelectItem value="auto-approve">
-                  {t('workflow.approval.timeout.autoApprove')}
-                </SelectItem>
-              </SelectContent>
+              <option value="fail">{t('workflow.approval.timeout.fail')}</option>
+              <option value="escalate">{t('workflow.approval.timeout.escalate')}</option>
+              <option value="auto-approve">{t('workflow.approval.timeout.autoApprove')}</option>
             </Select>
           </div>
         </div>
@@ -272,15 +259,10 @@ function ApprovalLevelCard({
         </label>
         <Select
           value={level.approvalType}
-          onValueChange={(v) => onUpdate({ approvalType: v as 'ANY' | 'ALL' })}
+          onChange={(e) => onUpdate({ approvalType: e.target.value as 'ANY' | 'ALL' })}
         >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ANY">{t('workflow.approval.approvalType.any')}</SelectItem>
-            <SelectItem value="ALL">{t('workflow.approval.approvalType.all')}</SelectItem>
-          </SelectContent>
+          <option value="ANY">{t('workflow.approval.approvalType.any')}</option>
+          <option value="ALL">{t('workflow.approval.approvalType.all')}</option>
         </Select>
         <p className="mt-1 text-xs text-gray-500">
           {level.approvalType === 'ALL'
@@ -366,46 +348,34 @@ function ApproverRow({
       {/* Approver Type */}
       <Select
         value={approver.type}
-        onValueChange={(v) => onUpdate({ type: v as 'user' | 'role' | 'dynamic' })}
+        onChange={(e) => onUpdate({ type: e.target.value as 'user' | 'role' | 'dynamic' })}
+        className="w-32"
       >
-        <SelectTrigger className="w-32">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="user">{t('workflow.approval.approverType.user')}</SelectItem>
-          <SelectItem value="role">{t('workflow.approval.approverType.role')}</SelectItem>
-          <SelectItem value="dynamic">{t('workflow.approval.approverType.dynamic')}</SelectItem>
-        </SelectContent>
+        <option value="user">{t('workflow.approval.approverType.user')}</option>
+        <option value="role">{t('workflow.approval.approverType.role')}</option>
+        <option value="dynamic">{t('workflow.approval.approverType.dynamic')}</option>
       </Select>
 
       {/* Approver Value */}
       {approver.type === 'user' && (
-        <Select value={approver.value} onValueChange={(v) => onUpdate({ value: v })}>
-          <SelectTrigger className="flex-1">
-            <SelectValue placeholder={t('workflow.approval.selectUser')} />
-          </SelectTrigger>
-          <SelectContent>
-            {availableUsers.map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
+        <Select value={approver.value} onChange={(e) => onUpdate({ value: e.target.value })} className="flex-1">
+          <option value="" disabled>{t('workflow.approval.selectUser')}</option>
+          {availableUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name}
+            </option>
+          ))}
         </Select>
       )}
 
       {approver.type === 'role' && (
-        <Select value={approver.value} onValueChange={(v) => onUpdate({ value: v })}>
-          <SelectTrigger className="flex-1">
-            <SelectValue placeholder={t('workflow.approval.selectRole')} />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoles.map((role) => (
-              <SelectItem key={role.id} value={role.id}>
-                {role.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
+        <Select value={approver.value} onChange={(e) => onUpdate({ value: e.target.value })} className="flex-1">
+          <option value="" disabled>{t('workflow.approval.selectRole')}</option>
+          {availableRoles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name}
+            </option>
+          ))}
         </Select>
       )}
 
@@ -490,26 +460,21 @@ function EscalationConfig({
         </label>
         <Select
           value={escalation?.escalateTo?.value}
-          onValueChange={(v) =>
+          onChange={(e) =>
             onChange({
               ...escalation!,
               escalateTo: {
                 ...escalation!.escalateTo,
-                value: v,
+                value: e.target.value,
               },
             })
           }
         >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {availableUsers.map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
+          {availableUsers.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.name}
+            </option>
+          ))}
         </Select>
       </div>
       <Button

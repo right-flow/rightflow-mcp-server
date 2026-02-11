@@ -349,7 +349,7 @@ export function EditorPageV2() {
             selectedFieldId={selectedFieldId}
             selectedFieldIds={selectedFieldIds}
             currentPage={currentPage}
-            errorFieldIds={[]}
+            errorFieldIds={new Set<string>()}
             onFieldSelect={selectField}
             onToggleFieldSelection={toggleFieldSelection}
             onFieldDelete={deleteField}

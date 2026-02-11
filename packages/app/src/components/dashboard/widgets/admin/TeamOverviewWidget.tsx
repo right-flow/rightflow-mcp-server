@@ -3,8 +3,8 @@
 // Purpose: Display team statistics and quick user management access
 
 import { useEffect, useState } from 'react';
-import { Users, UserCheck, Activity, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 
 interface TeamStats {
@@ -31,21 +31,14 @@ export function TeamOverviewWidget() {
   async function loadTeamStats() {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/v1/users/stats');
-      // const data = await response.json();
-
-      // Mock data
-      setStats({
-        totalUsers: 12,
-        roleDistribution: {
-          admin: 2,
-          manager: 3,
-          worker: 7,
-        },
-        activeToday: 8,
-        submissionsToday: 23,
-      });
+      // Fetch team stats from API
+      const response = await fetch('/api/v1/users/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      } else {
+        setStats(null);
+      }
     } catch (err) {
       setError('שגיאה בטעינת נתוני צוות');
     } finally {
@@ -55,14 +48,14 @@ export function TeamOverviewWidget() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 animate-pulse">
         <CardHeader>
-          <div className="h-6 bg-zinc-200 dark:bg-zinc-700 rounded w-32" />
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32" />
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-20 bg-zinc-200 dark:bg-zinc-700 rounded" />
-            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-full" />
+            <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
           </div>
         </CardContent>
       </Card>
@@ -71,9 +64,9 @@ export function TeamOverviewWidget() {
 
   if (error || !stats) {
     return (
-      <Card className="border-red-200 dark:border-red-800">
+      <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <CardContent className="pt-6">
-          <div className="text-red-500 text-sm">{error || 'אין נתונים'}</div>
+          <div className="text-red-500 dark:text-red-400 text-sm">{error || 'אין נתונים'}</div>
         </CardContent>
       </Card>
     );
@@ -83,33 +76,35 @@ export function TeamOverviewWidget() {
     stats.activeToday > 0 ? (stats.submissionsToday / stats.activeToday).toFixed(1) : 0;
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Users className="w-5 h-5 text-primary" />
+          <span className="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+            <MaterialIcon name="group" size="md" className="text-purple-600 dark:text-purple-400" />
+          </span>
           סיכום צוות
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Total Users */}
-        <div className="text-center mb-4 pb-4 border-b border-border">
-          <div className="text-3xl font-bold text-foreground">{stats.totalUsers}</div>
-          <div className="text-sm text-muted-foreground">סה"כ משתמשים</div>
+        <div className="text-center mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+          <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.totalUsers}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">סה"כ משתמשים</div>
         </div>
 
         {/* Role Distribution */}
-        <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-border">
-          <div className="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <div className="font-bold text-red-600 dark:text-red-400">{stats.roleDistribution.admin}</div>
-            <div className="text-xs text-muted-foreground">Admin</div>
+        <div className="grid grid-cols-3 gap-2 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+          <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="font-bold text-gray-900 dark:text-gray-100">{stats.roleDistribution.admin}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Admin</div>
           </div>
-          <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="font-bold text-blue-600 dark:text-blue-400">{stats.roleDistribution.manager}</div>
-            <div className="text-xs text-muted-foreground">Manager</div>
+          <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="font-bold text-gray-900 dark:text-gray-100">{stats.roleDistribution.manager}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Manager</div>
           </div>
-          <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <div className="font-bold text-green-600 dark:text-green-400">{stats.roleDistribution.worker}</div>
-            <div className="text-xs text-muted-foreground">Worker</div>
+          <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="font-bold text-gray-900 dark:text-gray-100">{stats.roleDistribution.worker}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Worker</div>
           </div>
         </div>
 
@@ -118,19 +113,19 @@ export function TeamOverviewWidget() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm text-muted-foreground">פעילים היום</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">פעילים היום</span>
             </div>
-            <span className="font-semibold">{stats.activeToday}</span>
+            <span className="font-semibold text-gray-900 dark:text-gray-100">{stats.activeToday}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">הגשות היום</span>
+              <MaterialIcon name="activity" size="sm" className="text-gray-400 dark:text-gray-500" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">הגשות היום</span>
             </div>
-            <span className="font-semibold">
+            <span className="font-semibold text-gray-900 dark:text-gray-100">
               {stats.submissionsToday}{' '}
-              <span className="text-xs text-muted-foreground">(ממוצע: {avgSubmissionsPerPerson} לאיש)</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">(ממוצע: {avgSubmissionsPerPerson} לאיש)</span>
             </span>
           </div>
         </div>
@@ -138,11 +133,11 @@ export function TeamOverviewWidget() {
         {/* Manage Users Button */}
         <button
           onClick={() => navigate('/organization/users')}
-          className="w-full flex items-center justify-center gap-2 py-2.5 border border-border rounded-lg text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors text-gray-700 dark:text-gray-300"
         >
-          <UserCheck className="w-4 h-4" />
+          <MaterialIcon name="how_to_reg" size="sm" />
           ניהול משתמשים
-          <ChevronRight className="w-4 h-4 mr-auto rtl:mr-0 rtl:ml-auto" />
+          <MaterialIcon name="chevron_right" size="sm" className="mr-auto rtl:mr-0 rtl:ml-auto" />
         </button>
       </CardContent>
     </Card>

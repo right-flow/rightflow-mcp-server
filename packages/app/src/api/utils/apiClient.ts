@@ -145,9 +145,12 @@ class ApiClient {
     // Clear auth token
     localStorage.removeItem('authToken');
 
-    // Redirect to login page
+    // Redirect to sign-in page (only if not already there)
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      if (!currentPath.startsWith('/sign-in') && !currentPath.startsWith('/sign-up')) {
+        window.location.href = '/sign-in';
+      }
     }
   }
 
