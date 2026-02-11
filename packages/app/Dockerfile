@@ -46,6 +46,7 @@ RUN npm ci
 COPY api/ ./api/
 COPY backend/ ./backend/
 COPY packages/app/src/ ./packages/app/src/
+COPY packages/app/backend/ ./packages/app/backend/
 COPY tsconfig.json ./
 COPY tsconfig.api.json ./
 
