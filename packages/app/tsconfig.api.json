@@ -27,6 +27,7 @@
     "**/*.test.tsx",
     "node_modules",
     "dist",
-    "dist-api"
+    "dist-api",
+    "backend/**"
   ]
 }
