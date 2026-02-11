@@ -285,4 +285,55 @@ router.get('/webhooks', async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/v1/analytics/form-performance
+ * Form completion rates for dashboard widget
+ */
+router.get('/form-performance', async (req, res, next) => {
+  try {
+    const { organizationId } = req.user!;
+
+    // Get form performance - completion rates based on submissions
+    const formPerformance = await query<{
+      id: string;
+      name: string;
+      totalViews: string;
+      totalSubmissions: string;
+    }>(
+      `
+      SELECT
+        f.id,
+        f.name,
+        COALESCE(f.view_count, 0) as "totalViews",
+        COUNT(s.id) as "totalSubmissions"
+      FROM forms f
+      LEFT JOIN submissions s ON f.id = s.form_id AND s.deleted_at IS NULL
+      WHERE f.organization_id = $1
+        AND f.deleted_at IS NULL
+      GROUP BY f.id, f.name, f.view_count
+      ORDER BY COUNT(s.id) DESC
+      LIMIT 10
+    `,
+      [organizationId],
+    );
+
+    // Calculate completion rate (submissions / views * 100, max 100%)
+    const result = formPerformance.map((form) => {
+      const views = parseInt(form.totalViews) || 1; // Avoid division by zero
+      const submissions = parseInt(form.totalSubmissions) || 0;
+      const completionRate = Math.min(100, Math.round((submissions / views) * 100));
+
+      return {
+        id: form.id,
+        name: form.name,
+        completionRate,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
