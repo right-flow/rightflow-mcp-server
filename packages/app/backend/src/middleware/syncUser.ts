@@ -52,23 +52,27 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
         dbOrganizationId = existingUser[0].organization_id;
       } else {
         // User exists but has no organization - create one
+        // Include both clerk_org_id and clerk_organization_id for schema compatibility
+        const orgClerkId = clerkOrgId || `org_${dbUserId.substring(0, 8)}`;
         const orgResult = await query<{ id: string }>(
-          `INSERT INTO organizations (id, name, owner_id, clerk_org_id, tenant_type)
-           VALUES (gen_random_uuid(), $1, $2, $3, 'rightflow')
+          `INSERT INTO organizations (id, name, owner_id, clerk_org_id, clerk_organization_id, tenant_type)
+           VALUES (gen_random_uuid(), $1, $2, $3, $3, 'rightflow')
            RETURNING id`,
-          [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, clerkOrgId || 'default-org'],
+          [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, orgClerkId],
         );
         dbOrganizationId = orgResult[0]?.id;
 
-        // Update user with organization_id
+        // Update user with organization_id and set as admin (they're the owner)
         await query(
-          `UPDATE users SET organization_id = $1, updated_at = NOW() WHERE id = $2`,
+          `UPDATE users SET organization_id = $1, role = 'admin', updated_at = NOW() WHERE id = $2`,
           [dbOrganizationId, dbUserId],
         );
+        dbRole = 'admin'; // Override role since they're the org owner
 
         logger.info('Created organization for existing user', {
           userId: dbUserId,
           organizationId: dbOrganizationId,
+          role: 'admin',
         });
       }
 
@@ -96,11 +100,13 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       dbRole = 'admin';
 
       // Now create organization with the user as owner
+      // Include both clerk_org_id and clerk_organization_id for schema compatibility
+      const orgClerkId = clerkOrgId || `org_${dbUserId.substring(0, 8)}`;
       const orgResult = await query<{ id: string }>(
-        `INSERT INTO organizations (id, name, owner_id, clerk_org_id, tenant_type)
-         VALUES (gen_random_uuid(), $1, $2, $3, 'rightflow')
+        `INSERT INTO organizations (id, name, owner_id, clerk_org_id, clerk_organization_id, tenant_type)
+         VALUES (gen_random_uuid(), $1, $2, $3, $3, 'rightflow')
          RETURNING id`,
-        [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, clerkOrgId || 'default-org'],
+        [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, orgClerkId],
       );
       dbOrganizationId = orgResult[0]?.id;
 
