@@ -92,7 +92,6 @@ export const en: Translations = {
   loginLabel: 'Login',
   backToLanding: 'Back to home page for more info',
   backToHome: 'Back to home',
-  backToDashboard: 'Back to dashboard',
   pageNotFound: 'The page you were looking for was not found',
   getStarted: 'Get Started',
   heroTitle: 'Smart Forms are Here',

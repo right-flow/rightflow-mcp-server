@@ -360,7 +360,7 @@ router.patch('/:id', async (req, res, next) => {
 router.delete('/:id', requireRole('manager'), async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate UUID
     if (!z.string().uuid().safeParse(id).success) {

@@ -65,7 +65,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const workflow = await workflowService.getWorkflow(id, organizationId);
 
@@ -116,7 +116,7 @@ router.put(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId, id: userId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = validateRequest(updateWorkflowSchema, req.body);
 
       const workflow = await workflowService.updateWorkflow(
@@ -151,7 +151,7 @@ router.delete(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const success = await workflowService.archiveWorkflow(id, organizationId);
 
@@ -180,7 +180,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId, id: userId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const workflow = await workflowService.publishWorkflow(
         id,
@@ -216,7 +216,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId, id: userId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { name } = req.body;
 
       const workflow = await workflowService.duplicateWorkflow(
@@ -253,7 +253,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId, id: userId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = validateRequest(executeWorkflowSchema, req.body);
 
       const instance = await executionService.startWorkflow({
@@ -286,7 +286,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId } = req.params;
+      const workflowId = req.params.workflowId as string;
       const query = validateRequest(instanceListQuerySchema, req.query);
 
       const result = await executionService.listInstances({
@@ -311,7 +311,8 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
 
       const instance = await executionService.getInstance(
         instanceId,
@@ -342,7 +343,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
 
       const instance = await executionService.pauseInstance(
         instanceId,
@@ -377,7 +379,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
 
       const instance = await executionService.resumeInstance(
         instanceId,
@@ -412,7 +415,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
       const { reason } = req.body;
 
       const instance = await executionService.cancelInstance(
@@ -449,7 +453,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
 
       const instance = await executionService.retryInstance(
         instanceId,
@@ -488,7 +493,8 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { workflowId, instanceId } = req.params;
+      const workflowId = req.params.workflowId as string;
+      const instanceId = req.params.instanceId as string;
 
       const timeline = await executionService.getInstanceTimeline(
         instanceId,
@@ -515,7 +521,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const query = validateRequest(analyticsQuerySchema, req.query);
 
       const analytics = await workflowService.getAnalytics(
