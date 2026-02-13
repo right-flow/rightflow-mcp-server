@@ -1,11 +1,13 @@
 /**
  * HelpWidget Component
  * Always-available help widget for re-engagement and support
+ * Supports RTL/LTR positioning based on language
  * Date: 2026-02-06
  */
 
 import { useState, useEffect } from 'react';
 import { MaterialIcon } from '@/components/ui/MaterialIcon';
+import { useTranslation, useDirection } from '@/i18n/useTranslation';
 
 export interface HelpWidgetProps {
   onRestartTutorial?: () => void;
@@ -21,6 +23,9 @@ const analytics = {
 
 export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
 
   // ESC key handler
   useEffect(() => {
@@ -55,13 +60,17 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
     setIsOpen(false);
   };
 
+  // Dynamic positioning based on language direction
+  const buttonPositionClass = isRtl ? 'right-4' : 'left-4';
+  const panelPositionClass = isRtl ? 'right-0' : 'left-0';
+
   return (
     <>
       {/* Floating Help Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 left-4 w-12 h-12 bg-primary rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary/90 transition-colors"
-        aria-label="Help"
+        className={`fixed bottom-4 ${buttonPositionClass} w-12 h-12 bg-primary rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary/90 transition-colors`}
+        aria-label={t['help.title']}
       >
         <MaterialIcon name="help" size="lg" className="text-white" />
       </button>
@@ -78,20 +87,21 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
 
           {/* Side Panel */}
           <div
-            className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-zinc-900 shadow-xl z-50 overflow-y-auto"
+            className={`fixed inset-y-0 ${panelPositionClass} w-80 bg-white dark:bg-zinc-900 shadow-xl z-50 overflow-y-auto`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="help-panel-title"
+            dir={direction}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h2 id="help-panel-title" className="text-lg font-semibold text-foreground">
-                Need help?
+                {t['help.title']}
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1 hover:bg-secondary rounded transition-colors"
-                aria-label="Close"
+                aria-label={t.close}
               >
                 <MaterialIcon name="close" size="md" />
               </button>
@@ -105,7 +115,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                 className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <MaterialIcon name="refresh" size="sm" />
-                <span>Restart Tutorial</span>
+                <span>{t['help.restartTutorial']}</span>
               </button>
 
               {/* Separator */}
@@ -113,14 +123,14 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
 
               {/* Quick Links */}
               <div>
-                <h3 className="font-semibold mb-2 text-foreground">Quick Links</h3>
+                <h3 className="font-semibold mb-2 text-foreground">{t['help.quickLinks']}</h3>
                 <ul className="space-y-2">
                   <li>
                     <a
                       href="/docs/getting-started"
                       className="text-primary hover:underline text-sm"
                     >
-                      Getting Started Guide
+                      {t['help.gettingStartedGuide']}
                     </a>
                   </li>
                   <li>
@@ -128,7 +138,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                       href="/docs/templates"
                       className="text-primary hover:underline text-sm"
                     >
-                      Template Gallery
+                      {t['help.templateGallery']}
                     </a>
                   </li>
                   <li>
@@ -136,7 +146,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                       href="/docs/sharing"
                       className="text-primary hover:underline text-sm"
                     >
-                      How to Share Forms
+                      {t['help.howToShareForms']}
                     </a>
                   </li>
                   <li>
@@ -144,7 +154,7 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
                       href="/docs/analytics"
                       className="text-primary hover:underline text-sm"
                     >
-                      Understanding Analytics
+                      {t['help.understandingAnalytics']}
                     </a>
                   </li>
                 </ul>
@@ -155,10 +165,9 @@ export function HelpWidget({ onRestartTutorial }: HelpWidgetProps) {
 
               {/* Video Tutorials */}
               <div>
-                <h3 className="font-semibold mb-2 text-foreground">Video Tutorials</h3>
+                <h3 className="font-semibold mb-2 text-foreground">{t['help.videoTutorials']}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Coming soon! Check back for video guides on getting the most out of
-                  RightFlow.
+                  {t['help.videoTutorialsComingSoon']}
                 </p>
               </div>
             </div>

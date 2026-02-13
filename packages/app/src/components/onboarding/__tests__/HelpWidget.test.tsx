@@ -8,6 +8,23 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { HelpWidget } from '../HelpWidget';
 
+// Mock the useTranslation and useDirection hooks
+vi.mock('@/i18n/useTranslation', () => ({
+  useTranslation: () => ({
+    'help.title': 'Need help?',
+    'help.restartTutorial': 'Restart Tutorial',
+    'help.quickLinks': 'Quick Links',
+    'help.gettingStartedGuide': 'Getting Started Guide',
+    'help.templateGallery': 'Template Gallery',
+    'help.howToShareForms': 'How to Share Forms',
+    'help.understandingAnalytics': 'Understanding Analytics',
+    'help.videoTutorials': 'Video Tutorials',
+    'help.videoTutorialsComingSoon': 'Coming soon! Check back for video guides on getting the most out of RightFlow.',
+    close: 'Close',
+  }),
+  useDirection: () => 'ltr', // Default to LTR for tests
+}));
+
 describe('HelpWidget', () => {
   describe('Rendering', () => {
     test('renders floating help button', () => {
@@ -23,7 +40,7 @@ describe('HelpWidget', () => {
       expect(button).toBeInTheDocument();
     });
 
-    test('button positioned at bottom-left corner', () => {
+    test('button positioned at bottom-left corner (LTR mode)', () => {
       const { container } = render(<HelpWidget />);
       const button = container.querySelector('.fixed.bottom-4.left-4');
       expect(button).toBeInTheDocument();
@@ -251,7 +268,7 @@ describe('HelpWidget', () => {
       expect(button).toBeInTheDocument();
     });
 
-    test('panel slides in from left', async () => {
+    test('panel slides in from left (LTR mode)', async () => {
       render(<HelpWidget />);
 
       const helpButton = screen.getByRole('button', { name: /help/i });
@@ -354,6 +371,42 @@ describe('HelpWidget', () => {
       );
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('RTL Language Support', () => {
+    test('panel has dir attribute for text direction', async () => {
+      render(<HelpWidget />);
+
+      const helpButton = screen.getByRole('button', { name: /help/i });
+      fireEvent.click(helpButton);
+
+      await waitFor(() => {
+        const panel = screen.getByRole('dialog');
+        expect(panel).toHaveAttribute('dir');
+      });
+    });
+
+    test('uses translated text for help title', async () => {
+      render(<HelpWidget />);
+
+      const helpButton = screen.getByRole('button', { name: /help/i });
+      fireEvent.click(helpButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Need help?')).toBeInTheDocument();
+      });
+    });
+
+    test('uses translated text for restart tutorial button', async () => {
+      render(<HelpWidget />);
+
+      const helpButton = screen.getByRole('button', { name: /help/i });
+      fireEvent.click(helpButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Restart Tutorial')).toBeInTheDocument();
+      });
     });
   });
 });

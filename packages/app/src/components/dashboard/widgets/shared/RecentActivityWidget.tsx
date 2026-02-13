@@ -3,13 +3,14 @@
 // Updated: 2026-02-11 - Added i18n for demo data, loading state
 // Updated: 2026-02-11 - Fixed i18n: API now returns raw data, frontend handles formatting
 // Updated: 2026-02-11 - Fixed infinite loop, added 10-min refresh interval
+// Updated: 2026-02-12 - Added retry logic via useApiWithRetry hook
 // Purpose: Display recent activity feed (from Dashboard1.html)
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { useTranslation } from '../../../../i18n';
+import { useApiWithRetry } from '../../../../hooks/useApiWithRetry';
 
 // Refresh interval: 10 minutes
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
@@ -47,14 +48,21 @@ const iconColorClasses = {
 
 export function RecentActivityWidget({ className }: RecentActivityWidgetProps) {
   const t = useTranslation();
-  const { getToken } = useAuth();
+  const { fetchWithRetry, abortAll } = useApiWithRetry({ maxRetries: 3 });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const isMounted = useRef(true);
+  const hasLoadedRef = useRef(false);
 
-  // Get default demo activities (computed at render time, not in effect)
-  const getDefaultActivities = useCallback((): ActivityItem[] => [
+  // Store refs to avoid effect re-runs
+  const fetchWithRetryRef = useRef(fetchWithRetry);
+  const abortAllRef = useRef(abortAll);
+  fetchWithRetryRef.current = fetchWithRetry;
+  abortAllRef.current = abortAll;
+
+  // Get default demo activities
+  const getDefaultActivities = (): ActivityItem[] => [
     {
       id: '1',
       icon: 'description',
@@ -79,10 +87,10 @@ export function RecentActivityWidget({ className }: RecentActivityWidgetProps) {
       subtitle: t['dashboard.demo.activity.automationDetails'],
       time: '10:15',
     },
-  ], [t]);
+  ];
 
   // Format time ago
-  const formatTimeAgo = useCallback((createdAt: string): string => {
+  const formatTimeAgo = (createdAt: string): string => {
     const now = new Date();
     const created = new Date(createdAt);
     const diffMs = now.getTime() - created.getTime();
@@ -94,10 +102,10 @@ export function RecentActivityWidget({ className }: RecentActivityWidgetProps) {
     if (diffMins < 60) return t['dashboard.time.ago'].replace('{time}', `${diffMins} ${t['dashboard.time.mins']}`);
     if (diffHours < 24) return t['dashboard.time.ago'].replace('{time}', `${diffHours} ${t['dashboard.time.hours']}`);
     return t['dashboard.time.ago'].replace('{time}', `${diffDays} ${t['dashboard.time.days']}`);
-  }, [t]);
+  };
 
   // Transform API data to display format
-  const transformApiData = useCallback((item: ApiActivityItem): ActivityItem => {
+  const transformApiData = (item: ApiActivityItem): ActivityItem => {
     let icon: string;
     let iconColor: 'orange' | 'blue' | 'green' | 'purple';
     let titleKey: 'dashboard.activity.submitted' | 'dashboard.activity.approved' | 'dashboard.activity.rejected' | 'dashboard.activity.draft';
@@ -133,62 +141,56 @@ export function RecentActivityWidget({ className }: RecentActivityWidgetProps) {
       subtitle: `${item.userName || t['dashboard.activity.anonymousUser']} - ${formatTimeAgo(item.createdAt)}`,
       time: created.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
     };
-  }, [t, formatTimeAgo]);
+  };
 
-  // Load data function - separated from effect
-  const loadData = useCallback(async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-    setError(null);
+  // Initial load and refresh interval - runs ONCE on mount
+  useEffect(() => {
+    isMounted.current = true;
 
-    try {
-      const token = await getToken();
-      if (!token || !isMounted.current) {
-        if (isMounted.current) setActivities(getDefaultActivities());
-        return;
-      }
+    const loadData = async (showLoading = true) => {
+      if (showLoading) setIsLoading(true);
+      setError(null);
 
-      const response = await fetch('/api/v1/activity/recent', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        const data = await fetchWithRetryRef.current<ApiActivityItem[]>('/api/v1/activity/recent');
 
-      if (!isMounted.current) return;
+        if (!isMounted.current) return;
 
-      if (response.ok) {
-        const data: ApiActivityItem[] = await response.json();
         if (data && data.length > 0) {
           setActivities(data.map(transformApiData));
         } else {
           setActivities(getDefaultActivities());
         }
-      } else {
-        setActivities(getDefaultActivities());
+      } catch (err) {
+        // Don't log AbortError - it's expected on unmount
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Failed to load recent activity:', err);
+        if (isMounted.current) {
+          setError('Failed to load');
+          setActivities(getDefaultActivities());
+        }
+      } finally {
+        if (isMounted.current) setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load recent activity:', err);
-      if (isMounted.current) {
-        setError('Failed to load');
-        setActivities(getDefaultActivities());
-      }
-    } finally {
-      if (isMounted.current) setIsLoading(false);
-    }
-  }, [getToken, getDefaultActivities, transformApiData]);
+    };
 
-  // Initial load and refresh interval
-  useEffect(() => {
-    isMounted.current = true;
-    loadData();
+    // Only load once
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      loadData();
+    }
 
     // Set up refresh interval (10 minutes)
     const intervalId = setInterval(() => {
-      loadData(false); // Don't show loading on refresh
+      loadData(false);
     }, REFRESH_INTERVAL_MS);
 
     return () => {
       isMounted.current = false;
       clearInterval(intervalId);
+      abortAllRef.current();
     };
-  }, []); // Empty deps - only run once on mount
+  }, []); // Empty dependency array - runs once on mount
 
   return (
     <Card className={`bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 ${className || ''}`}>

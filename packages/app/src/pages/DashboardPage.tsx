@@ -8,7 +8,7 @@ import { AdminDashboard } from '../components/dashboard/layouts/AdminDashboard';
 import { ManagerDashboard } from '../components/dashboard/layouts/ManagerDashboard';
 import { WorkerDashboard } from '../components/dashboard/layouts/WorkerDashboard';
 import { HelpWidget } from '../components/onboarding/HelpWidget';
-import { SmartUpgradeManager } from '../components/onboarding/SmartUpgradeManager';
+// SmartUpgradeManager is commented out - see TODO in DashboardContent component
 import { useTranslation } from '../i18n';
 
 /**
@@ -111,10 +111,9 @@ function DashboardContent() {
       case 'manager':
         return <ManagerDashboard />;
       case 'worker':
-        return <WorkerDashboard />;
       default:
-        // Fallback to Admin dashboard if role is unknown
-        return <AdminDashboard />;
+        // Default to Worker dashboard for unknown roles (most restrictive)
+        return <WorkerDashboard />;
     }
   };
 
