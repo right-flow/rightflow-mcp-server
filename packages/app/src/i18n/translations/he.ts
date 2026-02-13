@@ -92,7 +92,6 @@ export const he: Translations = {
   loginLabel: 'התחברות',
   backToLanding: 'חזרה לדף הבית למידע נוסף',
   backToHome: 'חזרה לדף הבית',
-  backToDashboard: 'חזרה לדשבורד',
   pageNotFound: 'הדף שחיפשת לא נמצא',
   getStarted: 'התחילו עכשיו',
   heroTitle: 'הטפסים החכמים כבר כאן',

@@ -92,7 +92,6 @@ export const ar: Translations = {
   loginLabel: 'تسجيل الدخول',
   backToLanding: 'العودة إلى الصفحة الرئيسية لمزيد من المعلومات',
   backToHome: 'العودة إلى الصفحة الرئيسية',
-  backToDashboard: 'العودة إلى لوحة التحكم',
   pageNotFound: 'الصفحة التي تبحث عنها غير موجودة',
   getStarted: 'ابدأ الآن',
   heroTitle: 'النماذج الذكية وصلت',

@@ -81,10 +81,8 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const channel = await channelService.getByIdForOrg(
-        req.params.id,
-        organizationId,
-      );
+      const id = req.params.id as string;
+      const channel = await channelService.getByIdForOrg(id, organizationId);
       res.json({ data: channel });
     } catch (error) {
       next(error);
@@ -97,7 +95,8 @@ router.delete(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      await channelService.disconnect(req.params.id, organizationId);
+      const id = req.params.id as string;
+      await channelService.disconnect(id, organizationId);
       res.json({ message: 'הערוץ נותק בהצלחה' });
     } catch (error) {
       next(error);
@@ -112,10 +111,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const qr = await channelService.getQrCode(
-        req.params.id,
-        organizationId,
-      );
+      const id = req.params.id as string;
+      const qr = await channelService.getQrCode(id, organizationId);
       res.json({ data: qr });
     } catch (error) {
       next(error);
@@ -128,10 +125,8 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { organizationId } = req.user!;
-      const channel = await channelService.refreshStatus(
-        req.params.id,
-        organizationId,
-      );
+      const id = req.params.id as string;
+      const channel = await channelService.refreshStatus(id, organizationId);
       res.json({ data: channel });
     } catch (error) {
       next(error);

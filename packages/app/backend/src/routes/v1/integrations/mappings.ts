@@ -175,7 +175,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { organizationId } = req.user!;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate UUID format
     if (!z.string().uuid().safeParse(id).success) {
@@ -198,7 +198,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { organizationId } = req.user!;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate UUID format
     if (!z.string().uuid().safeParse(id).success) {
@@ -219,7 +219,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
 router.post('/:id/preview', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { organizationId } = req.user!;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate UUID format
     if (!z.string().uuid().safeParse(id).success) {
