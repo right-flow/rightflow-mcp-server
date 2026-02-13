@@ -5,12 +5,20 @@
 
 import { useEffect } from 'react';
 import { ClerkProvider } from '@clerk/clerk-react';
+import { heIL, arSA, enUS } from '@clerk/localizations';
 import { Router } from './Router';
 import { PWAInstallPrompt } from './pwa/PWAInstallPrompt';
 import { IOSInstallBanner } from './pwa/IOSInstallBanner';
 import { syncManager } from './sync/syncManager';
 import { db } from './db/indexedDB';
 import { useAppStore } from './store/appStore';
+
+// Map app language to Clerk localization
+const clerkLocalizations = {
+  he: heIL,
+  ar: arSA,
+  en: enUS,
+} as const;
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -57,6 +65,7 @@ function App() {
       publishableKey={CLERK_PUBLISHABLE_KEY || ''}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
+      localization={clerkLocalizations[language]}
       appearance={{
         layout: {
           socialButtonsPlacement: 'bottom',

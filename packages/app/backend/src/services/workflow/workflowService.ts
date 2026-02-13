@@ -44,8 +44,8 @@ export async function listWorkflows(params: {
   }
 
   // Get total count
-  const countResult = await query.clone().count('* as total').first();
-  const total = parseInt(countResult?.total || '0');
+  const countResult = await query.clone().count('* as total').first() as { total?: string | number } | undefined;
+  const total = parseInt(String(countResult?.total || '0'));
 
   // Get paginated results
   const workflows = await query
@@ -238,9 +238,9 @@ export async function archiveWorkflow(
     .where('workflow_id', id)
     .whereIn('status', ['running', 'paused', 'waiting'])
     .count('* as count')
-    .first();
+    .first() as { count?: string | number } | undefined;
 
-  if (activeInstances && parseInt(activeInstances.count) > 0) {
+  if (activeInstances && parseInt(String(activeInstances.count)) > 0) {
     throw new WorkflowValidationError(
       'Cannot archive workflow with active instances'
     );
@@ -382,6 +382,15 @@ export async function getAnalytics(
     .orderBy('date', 'asc');
 
   // Get instance statistics
+  interface InstanceStatsResult {
+    total_executions?: string | number;
+    completed?: string | number;
+    failed?: string | number;
+    cancelled?: string | number;
+    avg_duration?: string | number;
+    min_duration?: string | number;
+    max_duration?: string | number;
+  }
   const instanceStats = await db('workflow_instances')
     .where('workflow_id', workflowId)
     .whereBetween('started_at', [from, to])
@@ -394,7 +403,7 @@ export async function getAnalytics(
       db.raw('MIN(execution_time_ms) as min_duration'),
       db.raw('MAX(execution_time_ms) as max_duration')
     )
-    .first();
+    .first() as InstanceStatsResult | undefined;
 
   // Get bottleneck analysis
   const bottlenecks = await db('workflow_history')
@@ -415,20 +424,20 @@ export async function getAnalytics(
     workflowId,
     period: { from, to },
     metrics: {
-      totalExecutions: parseInt(instanceStats?.total_executions || '0'),
-      completedExecutions: parseInt(instanceStats?.completed || '0'),
-      failedExecutions: parseInt(instanceStats?.failed || '0'),
-      cancelledExecutions: parseInt(instanceStats?.cancelled || '0'),
-      averageDuration: parseFloat(instanceStats?.avg_duration || '0'),
-      minDuration: parseFloat(instanceStats?.min_duration || '0'),
-      maxDuration: parseFloat(instanceStats?.max_duration || '0'),
+      totalExecutions: parseInt(String(instanceStats?.total_executions || '0')),
+      completedExecutions: parseInt(String(instanceStats?.completed || '0')),
+      failedExecutions: parseInt(String(instanceStats?.failed || '0')),
+      cancelledExecutions: parseInt(String(instanceStats?.cancelled || '0')),
+      averageDuration: parseFloat(String(instanceStats?.avg_duration || '0')),
+      minDuration: parseFloat(String(instanceStats?.min_duration || '0')),
+      maxDuration: parseFloat(String(instanceStats?.max_duration || '0')),
       completionRate: instanceStats?.total_executions
-        ? (parseInt(instanceStats.completed) / parseInt(instanceStats.total_executions)) * 100
+        ? (parseInt(String(instanceStats.completed)) / parseInt(String(instanceStats.total_executions))) * 100
         : 0,
-      bottlenecks: bottlenecks.map(b => ({
+      bottlenecks: (bottlenecks as any[]).map(b => ({
         nodeId: b.node_id,
-        averageWaitTime: parseFloat(b.avg_duration || '0'),
-        failureRate: b.executions ? (parseInt(b.failures) / parseInt(b.executions)) * 100 : 0
+        averageWaitTime: parseFloat(String(b.avg_duration || '0')),
+        failureRate: b.executions ? (parseInt(String(b.failures)) / parseInt(String(b.executions))) * 100 : 0
       }))
     },
     timeline: analytics.map((a: any) => ({

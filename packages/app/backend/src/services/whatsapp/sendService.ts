@@ -32,12 +32,96 @@ interface MessageLogEntry {
   id: string;
 }
 
+interface SendMessageInput {
+  channelId: string;
+  recipientPhone: string;
+  message: string;
+  mediaUrl?: string;
+  organizationId?: string;
+}
+
 // ── Client Instance ───────────────────────────────────────────────
 
 const wahaClient = new WahaClient(
   config.WAHA_API_URL,
   config.WAHA_API_KEY,
 );
+
+// ── Generic Send Message ──────────────────────────────────────────
+
+/**
+ * Send a generic WhatsApp message (text or with media)
+ * Used by workflow ActionExecutor
+ */
+export async function sendMessage(
+  input: SendMessageInput,
+): Promise<MessageLogEntry> {
+  const { channelId, recipientPhone, message, mediaUrl, organizationId } = input;
+
+  // Get channel - for workflow usage, we may not have organizationId
+  // In that case, we'll try to get the channel directly
+  let channel;
+  if (organizationId) {
+    channel = await getByIdForOrg(channelId, organizationId);
+  } else {
+    // Direct query without org check (for internal workflow usage)
+    const rows = await query(
+      'SELECT * FROM whatsapp_channels WHERE id = $1',
+      [channelId],
+    );
+    channel = rows[0];
+  }
+
+  if (!channel) {
+    throw new ValidationError('WhatsApp channel not found');
+  }
+
+  if (channel.status !== 'WORKING') {
+    throw new ValidationError('WhatsApp channel is not active');
+  }
+
+  const chatId = formatPhoneNumber(recipientPhone);
+
+  try {
+    let result;
+    if (mediaUrl) {
+      // Send message with media
+      result = await wahaClient.sendFile(
+        channel.sessionName,
+        chatId,
+        {
+          data: mediaUrl,
+          filename: 'media',
+          mimetype: 'application/octet-stream',
+        },
+        message,
+      );
+    } else {
+      // Send text message
+      result = await wahaClient.sendText(
+        channel.sessionName,
+        chatId,
+        message,
+      );
+    }
+
+    logger.info('Message sent via WhatsApp', {
+      channelId,
+      recipient: chatId,
+      hasMedia: !!mediaUrl,
+      wahaMessageId: result.id,
+    });
+
+    return { id: result.id };
+  } catch (error) {
+    logger.error('Failed to send WhatsApp message', {
+      channelId,
+      recipient: chatId,
+      error: (error as Error).message,
+    });
+    throw error;
+  }
+}
 
 // ── Flow 1: Send Form Link ────────────────────────────────────────
 

@@ -102,7 +102,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       formId: mappingData.formId,
       formField: mappingData.formField,
       connectorField: mappingData.connectorField,
-      transforms: mappingData.transforms || [],
+      transforms: (mappingData.transforms || []) as any,
       required: mappingData.required || false,
       defaultValue: mappingData.defaultValue || null,
     });
@@ -154,7 +154,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { organizationId } = req.user!;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Validate UUID format
     if (!z.string().uuid().safeParse(id).success) {
@@ -184,7 +184,7 @@ router.patch('/:id', async (req: Request, res: Response, next: NextFunction) => 
 
     const updateData = validateRequest(updateMappingSchema, req.body);
 
-    const mapping = await fieldMappingService.update(id, organizationId, updateData);
+    const mapping = await fieldMappingService.update(id, organizationId, updateData as any);
     res.json(mapping);
   } catch (error) {
     next(error);
