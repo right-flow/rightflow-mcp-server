@@ -3,7 +3,10 @@
   "build": {
     "builder": "DOCKERFILE",
     "dockerfilePath": "packages/app/Dockerfile",
-    "buildContext": "."
+    "buildContext": ".",
+    "buildArgs": {
+      "FORCE_REBUILD": "20260213-153000"
+    }
   },
   "deploy": {
     "numReplicas": 1,
