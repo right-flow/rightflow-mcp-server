@@ -338,4 +338,221 @@ router.get('/webhooks', async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/v1/analytics/team-performance
+ * Team performance metrics for manager dashboard
+ */
+router.get('/team-performance', async (req, res, next) => {
+  try {
+    const { organizationId } = req.user!;
+
+    // Get team members with their submission counts (last 30 days)
+    const teamPerformance = await query<{
+      userId: string;
+      userName: string | null;
+      email: string;
+      totalSubmissions: string;
+      approvedSubmissions: string;
+      pendingSubmissions: string;
+    }>(
+      `
+      SELECT
+        u.id AS "userId",
+        u.name AS "userName",
+        u.email,
+        COUNT(s.id) FILTER (WHERE s.created_at >= NOW() - INTERVAL '30 days') AS "totalSubmissions",
+        COUNT(s.id) FILTER (WHERE s.status = 'approved' AND s.created_at >= NOW() - INTERVAL '30 days') AS "approvedSubmissions",
+        COUNT(s.id) FILTER (WHERE s.status IN ('submitted', 'draft') AND s.created_at >= NOW() - INTERVAL '30 days') AS "pendingSubmissions"
+      FROM users u
+      LEFT JOIN submissions s ON s.submitted_by_id = u.id AND s.deleted_at IS NULL
+      WHERE u.organization_id = $1
+        AND u.deleted_at IS NULL
+        AND u.role = 'worker'
+      GROUP BY u.id, u.name, u.email
+      ORDER BY COUNT(s.id) DESC
+      LIMIT 20
+    `,
+      [organizationId],
+    );
+
+    // Calculate team totals
+    const totals = teamPerformance.reduce(
+      (acc, member) => ({
+        totalSubmissions: acc.totalSubmissions + parseInt(member.totalSubmissions || '0'),
+        approvedSubmissions: acc.approvedSubmissions + parseInt(member.approvedSubmissions || '0'),
+        pendingSubmissions: acc.pendingSubmissions + parseInt(member.pendingSubmissions || '0'),
+      }),
+      { totalSubmissions: 0, approvedSubmissions: 0, pendingSubmissions: 0 },
+    );
+
+    // Find top performer
+    const topPerformer = teamPerformance.length > 0
+      ? {
+          userId: teamPerformance[0].userId,
+          name: teamPerformance[0].userName || teamPerformance[0].email,
+          submissions: parseInt(teamPerformance[0].totalSubmissions || '0'),
+        }
+      : null;
+
+    res.json({
+      totals,
+      topPerformer,
+      avgPerPerson: teamPerformance.length > 0
+        ? Math.round(totals.totalSubmissions / teamPerformance.length)
+        : 0,
+      members: teamPerformance.map((member) => ({
+        userId: member.userId,
+        name: member.userName || member.email,
+        email: member.email,
+        totalSubmissions: parseInt(member.totalSubmissions || '0'),
+        approvedSubmissions: parseInt(member.approvedSubmissions || '0'),
+        pendingSubmissions: parseInt(member.pendingSubmissions || '0'),
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/v1/analytics/dashboard-stats
+ * Quick stats for dashboard overview cards (StatsGrid)
+ */
+router.get('/dashboard-stats', async (req, res, next) => {
+  try {
+    const { organizationId } = req.user!;
+
+    // Get statistics in parallel
+    const [
+      currentMonthSubmissions,
+      lastMonthSubmissions,
+      currentMonthApproved,
+      lastMonthApproved,
+      totalForms,
+      activeUsers,
+    ] = await Promise.all([
+      // Current month submissions
+      query<{ count: string }>(
+        `
+        SELECT COUNT(*) as count
+        FROM submissions
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND created_at >= DATE_TRUNC('month', NOW())
+        `,
+        [organizationId],
+      ),
+
+      // Last month submissions (for trend calculation)
+      query<{ count: string }>(
+        `
+        SELECT COUNT(*) as count
+        FROM submissions
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND created_at >= DATE_TRUNC('month', NOW() - INTERVAL '1 month')
+          AND created_at < DATE_TRUNC('month', NOW())
+        `,
+        [organizationId],
+      ),
+
+      // Current month approved (completion rate)
+      query<{ count: string }>(
+        `
+        SELECT COUNT(*) as count
+        FROM submissions
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND status IN ('approved', 'submitted')
+          AND created_at >= DATE_TRUNC('month', NOW())
+        `,
+        [organizationId],
+      ),
+
+      // Last month approved (for trend)
+      query<{ count: string }>(
+        `
+        SELECT COUNT(*) as count
+        FROM submissions
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND status IN ('approved', 'submitted')
+          AND created_at >= DATE_TRUNC('month', NOW() - INTERVAL '1 month')
+          AND created_at < DATE_TRUNC('month', NOW())
+        `,
+        [organizationId],
+      ),
+
+      // Total active forms
+      query<{ count: string }>(
+        `
+        SELECT COUNT(*) as count
+        FROM forms
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND is_active = true
+        `,
+        [organizationId],
+      ),
+
+      // Active users (submitted in last 30 days)
+      query<{ count: string }>(
+        `
+        SELECT COUNT(DISTINCT submitted_by_id) as count
+        FROM submissions
+        WHERE organization_id = $1
+          AND deleted_at IS NULL
+          AND created_at >= NOW() - INTERVAL '30 days'
+        `,
+        [organizationId],
+      ),
+    ]);
+
+    const currentSubmissions = parseInt(currentMonthSubmissions[0]?.count || '0');
+    const lastSubmissions = parseInt(lastMonthSubmissions[0]?.count || '0');
+    const currentApproved = parseInt(currentMonthApproved[0]?.count || '0');
+    const lastApproved = parseInt(lastMonthApproved[0]?.count || '0');
+
+    // Calculate trends (percentage change)
+    const submissionsTrend = lastSubmissions > 0
+      ? Math.round(((currentSubmissions - lastSubmissions) / lastSubmissions) * 100)
+      : currentSubmissions > 0 ? 100 : 0;
+
+    const completionRate = currentSubmissions > 0
+      ? Math.round((currentApproved / currentSubmissions) * 100)
+      : 0;
+
+    const lastCompletionRate = lastSubmissions > 0
+      ? Math.round((lastApproved / lastSubmissions) * 100)
+      : 0;
+
+    const completionTrend = lastCompletionRate > 0
+      ? completionRate - lastCompletionRate
+      : completionRate > 0 ? completionRate : 0;
+
+    res.json({
+      monthlySubmissions: {
+        value: currentSubmissions,
+        trend: submissionsTrend,
+        label: 'הגשות החודש',
+      },
+      completionRate: {
+        value: completionRate,
+        trend: completionTrend,
+        label: 'אחוז השלמה',
+      },
+      activeForms: {
+        value: parseInt(totalForms[0]?.count || '0'),
+        label: 'טפסים פעילים',
+      },
+      activeUsers: {
+        value: parseInt(activeUsers[0]?.count || '0'),
+        label: 'משתמשים פעילים',
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
