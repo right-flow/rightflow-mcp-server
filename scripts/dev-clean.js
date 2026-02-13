@@ -14,9 +14,10 @@ const isWindows = process.platform === 'win32';
 async function startDev() {
   console.log('🧹 RightFlow Clean Dev Starter\n');
 
-  // Step 1: Kill existing processes on 3000, 3002, 3003
+  // Step 1: Kill existing processes on 3000, 3002 only
+  // Note: Do NOT kill 3003 - the backend may already be running separately
   const killPortsCustom = async () => {
-    const ports = [3000, 3002, 3003];
+    const ports = [3000, 3002];
     console.log('🔍 Checking for processes on ports:', ports.join(', '));
     let killedCount = 0;
 
@@ -61,34 +62,59 @@ async function startDev() {
 
   console.log('🚀 Starting development servers...\n');
 
-  // Step 2: Start WhatsApp Backend (port 3003)
-  console.log('📱 Starting WhatsApp Backend (port 3003)...');
-  const whatsappBackend = spawn(
-    isWindows ? 'npm.cmd' : 'npm',
-    ['run', 'dev'],
-    {
-      cwd: 'packages/app/backend',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      shell: true,
+  // Step 2: Check if WhatsApp Backend is already running on port 3003
+  const isPort3003InUse = await (async () => {
+    try {
+      if (isWindows) {
+        const { stdout } = await import('child_process').then(m =>
+          new Promise((resolve, reject) => {
+            m.exec(`netstat -ano | findstr ":3003"`, (err, stdout) => {
+              if (err && !stdout) resolve({ stdout: '' });
+              else resolve({ stdout });
+            });
+          })
+        );
+        return stdout.includes('LISTENING');
+      }
+      return false;
+    } catch {
+      return false;
     }
-  );
+  })();
 
-  whatsappBackend.stdout.on('data', (data) => {
-    const output = data.toString();
-    if (output.includes('Server running') || output.includes('Connected')) {
-      process.stdout.write(`[WhatsApp] ${output}`);
-    }
-  });
+  let whatsappBackend = null;
 
-  whatsappBackend.stderr.on('data', (data) => {
-    const output = data.toString();
-    if (!output.includes('nodemon')) { // Skip nodemon noise
-      process.stderr.write(`[WhatsApp] ${data}`);
-    }
-  });
+  if (isPort3003InUse) {
+    console.log('📱 WhatsApp Backend already running on port 3003 (skipping start)\n');
+  } else {
+    console.log('📱 Starting WhatsApp Backend (port 3003)...');
+    whatsappBackend = spawn(
+      isWindows ? 'npm.cmd' : 'npm',
+      ['run', 'dev'],
+      {
+        cwd: 'packages/app/backend',
+        stdio: ['ignore', 'pipe', 'pipe'],
+        shell: true,
+      }
+    );
 
-  // Wait for WhatsApp backend to start
-  await new Promise(resolve => setTimeout(resolve, 3000));
+    whatsappBackend.stdout.on('data', (data) => {
+      const output = data.toString();
+      if (output.includes('Server running') || output.includes('Connected')) {
+        process.stdout.write(`[WhatsApp] ${output}`);
+      }
+    });
+
+    whatsappBackend.stderr.on('data', (data) => {
+      const output = data.toString();
+      if (!output.includes('nodemon')) { // Skip nodemon noise
+        process.stderr.write(`[WhatsApp] ${data}`);
+      }
+    });
+
+    // Wait for WhatsApp backend to start
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
 
   // Step 3: Start dev-server.mjs (API + Vite on ports 3002 + 3000)
   console.log('📦 Starting Dev Server (API + Frontend on 3002 + 3000)...\n');
@@ -107,7 +133,7 @@ async function startDev() {
   // Handle graceful shutdown
   const cleanup = () => {
     console.log('\n\n👋 Shutting down servers...');
-    whatsappBackend.kill('SIGTERM');
+    if (whatsappBackend) whatsappBackend.kill('SIGTERM');
     backend.kill('SIGTERM');
     if (frontend) frontend.kill('SIGTERM');
     process.exit(0);
