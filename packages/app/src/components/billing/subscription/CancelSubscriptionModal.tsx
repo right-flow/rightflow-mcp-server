@@ -3,6 +3,7 @@
 // Purpose: Confirmation modal for subscription cancellation
 
 import React, { useState } from 'react';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface CancelSubscriptionModalProps {
   isOpen: boolean;
@@ -25,6 +26,11 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
   effectiveDate,
   loading = false,
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+  const locale = isRtl ? 'he-IL' : 'en-US';
+
   const [confirmChecked, setConfirmChecked] = useState(false);
 
   if (!isOpen) return null;
@@ -42,7 +48,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
     }
   };
 
-  const formattedDate = new Date(effectiveDate).toLocaleDateString('en-US', {
+  const formattedDate = new Date(effectiveDate).toLocaleDateString(locale, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -63,6 +69,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
         role="dialog"
         aria-modal="true"
         aria-labelledby="cancel-modal-title"
+        dir={direction}
       >
         <div className="flex min-h-full items-center justify-center p-4">
           <div
@@ -91,9 +98,9 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                   </div>
                   <div>
                     <h2 id="cancel-modal-title" className="text-xl font-bold text-gray-900">
-                      Cancel Subscription
+                      {t['billing.cancel.title']}
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">{planName} Plan</p>
+                    <p className="text-sm text-gray-500 mt-1">{(t['billing.cancel.planLabel'] as string).replace('{plan}', planName)}</p>
                   </div>
                 </div>
 
@@ -102,7 +109,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                   <button
                     onClick={handleClose}
                     className="text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Close modal"
+                    aria-label={t['billing.cancel.closeModal'] as string}
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -122,7 +129,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
               {/* Warning Message */}
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-900 font-medium">
-                  Are you sure you want to cancel your subscription?
+                  {t['billing.cancel.confirmQuestion']}
                 </p>
               </div>
 
@@ -144,7 +151,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                   </svg>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      Your subscription will remain active until:
+                      {t['billing.cancel.activeUntil']}
                     </p>
                     <p className="text-sm text-gray-700 mt-1">{formattedDate}</p>
                   </div>
@@ -166,7 +173,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                   </svg>
                   <div>
                     <p className="text-sm text-gray-700">
-                      You'll retain access to all features until the end of your billing period
+                      {t['billing.cancel.retainAccess']}
                     </p>
                   </div>
                 </div>
@@ -187,8 +194,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                   </svg>
                   <div>
                     <p className="text-sm text-gray-700">
-                      After cancellation, your data will be preserved for 30 days in case you want
-                      to reactivate
+                      {t['billing.cancel.dataPreserved']}
                     </p>
                   </div>
                 </div>
@@ -197,7 +203,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
               {/* What You'll Lose */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                  What you'll lose after {formattedDate}:
+                  {(t['billing.cancel.whatYouLose'] as string).replace('{date}', formattedDate)}
                 </h3>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2 text-sm text-gray-700">
@@ -214,7 +220,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                    <span>Access to all forms and submissions</span>
+                    <span>{t['billing.cancel.loseForms']}</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-gray-700">
                     <svg
@@ -230,7 +236,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                    <span>Team member access</span>
+                    <span>{t['billing.cancel.loseTeam']}</span>
                   </li>
                   <li className="flex items-start gap-2 text-sm text-gray-700">
                     <svg
@@ -246,7 +252,7 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                         d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                    <span>Premium support</span>
+                    <span>{t['billing.cancel.loseSupport']}</span>
                   </li>
                 </ul>
               </div>
@@ -262,21 +268,20 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                     className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
                   />
                   <span className="text-sm text-gray-900">
-                    I understand that my subscription will be cancelled and I will lose access after{' '}
-                    <span className="font-semibold">{formattedDate}</span>
+                    {(t['billing.cancel.confirmCheckbox'] as string).replace('{date}', formattedDate)}
                   </span>
                 </label>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+            <div className={`px-6 py-4 bg-gray-50 border-t border-gray-200 flex ${isRtl ? 'justify-start' : 'justify-end'} gap-3`}>
               <button
                 onClick={handleClose}
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Keep Subscription
+                {t['billing.cancel.keepSubscription']}
               </button>
               <button
                 onClick={handleConfirm}
@@ -304,10 +309,10 @@ export const CancelSubscriptionModal: React.FC<CancelSubscriptionModalProps> = (
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Cancelling...
+                    {t['billing.cancel.cancelling']}
                   </>
                 ) : (
-                  'Yes, Cancel Subscription'
+                  t['billing.cancel.confirmButton']
                 )}
               </button>
             </div>

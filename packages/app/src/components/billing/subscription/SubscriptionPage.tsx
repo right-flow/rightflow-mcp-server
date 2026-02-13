@@ -7,6 +7,7 @@ import { useBilling } from '../../../contexts/BillingContext';
 import { useToast } from '../../../hooks/useToast';
 import { PlanName, DowngradeResult } from '../../../api/types';
 import { requiresDowngradeConfirmation } from '../../../api/billingApi';
+import { useTranslation } from '../../../i18n';
 
 import { SubscriptionCard } from './SubscriptionCard';
 import { PlanComparisonModal } from './PlanComparisonModal';
@@ -19,6 +20,7 @@ import { ToastContainer } from '../common';
  * Manages subscription state and modal flows
  */
 export const SubscriptionPage: React.FC = () => {
+  const t = useTranslation();
   const { subscription, plans, loading, upgradeSubscription, downgradeSubscription, cancelSubscription } = useBilling();
   const { success, error: showError } = useToast();
 
@@ -72,9 +74,9 @@ export const SubscriptionPage: React.FC = () => {
       setIsUpgrading(true);
       await upgradeSubscription(targetPlan);
       setShowPlanModal(false);
-      success(`Successfully upgraded to ${targetPlan} plan!`);
+      success((t['billing.subscription.upgradedSuccess'] as string).replace('{plan}', targetPlan));
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to upgrade subscription');
+      showError(err instanceof Error ? err.message : t['billing.subscription.failedUpgrade']);
     } finally {
       setIsUpgrading(false);
     }
@@ -105,10 +107,10 @@ export const SubscriptionPage: React.FC = () => {
       } else {
         // No forms to archive - downgrade completed
         setShowPlanModal(false);
-        success(`Successfully downgraded to ${targetPlan} plan!`);
+        success((t['billing.subscription.downgradedSuccess'] as string).replace('{plan}', targetPlan));
       }
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to downgrade subscription');
+      showError(err instanceof Error ? err.message : t['billing.subscription.failedDowngrade']);
     } finally {
       setIsDowngrading(false);
     }
@@ -129,14 +131,14 @@ export const SubscriptionPage: React.FC = () => {
       if (result.success) {
         setShowDowngradeModal(false);
         setDowngradeData(null);
-        success(
-          `Successfully downgraded to ${downgradeData.targetPlan} plan. ${downgradeData.formsToArchiveCount} forms archived.`
-        );
+        const msg = (t['billing.subscription.downgradedSuccess'] as string).replace('{plan}', downgradeData.targetPlan) +
+          ' ' + (t['billing.subscription.formsArchived'] as string).replace('{count}', String(downgradeData.formsToArchiveCount));
+        success(msg);
       } else {
-        showError(result.error || 'Failed to downgrade subscription');
+        showError(result.error || t['billing.subscription.failedDowngrade']);
       }
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to downgrade subscription');
+      showError(err instanceof Error ? err.message : t['billing.subscription.failedDowngrade']);
     } finally {
       setIsDowngrading(false);
     }
@@ -152,10 +154,10 @@ export const SubscriptionPage: React.FC = () => {
 
       if (result.success) {
         setShowCancelModal(false);
-        success('Subscription cancelled. You will retain access until the end of your billing period.');
+        success(t['billing.subscription.cancelledSuccess']);
       }
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to cancel subscription');
+      showError(err instanceof Error ? err.message : t['billing.subscription.failedCancel']);
     } finally {
       setIsCancelling(false);
     }
@@ -165,9 +167,9 @@ export const SubscriptionPage: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Subscription Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t['billing.subscription.title']}</h1>
         <p className="text-gray-600 mt-2">
-          Manage your subscription plan, view features, and update billing settings
+          {t['billing.subscription.description']}
         </p>
       </div>
 

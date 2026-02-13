@@ -3,14 +3,15 @@
 // Purpose: Layout wrapper with navigation for billing pages
 
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface BillingLayoutProps {
   className?: string;
 }
 
 interface NavItem {
-  name: string;
+  nameKey: string;
   path: string;
   icon: React.ReactNode;
 }
@@ -20,9 +21,14 @@ interface NavItem {
  * Provides navigation tabs and container for billing pages
  */
 export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+  const navigate = useNavigate();
+
   const navItems: NavItem[] = [
     {
-      name: 'Subscription',
+      nameKey: 'billing.nav.subscription',
       path: '/billing/subscription',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -36,7 +42,7 @@ export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) 
       ),
     },
     {
-      name: 'Usage',
+      nameKey: 'billing.nav.usage',
       path: '/billing/usage',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -50,7 +56,7 @@ export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) 
       ),
     },
     {
-      name: 'History',
+      nameKey: 'billing.nav.history',
       path: '/billing/history',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -66,12 +72,31 @@ export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) 
   ];
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
+    <div className={`min-h-screen bg-gray-50 ${className}`} dir={direction}>
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Billing & Subscription</h1>
+            <div className={`flex items-center ${isRtl ? 'gap-x-4' : 'gap-x-4'}`}>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`flex items-center text-gray-600 hover:text-gray-900 transition-colors ${isRtl ? 'flex-row-reverse' : ''}`}
+                aria-label={t.backToDashboard}
+              >
+                <svg
+                  className={`w-5 h-5 ${isRtl ? 'rotate-180 ml-1' : 'mr-1'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm font-medium">{t.backToDashboard}</span>
+              </button>
+              <div className={`h-6 w-px bg-gray-300 ${isRtl ? 'mr-2' : 'ml-2'}`} />
+              <h1 className="text-2xl font-bold text-gray-900">{t['billing.title']}</h1>
+            </div>
           </div>
         </div>
       </div>
@@ -79,7 +104,7 @@ export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) 
       {/* Navigation tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8" aria-label="Billing navigation">
+          <nav className={`flex ${isRtl ? 'space-x-reverse space-x-8' : 'space-x-8'}`} aria-label="Billing navigation">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -95,13 +120,13 @@ export const BillingLayout: React.FC<BillingLayoutProps> = ({ className = '' }) 
                 {({ isActive }) => (
                   <>
                     <span
-                      className={`mr-2 ${
+                      className={`${isRtl ? 'ml-2' : 'mr-2'} ${
                         isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'
                       }`}
                     >
                       {item.icon}
                     </span>
-                    {item.name}
+                    {t[item.nameKey as keyof typeof t]}
                   </>
                 )}
               </NavLink>

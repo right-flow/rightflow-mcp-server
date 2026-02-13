@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { PaymentMethodInfo, PaymentMethod } from '../../../api/types';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface PaymentMethodCardProps {
   paymentMethods: PaymentMethodInfo[];
@@ -26,6 +27,11 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   onSetDefault,
   className = '',
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+  const locale = isRtl ? 'he-IL' : 'en-US';
+
   // Loading skeleton
   if (loading) {
     return (
@@ -102,27 +108,28 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
   // Format payment method display name
   const getPaymentMethodName = (method: PaymentMethodInfo): string => {
     if (method.type === 'credit_card') {
-      return `${method.brand || 'Card'} ending in ${method.last4}`;
+      const brand = method.brand || (t['billing.payment.card'] as string);
+      return (t['billing.payment.cardEndingIn'] as string).replace('{brand}', brand).replace('{last4}', method.last4 || '****');
     } else if (method.type === 'paypal') {
       return 'PayPal';
     } else if (method.type === 'bank_transfer') {
-      return 'Bank Transfer';
+      return t['billing.payment.bankTransfer'] as string;
     }
-    return 'Payment Method';
+    return t['billing.payment.paymentMethod'] as string;
   };
 
   // Format expiry
   const formatExpiry = (month?: number, year?: number): string => {
     if (!month || !year) return '';
-    return `Expires ${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
+    return (t['billing.payment.expires'] as string).replace('{date}', `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`);
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md ${className}`}>
+    <div className={`bg-white rounded-lg shadow-md ${className}`} dir={direction}>
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Payment Methods</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t['billing.payment.title']}</h2>
           {onAddPaymentMethod && (
             <button
               onClick={onAddPaymentMethod}
@@ -131,7 +138,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Add Payment Method
+              {t['billing.payment.addPaymentMethod']}
             </button>
           )}
         </div>
@@ -156,13 +163,13 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
               />
             </svg>
-            <p className="mt-2 text-sm text-gray-500">No payment methods added</p>
+            <p className="mt-2 text-sm text-gray-500">{t['billing.payment.noMethods']}</p>
             {onAddPaymentMethod && (
               <button
                 onClick={onAddPaymentMethod}
                 className="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Add Your First Payment Method
+                {t['billing.payment.addFirstMethod']}
               </button>
             )}
           </div>
@@ -190,7 +197,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
                       </h3>
                       {method.isDefault && (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Default
+                          {t['billing.payment.default']}
                         </span>
                       )}
                     </div>
@@ -200,7 +207,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
                       </p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      Added {new Date(method.createdAt).toLocaleDateString()}
+                      {t['billing.payment.added']} {new Date(method.createdAt).toLocaleDateString(locale)}
                     </p>
                   </div>
 
@@ -211,7 +218,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
                         onClick={() => onSetDefault(method.id)}
                         className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                       >
-                        Set Default
+                        {t['billing.payment.setDefault']}
                       </button>
                     )}
                     {onRemovePaymentMethod && !method.isDefault && (
@@ -219,7 +226,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
                         onClick={() => onRemovePaymentMethod(method.id)}
                         className="px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 transition-colors"
                       >
-                        Remove
+                        {t['billing.payment.remove']}
                       </button>
                     )}
                   </div>
@@ -233,8 +240,7 @@ export const PaymentMethodCard: React.FC<PaymentMethodCardProps> = ({
         {paymentMethods.length > 0 && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-700">
-              <span className="font-semibold">Note:</span> Your default payment method will be used for automatic
-              renewals and overages. You must have at least one payment method on file.
+              <span className="font-semibold">{t['billing.payment.note']}:</span> {t['billing.payment.noteText']}
             </p>
           </div>
         )}

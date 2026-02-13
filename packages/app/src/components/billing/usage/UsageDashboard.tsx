@@ -8,6 +8,7 @@ import { useBilling } from '../../../contexts/BillingContext';
 import { QuotaStatusCard } from './QuotaStatusCard';
 import { UsageBreakdownTable } from './UsageBreakdownTable';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface UsageDashboardProps {
   className?: string;
@@ -19,6 +20,9 @@ interface UsageDashboardProps {
  * Provides overview of current usage, quotas, and detailed breakdown
  */
 export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
   const navigate = useNavigate();
   const { usage, quotaStatus, usageDetails, loading, error, refreshUsage, refreshQuotaStatus, refreshUsageDetails } = useUsage();
   const { subscription } = useBilling();
@@ -50,14 +54,14 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
   };
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`}>
+    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`} dir={direction}>
       {/* Page header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Usage Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t['billing.usage.title']}</h1>
             <p className="mt-2 text-sm text-gray-600">
-              Monitor your usage and quota across all resources
+              {t['billing.usage.description']}
             </p>
           </div>
 
@@ -68,7 +72,7 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <svg
-              className={`-ml-1 mr-2 h-5 w-5 text-gray-500 ${refreshing ? 'animate-spin' : ''}`}
+              className={`${isRtl ? '-mr-1 ml-2' : '-ml-1 mr-2'} h-5 w-5 text-gray-500 ${refreshing ? 'animate-spin' : ''}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -81,7 +85,7 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            {refreshing ? t['billing.usage.refreshing'] : t['billing.usage.refresh']}
           </button>
         </div>
 
@@ -89,7 +93,7 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
         {subscription && subscription.plan && (
           <div className="mt-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              Current Plan: {subscription.plan.displayName}
+              {t['billing.usage.currentPlan']}: {subscription.plan.displayName}
             </span>
           </div>
         )}
@@ -113,14 +117,14 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
                 />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Failed to load usage data</h3>
+            <div className={isRtl ? 'mr-3' : 'ml-3'}>
+              <h3 className="text-sm font-medium text-red-800">{t['billing.usage.failedToLoad']}</h3>
               <p className="mt-1 text-sm text-red-700">{error}</p>
               <button
                 onClick={handleRefresh}
                 className="mt-2 text-sm font-medium text-red-800 hover:text-red-900"
               >
-                Try again
+                {t['billing.usage.tryAgain']}
               </button>
             </div>
           </div>
@@ -160,9 +164,9 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
                     </svg>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Total Forms</h3>
-                  <p className="text-2xl font-bold text-gray-900">{usage.formsCreated}</p>
+                <div className={isRtl ? 'mr-4' : 'ml-4'}>
+                  <h3 className="text-sm font-medium text-gray-500">{t['billing.usage.totalForms']}</h3>
+                  <p className="text-2xl font-bold text-gray-900">{usage.formsCreated ?? 0}</p>
                 </div>
               </div>
             </div>
@@ -188,9 +192,9 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
                     </svg>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">This Month</h3>
-                  <p className="text-2xl font-bold text-gray-900">{usage.submissionsThisMonth}</p>
+                <div className={isRtl ? 'mr-4' : 'ml-4'}>
+                  <h3 className="text-sm font-medium text-gray-500">{t['billing.usage.thisMonth']}</h3>
+                  <p className="text-2xl font-bold text-gray-900">{usage.submissionsThisMonth ?? 0}</p>
                 </div>
               </div>
             </div>
@@ -216,9 +220,9 @@ export const UsageDashboard: React.FC<UsageDashboardProps> = ({ className = '' }
                     </svg>
                   </div>
                 </div>
-                <div className="ml-4">
-                  <h3 className="text-sm font-medium text-gray-500">Storage Used</h3>
-                  <p className="text-2xl font-bold text-gray-900">{usage.storageUsedMB.toFixed(1)} MB</p>
+                <div className={isRtl ? 'mr-4' : 'ml-4'}>
+                  <h3 className="text-sm font-medium text-gray-500">{t['billing.usage.storageUsed']}</h3>
+                  <p className="text-2xl font-bold text-gray-900">{(usage.storageUsedMB ?? 0).toFixed(1)} MB</p>
                 </div>
               </div>
             </div>
