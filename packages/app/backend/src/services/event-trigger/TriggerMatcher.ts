@@ -40,7 +40,7 @@ export class TriggerMatcher {
           : JSON.parse(trigger.form_ids || '[]'),
         conditions: Array.isArray(trigger.conditions)
           ? trigger.conditions
-          : JSON.parse(trigger.conditions || '[]')
+          : JSON.parse(trigger.conditions || '[]'),
       };
 
       // Check scope

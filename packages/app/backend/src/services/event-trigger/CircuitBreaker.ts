@@ -12,7 +12,6 @@ import type {
   CircuitBreakerConfig,
   CircuitBreakerState,
   CircuitBreakerStats,
-  ErrorDetails
 } from '../../types/event-trigger';
 
 export class CircuitBreaker {
@@ -179,7 +178,7 @@ export class CircuitBreaker {
       consecutiveSuccesses: this.consecutiveSuccesses,
       totalRequests: this.totalRequests,
       successRate,
-      lastStateChange: this.lastStateChange
+      lastStateChange: this.lastStateChange,
     };
   }
 

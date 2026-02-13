@@ -9,7 +9,6 @@ import type {
   Event,
   EventTrigger,
   TriggerAction,
-  ErrorDetails
 } from '../../types/event-trigger';
 
 interface ActionChainExecutorConfig {
@@ -53,7 +52,7 @@ export class ActionChainExecutor {
       const action: TriggerAction = {
         ...actionRow,
         config: JSON.parse(actionRow.config || '{}'),
-        retry_config: JSON.parse(actionRow.retry_config || '{}')
+        retry_config: JSON.parse(actionRow.retry_config || '{}'),
       };
 
       try {
@@ -66,7 +65,7 @@ export class ActionChainExecutor {
           action,
           event,
           trigger,
-          executedActions
+          executedActions,
         );
 
         // Stop or continue based on strategy
@@ -89,7 +88,7 @@ export class ActionChainExecutor {
    */
   private async executeAction(
     action: TriggerAction,
-    event: Event
+    event: Event,
   ): Promise<ExecutionResult> {
     let lastError: Error | null = null;
     const maxAttempts = action.retry_config.max_attempts || 3;
@@ -142,7 +141,7 @@ export class ActionChainExecutor {
    */
   private async executeWithTimeout(
     action: TriggerAction,
-    event: Event
+    event: Event,
   ): Promise<ExecutionResult> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -166,14 +165,14 @@ export class ActionChainExecutor {
    */
   private async executeActionLogic(
     action: TriggerAction,
-    event: Event
+    event: Event,
   ): Promise<ExecutionResult> {
     // Interpolate event data into action config
     const interpolatedConfig = this.interpolateTemplate(action.config, event);
 
     const actionWithInterpolatedConfig = {
       ...action,
-      config: interpolatedConfig
+      config: interpolatedConfig,
     };
 
     // Route to appropriate executor
@@ -181,7 +180,7 @@ export class ActionChainExecutor {
       // Use IntegrationHub for CRM operations
       const result = await this.executeIntegrationAction(
         actionWithInterpolatedConfig,
-        event
+        event,
       );
       return { success: true, data: result };
     }
@@ -196,7 +195,7 @@ export class ActionChainExecutor {
    */
   private async executeIntegrationAction(
     action: TriggerAction,
-    event: Event
+    event: Event,
   ): Promise<any> {
     const { integration_id, operation, mapping } = action.config;
 
@@ -206,7 +205,7 @@ export class ActionChainExecutor {
         integration_id,
         operation,
         mapping,
-        event
+        event,
       );
     } catch (error: any) {
       // Handle expired token
@@ -217,7 +216,7 @@ export class ActionChainExecutor {
           integration_id,
           operation,
           mapping,
-          event
+          event,
         );
       }
       throw error;
@@ -307,7 +306,7 @@ export class ActionChainExecutor {
     action: TriggerAction,
     event: Event,
     trigger: EventTrigger,
-    executedActions: Array<{ action: TriggerAction; result: ExecutionResult }>
+    _executedActions: Array<{ action: TriggerAction; result: ExecutionResult }>,
   ): Promise<void> {
     console.error(`ActionChainExecutor: Action ${action.id} failed`, error);
 
@@ -329,7 +328,7 @@ export class ActionChainExecutor {
    */
   private async rollbackExecutedActions(
     executedActions: Array<{ action: TriggerAction; result: ExecutionResult }>,
-    event: Event
+    event: Event,
   ): Promise<void> {
     // Rollback in reverse order
     for (let i = executedActions.length - 1; i >= 0; i--) {
@@ -351,7 +350,7 @@ export class ActionChainExecutor {
           trigger: null,
           action,
           failureReason: `Rollback failed: ${(error as Error).message}`,
-          lastError: error as Error
+          lastError: error as Error,
         });
       }
     }
@@ -363,18 +362,18 @@ export class ActionChainExecutor {
   async rollbackAction(
     action: TriggerAction,
     event: Event,
-    executionResult: ExecutionResult
+    executionResult: ExecutionResult,
   ): Promise<void> {
     const rollbackConfig = {
       ...action.config,
       operation: action.config.rollback_operation,
-      ...executionResult.rollbackData
+      ...executionResult.rollbackData,
     };
 
     const rollbackAction = {
       ...action,
       action_type: 'rollback' as any,
-      config: rollbackConfig
+      config: rollbackConfig,
     };
 
     await this.actionExecutor.execute(rollbackAction, event);
@@ -387,7 +386,7 @@ export class ActionChainExecutor {
     action: TriggerAction,
     event: Event,
     error: Error,
-    attempts: number
+    attempts: number,
   ): Promise<void> {
     await this.dlq.addEntry({
       event,
@@ -398,8 +397,8 @@ export class ActionChainExecutor {
         message: error.message,
         code: (error as any).code,
         statusCode: (error as any).statusCode,
-        stack: error.stack
-      }
+        stack: error.stack,
+      },
     });
   }
 
@@ -409,7 +408,7 @@ export class ActionChainExecutor {
   private async recordExecutionStart(
     action: TriggerAction,
     event: Event,
-    attempt: number
+    attempt: number,
   ): Promise<string> {
     const [execution] = await this.db('action_executions')
       .insert({
@@ -419,7 +418,7 @@ export class ActionChainExecutor {
         status: 'running',
         attempt,
         started_at: new Date(),
-        created_at: new Date()
+        created_at: new Date(),
       })
       .returning('id');
 
@@ -431,12 +430,12 @@ export class ActionChainExecutor {
    */
   private async recordExecutionSuccess(
     executionId: string,
-    result: ExecutionResult
+    result: ExecutionResult,
   ): Promise<void> {
     await this.db('action_executions').where('id', executionId).update({
       status: 'success',
       completed_at: new Date(),
-      response: JSON.stringify(result.data || result)
+      response: JSON.stringify(result.data || result),
     });
   }
 
@@ -450,8 +449,8 @@ export class ActionChainExecutor {
       error: JSON.stringify({
         message: error.message,
         code: (error as any).code,
-        stack: error.stack
-      })
+        stack: error.stack,
+      }),
     });
   }
 

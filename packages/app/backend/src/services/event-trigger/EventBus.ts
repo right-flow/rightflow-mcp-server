@@ -55,7 +55,7 @@ export class EventBus {
       await this.circuitBreaker.execute(async () => {
         const subscribers = await this.redis.publish(
           'rightflow:events',
-          JSON.stringify(persistedEvent)
+          JSON.stringify(persistedEvent),
         );
         return subscribers;
       });
@@ -76,7 +76,7 @@ export class EventBus {
 
     return {
       event_id: persistedEvent.id,
-      processing_mode: processingMode
+      processing_mode: processingMode,
     };
   }
 
@@ -90,14 +90,14 @@ export class EventBus {
       .where({
         organization_id: event.organization_id,
         event_type: event.event_type,
-        entity_id: event.entity_id
+        entity_id: event.entity_id,
       })
       .where('created_at', '>', deduplicationCutoff)
       .first();
 
     if (existingEvent) {
       throw new Error(
-        `Duplicate event detected: ${event.event_type} for entity ${event.entity_id}`
+        `Duplicate event detected: ${event.event_type} for entity ${event.entity_id}`,
       );
     }
   }
@@ -128,7 +128,7 @@ export class EventBus {
 
     return {
       ...event,
-      data: normalizeValue(event.data)
+      data: normalizeValue(event.data),
     };
   }
 
@@ -147,13 +147,13 @@ export class EventBus {
         data: JSON.stringify(event.data),
         processing_mode: 'poll', // Default to polling
         retry_count: 0,
-        created_at: event.created_at || new Date()
+        created_at: event.created_at || new Date(),
       })
       .returning('*');
 
     return {
       ...persistedEvent,
-      data: JSON.parse(persistedEvent.data)
+      data: JSON.parse(persistedEvent.data),
     };
   }
 
@@ -164,7 +164,7 @@ export class EventBus {
     await this.db('events').where('id', eventId).update({
       processing_mode: 'poll',
       retry_count: 0,
-      next_retry_at: new Date()
+      next_retry_at: new Date(),
     });
   }
 
@@ -174,7 +174,7 @@ export class EventBus {
    */
   async subscribe(
     eventType: string,
-    handler: (event: Event) => Promise<void>
+    handler: (event: Event) => Promise<void>,
   ): Promise<void> {
     if (!this.subscribers.has(eventType)) {
       this.subscribers.set(eventType, []);
@@ -187,7 +187,7 @@ export class EventBus {
    * Setup Redis subscription for real-time events
    */
   private setupRedisSubscription(): void {
-    this.redis.subscribe('rightflow:events', (err, count) => {
+    this.redis.subscribe('rightflow:events', (err, _count) => {
       if (err) {
         console.error('EventBus: Failed to subscribe to Redis channel', err);
       }
@@ -252,7 +252,7 @@ export class EventBus {
     for (const eventRow of pendingEvents) {
       const event: Event = {
         ...eventRow,
-        data: JSON.parse(eventRow.data)
+        data: JSON.parse(eventRow.data),
       };
 
       try {
@@ -261,7 +261,7 @@ export class EventBus {
         // Mark as completed
         await this.db('events').where('id', event.id).update({
           processing_mode: 'completed',
-          processed_at: new Date()
+          processed_at: new Date(),
         });
       } catch (error) {
         // Increment retry count
@@ -274,8 +274,8 @@ export class EventBus {
             retry_count: newRetryCount,
             last_error: JSON.stringify({
               message: (error as Error).message,
-              code: 'MAX_RETRIES_EXCEEDED'
-            })
+              code: 'MAX_RETRIES_EXCEEDED',
+            }),
           });
         } else {
           // Schedule next retry with exponential backoff
@@ -286,8 +286,8 @@ export class EventBus {
             retry_count: newRetryCount,
             next_retry_at: nextRetryAt,
             last_error: JSON.stringify({
-              message: (error as Error).message
-            })
+              message: (error as Error).message,
+            }),
           });
         }
       }

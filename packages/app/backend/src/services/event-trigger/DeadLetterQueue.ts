@@ -10,8 +10,7 @@ import type {
   EventTrigger,
   TriggerAction,
   DeadLetterQueueEntry,
-  DlqStatus,
-  ErrorDetails
+  ErrorDetails,
 } from '../../types/event-trigger';
 
 interface AddEntryParams {
@@ -62,7 +61,7 @@ export class DeadLetterQueue {
     const existingEntry = await this.db('dead_letter_queue')
       .where({
         event_id: event.id,
-        action_id: action.id
+        action_id: action.id,
       })
       .first();
 
@@ -74,7 +73,7 @@ export class DeadLetterQueue {
         .update({
           failure_reason: failureReason,
           last_error: JSON.stringify(this.normalizeError(lastError)),
-          updated_at: new Date()
+          updated_at: new Date(),
         });
 
       return this.db('dead_letter_queue').where('id', existingEntry.id).first();
@@ -94,7 +93,7 @@ export class DeadLetterQueue {
         status: 'pending',
         retry_after: retryAfter || null,
         created_at: new Date(),
-        updated_at: new Date()
+        updated_at: new Date(),
       })
       .returning('*');
 
@@ -133,21 +132,21 @@ export class DeadLetterQueue {
     // Update status to processing
     await this.db('dead_letter_queue').where('id', dlqEntryId).update({
       status: 'processing',
-      updated_at: new Date()
+      updated_at: new Date(),
     });
 
     try {
       // Retry the action
       await actionExecutor.execute(
         parsedEntry.action_snapshot,
-        parsedEntry.event_snapshot
+        parsedEntry.event_snapshot,
       );
 
       // Mark as resolved
       await this.db('dead_letter_queue').where('id', dlqEntryId).update({
         status: 'resolved',
         resolved_at: new Date(),
-        updated_at: new Date()
+        updated_at: new Date(),
       });
     } catch (error) {
       // Retry failed - increment failure count and reset to pending
@@ -157,7 +156,7 @@ export class DeadLetterQueue {
         .update({
           status: 'pending',
           last_error: JSON.stringify(this.normalizeError(error as Error)),
-          updated_at: new Date()
+          updated_at: new Date(),
         });
 
       throw error;
@@ -174,7 +173,7 @@ export class DeadLetterQueue {
     if (options.organizationId) {
       query = query.whereRaw(
         `event_snapshot->>'organization_id' = ?`,
-        options.organizationId
+        options.organizationId,
       );
     }
 
@@ -216,7 +215,7 @@ export class DeadLetterQueue {
     if (options.organizationId) {
       baseQuery = baseQuery.whereRaw(
         `event_snapshot->>'organization_id' = ?`,
-        options.organizationId
+        options.organizationId,
       );
     }
 
@@ -247,7 +246,7 @@ export class DeadLetterQueue {
       processing: processingCount,
       resolved: resolvedCount,
       failed: failedCount,
-      total: pendingCount + processingCount + resolvedCount + failedCount
+      total: pendingCount + processingCount + resolvedCount + failedCount,
     };
   }
 
@@ -258,7 +257,7 @@ export class DeadLetterQueue {
     await this.db('dead_letter_queue').where('id', dlqEntryId).update({
       status: 'failed',
       failure_reason: reason,
-      updated_at: new Date()
+      updated_at: new Date(),
     });
   }
 
@@ -285,7 +284,7 @@ export class DeadLetterQueue {
   async bulkRetry(
     dlqEntryIds: string[],
     actionExecutor: any,
-    options: BulkRetryOptions = {}
+    options: BulkRetryOptions = {},
   ): Promise<BulkRetryResult> {
     const maxConcurrent = options.maxConcurrent || 3;
 
@@ -294,7 +293,7 @@ export class DeadLetterQueue {
 
     const results: BulkRetryResult = {
       succeeded: [],
-      failed: []
+      failed: [],
     };
 
     // Process in batches
@@ -302,7 +301,7 @@ export class DeadLetterQueue {
       const batch = entries.slice(i, i + maxConcurrent);
 
       const batchResults = await Promise.allSettled(
-        batch.map(entry => this.retry(entry.id, actionExecutor))
+        batch.map(entry => this.retry(entry.id, actionExecutor)),
       );
 
       batchResults.forEach((result, index) => {
@@ -313,7 +312,7 @@ export class DeadLetterQueue {
         } else {
           results.failed.push({
             id: entryId,
-            error: result.reason.message
+            error: result.reason.message,
           });
         }
       });
@@ -344,7 +343,7 @@ export class DeadLetterQueue {
       ...row,
       last_error: JSON.parse(row.last_error || '{}'),
       event_snapshot: JSON.parse(row.event_snapshot || 'null'),
-      action_snapshot: JSON.parse(row.action_snapshot || 'null')
+      action_snapshot: JSON.parse(row.action_snapshot || 'null'),
     };
   }
 
@@ -357,7 +356,7 @@ export class DeadLetterQueue {
         message: error.message,
         code: (error as any).code,
         statusCode: (error as any).statusCode,
-        stack: (error as any).stack
+        stack: (error as any).stack,
       };
     }
 
