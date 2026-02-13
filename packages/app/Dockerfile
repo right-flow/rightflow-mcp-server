@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.2-fix-css-20260125-163500
+ARG CACHE_BUST=v2.4.3-backend-integration-20260213-150000
 
 # Copy source files
 COPY . .
