@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { Plan, PlanName } from '../../../api/types';
 import { PlanCard } from './PlanCard';
 import { PricingToggle } from '../common';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface PlanComparisonModalProps {
   isOpen: boolean;
@@ -28,6 +29,9 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
   onSelectPlan,
   loading = false,
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
   const [isYearly, setIsYearly] = useState(false);
 
   if (!isOpen) return null;
@@ -77,10 +81,11 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="plan-comparison-title"
+        dir={direction}
       >
         <div className="flex min-h-full items-center justify-center p-4">
           <div
-            className="relative bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-hidden"
+            className="relative bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -88,10 +93,10 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h2 id="plan-comparison-title" className="text-2xl font-bold text-gray-900">
-                    Choose Your Plan
+                    {t['billing.comparison.title']}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Select the plan that best fits your needs
+                    {t['billing.comparison.description']}
                   </p>
                 </div>
 
@@ -99,7 +104,7 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label="Close modal"
+                  aria-label={t['billing.comparison.close'] as string}
                 >
                   <svg
                     className="w-6 h-6"
@@ -130,7 +135,7 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
             </div>
 
             {/* Content */}
-            <div className="px-6 py-8 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <div className="px-6 py-8 overflow-y-auto flex-1 min-h-0">
               {loading ? (
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -154,10 +159,10 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
                   {/* Enterprise Contact */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 text-center border border-blue-200">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      Need a Custom Plan?
+                      {t['billing.comparison.customPlanTitle']}
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      Looking for higher limits, custom integrations, or enterprise features?
+                      {t['billing.comparison.customPlanDescription']}
                     </p>
                     <button
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -165,7 +170,7 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
                         window.location.href = 'mailto:sales@rightflow.com';
                       }}
                     >
-                      Contact Sales
+                      {t['billing.comparison.contactSales']}
                     </button>
                   </div>
                 </>
@@ -174,13 +179,12 @@ export const PlanComparisonModal: React.FC<PlanComparisonModalProps> = ({
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <p>All plans include 14-day free trial</p>
+              <div className="flex justify-end items-center text-sm text-gray-500">
                 <button
                   onClick={onClose}
                   className="text-gray-700 hover:text-gray-900 font-medium"
                 >
-                  Cancel
+                  {t['billing.comparison.cancel']}
                 </button>
               </div>
             </div>

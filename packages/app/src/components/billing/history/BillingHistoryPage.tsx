@@ -8,6 +8,7 @@ import { Invoice, PaymentMethodInfo } from '../../../api/types';
 import { InvoiceTable } from './InvoiceTable';
 import { PaymentMethodCard } from './PaymentMethodCard';
 import { useToast } from '../../../hooks/useToast';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface BillingHistoryPageProps {
   className?: string;
@@ -20,6 +21,9 @@ interface BillingHistoryPageProps {
 export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
   className = '',
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
   const { orgId } = useAuth();
   const effectiveOrgId = orgId || 'org_demo';
   const { success, error: showError } = useToast();
@@ -97,7 +101,7 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
       setInvoices(mockInvoices);
       setPaymentMethods(mockPaymentMethods);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load billing history';
+      const message = err instanceof Error ? err.message : (t['billing.history.failedToLoad'] as string);
       setError(message);
       showError(message);
     } finally {
@@ -109,22 +113,22 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
   const handleDownloadInvoice = async (invoice: Invoice) => {
     try {
       if (!invoice.downloadUrl) {
-        showError('Download URL not available');
+        showError(t['billing.history.downloadNotAvailable'] as string);
         return;
       }
 
       // TODO: Implement actual download
       // window.open(invoice.downloadUrl, '_blank');
-      success(`Downloading invoice ${invoice.invoiceNumber}...`);
+      success((t['billing.history.downloading'] as string).replace('{invoice}', invoice.invoiceNumber));
     } catch (err) {
-      showError('Failed to download invoice');
+      showError(t['billing.history.downloadFailed'] as string);
     }
   };
 
   // Handle add payment method
   const handleAddPaymentMethod = () => {
     // TODO: Implement payment method modal/flow
-    showError('Add payment method flow not yet implemented');
+    showError(t['billing.history.addPaymentNotImplemented'] as string);
   };
 
   // Handle remove payment method
@@ -134,9 +138,9 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
       // await billingApi.removePaymentMethod(orgId, paymentMethodId);
 
       setPaymentMethods((prev) => prev.filter((pm) => pm.id !== paymentMethodId));
-      success('Payment method removed successfully');
+      success(t['billing.history.paymentMethodRemoved'] as string);
     } catch (err) {
-      showError('Failed to remove payment method');
+      showError(t['billing.history.removePaymentFailed'] as string);
     }
   };
 
@@ -152,19 +156,19 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
           isDefault: pm.id === paymentMethodId,
         }))
       );
-      success('Default payment method updated');
+      success(t['billing.history.defaultUpdated'] as string);
     } catch (err) {
-      showError('Failed to update default payment method');
+      showError(t['billing.history.updateDefaultFailed'] as string);
     }
   };
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`}>
+    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`} dir={direction}>
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Billing History</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t['billing.history.title']}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          View your invoices and manage payment methods
+          {t['billing.history.description']}
         </p>
       </div>
 
@@ -186,14 +190,14 @@ export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
                 />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Failed to load billing history</h3>
+            <div className={isRtl ? 'mr-3' : 'ml-3'}>
+              <h3 className="text-sm font-medium text-red-800">{t['billing.history.failedToLoad']}</h3>
               <p className="mt-1 text-sm text-red-700">{error}</p>
               <button
                 onClick={loadBillingHistory}
                 className="mt-2 text-sm font-medium text-red-800 hover:text-red-900"
               >
-                Try again
+                {t['billing.history.tryAgain']}
               </button>
             </div>
           </div>

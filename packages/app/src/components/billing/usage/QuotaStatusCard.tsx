@@ -6,6 +6,7 @@ import React from 'react';
 import { QuotaStatus } from '../../../api/types';
 import { UsageProgressBar } from './UsageProgressBar';
 import { getQuotaColor } from '../../../utils/quotaHelpers';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface QuotaStatusCardProps {
   quotaStatus: QuotaStatus | null;
@@ -25,6 +26,10 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
   onUpgrade,
   className = '',
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+
   // Loading skeleton
   if (loading) {
     return (
@@ -44,7 +49,7 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
   // No data state
   if (!quotaStatus) {
     return (
-      <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
+      <div className={`bg-white rounded-lg shadow-md p-6 ${className}`} dir={direction}>
         <div className="text-center py-8">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
@@ -60,7 +65,7 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          <p className="mt-2 text-sm text-gray-500">No quota data available</p>
+          <p className="mt-2 text-sm text-gray-500">{t['billing.quota.noData']}</p>
         </div>
       </div>
     );
@@ -85,32 +90,32 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
     (storageLimitMB !== -1 && storagePercentage >= 70 && storagePercentage < 90);
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`} dir={direction}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Quota Status</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t['billing.quota.title']}</h2>
 
         {/* Status indicator */}
         {hasCriticalQuota ? (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg className={`w-4 h-4 ${isRtl ? 'ml-1' : 'mr-1'}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
-            Critical
+            {t['billing.quota.critical']}
           </span>
         ) : hasWarningQuota ? (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg className={`w-4 h-4 ${isRtl ? 'ml-1' : 'mr-1'}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            Warning
+            {t['billing.quota.warning']}
           </span>
         ) : (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg className={`w-4 h-4 ${isRtl ? 'ml-1' : 'mr-1'}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            Healthy
+            {t['billing.quota.healthy']}
           </span>
         )}
       </div>
@@ -122,7 +127,7 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
           <UsageProgressBar
             current={formsUsed}
             limit={formsLimit}
-            label="Forms"
+            label={t['billing.quota.forms'] as string}
             showPercentage={true}
             showNumbers={true}
             size="md"
@@ -134,7 +139,7 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
           <UsageProgressBar
             current={submissionsThisMonth}
             limit={submissionsLimit}
-            label="Submissions (This Month)"
+            label={t['billing.quota.submissionsThisMonth'] as string}
             showPercentage={true}
             showNumbers={true}
             size="md"
@@ -146,7 +151,7 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
           <UsageProgressBar
             current={Math.round(storageUsedMB)}
             limit={storageLimitMB === -1 ? -1 : Math.round(storageLimitMB)}
-            label="Storage (MB)"
+            label={t['billing.quota.storageMB'] as string}
             showPercentage={true}
             showNumbers={true}
             size="md"
@@ -172,16 +177,16 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
                 />
               </svg>
             </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-red-800">Quota limit reached</h3>
+            <div className={`${isRtl ? 'mr-3' : 'ml-3'} flex-1`}>
+              <h3 className="text-sm font-medium text-red-800">{t['billing.quota.limitReached']}</h3>
               <p className="mt-1 text-sm text-red-700">
-                You've reached or exceeded your quota limits. Upgrade your plan to continue using all features.
+                {t['billing.quota.limitReachedDesc']}
               </p>
               <button
                 onClick={onUpgrade}
                 className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
               >
-                Upgrade Plan
+                {t['billing.quota.upgradePlan']}
               </button>
             </div>
           </div>
@@ -205,16 +210,16 @@ export const QuotaStatusCard: React.FC<QuotaStatusCardProps> = ({
                 />
               </svg>
             </div>
-            <div className="ml-3 flex-1">
-              <h3 className="text-sm font-medium text-yellow-800">Approaching quota limits</h3>
+            <div className={`${isRtl ? 'mr-3' : 'ml-3'} flex-1`}>
+              <h3 className="text-sm font-medium text-yellow-800">{t['billing.quota.approachingLimit']}</h3>
               <p className="mt-1 text-sm text-yellow-700">
-                You're using over 70% of your quota. Consider upgrading to avoid interruptions.
+                {t['billing.quota.approachingLimitDesc']}
               </p>
               <button
                 onClick={onUpgrade}
                 className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 transition-colors"
               >
-                View Plans
+                {t['billing.quota.viewPlans']}
               </button>
             </div>
           </div>

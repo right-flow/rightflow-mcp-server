@@ -5,6 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { Invoice, InvoiceStatus } from '../../../api/types';
 import { formatCurrency } from '../../../utils/formatCurrency';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -31,6 +32,11 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   onDownload,
   className = '',
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+  const locale = isRtl ? 'he-IL' : 'en-US';
+
   // IMPORTANT: All hooks must be called BEFORE any conditional returns
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'issuedAt', direction: 'desc' });
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all');
@@ -105,8 +111,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   // No data state
   if (!invoices || invoices.length === 0) {
     return (
-      <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Invoice History</h2>
+      <div className={`bg-white rounded-lg shadow-md p-6 ${className}`} dir={direction}>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">{t['billing.invoice.title']}</h2>
         <div className="text-center py-8">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
@@ -122,7 +128,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
             />
           </svg>
-          <p className="mt-2 text-sm text-gray-500">No invoices yet</p>
+          <p className="mt-2 text-sm text-gray-500">{t['billing.invoice.noInvoices']}</p>
         </div>
       </div>
     );
@@ -159,18 +165,18 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 
   // Status badge
   const StatusBadge: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
-    const statusConfig: Record<InvoiceStatus, { label: string; className: string }> = {
-      paid: { label: 'Paid', className: 'bg-green-100 text-green-800' },
-      pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
-      failed: { label: 'Failed', className: 'bg-red-100 text-red-800' },
-      refunded: { label: 'Refunded', className: 'bg-gray-100 text-gray-800' },
+    const statusConfig: Record<InvoiceStatus, { labelKey: string; className: string }> = {
+      paid: { labelKey: 'billing.invoice.statusPaid', className: 'bg-green-100 text-green-800' },
+      pending: { labelKey: 'billing.invoice.statusPending', className: 'bg-yellow-100 text-yellow-800' },
+      failed: { labelKey: 'billing.invoice.statusFailed', className: 'bg-red-100 text-red-800' },
+      refunded: { labelKey: 'billing.invoice.statusRefunded', className: 'bg-gray-100 text-gray-800' },
     };
 
     const config = statusConfig[status];
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
-        {config.label}
+        {t[config.labelKey as keyof typeof t] as string}
       </span>
     );
   };
@@ -178,29 +184,29 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
   // Format date
   const formatDate = (dateString: Date): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`} dir={direction}>
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Invoice History</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t['billing.invoice.title']}</h2>
 
           {/* Status filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Filter:</span>
+            <span className="text-sm text-gray-600">{t['billing.invoice.filter']}:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as InvoiceStatus | 'all')}
               className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All Statuses</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
+              <option value="all">{t['billing.invoice.allStatuses']}</option>
+              <option value="paid">{t['billing.invoice.statusPaid']}</option>
+              <option value="pending">{t['billing.invoice.statusPending']}</option>
+              <option value="failed">{t['billing.invoice.statusFailed']}</option>
+              <option value="refunded">{t['billing.invoice.statusRefunded']}</option>
             </select>
           </div>
         </div>
@@ -213,46 +219,46 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
             <tr>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                className={`px-6 py-3 ${isRtl ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors`}
                 onClick={() => handleSort('invoiceNumber')}
               >
                 <div className="flex items-center gap-2">
-                  <span>Invoice #</span>
+                  <span>{t['billing.invoice.invoiceNumber']}</span>
                   <SortIndicator field="invoiceNumber" />
                 </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                className={`px-6 py-3 ${isRtl ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors`}
                 onClick={() => handleSort('issuedAt')}
               >
                 <div className="flex items-center gap-2">
-                  <span>Date</span>
+                  <span>{t['billing.invoice.date']}</span>
                   <SortIndicator field="issuedAt" />
                 </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                className={`px-6 py-3 ${isRtl ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors`}
                 onClick={() => handleSort('amount')}
               >
                 <div className="flex items-center gap-2">
-                  <span>Amount</span>
+                  <span>{t['billing.invoice.amount']}</span>
                   <SortIndicator field="amount" />
                 </div>
               </th>
               <th
                 scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                className={`px-6 py-3 ${isRtl ? 'text-right' : 'text-left'} text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors`}
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center gap-2">
-                  <span>Status</span>
+                  <span>{t['billing.invoice.status']}</span>
                   <SortIndicator field="status" />
                 </div>
               </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+              <th scope="col" className={`px-6 py-3 ${isRtl ? 'text-left' : 'text-right'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t['billing.invoice.actions']}
               </th>
             </tr>
           </thead>
@@ -271,7 +277,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <StatusBadge status={invoice.status} />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className={`px-6 py-4 whitespace-nowrap ${isRtl ? 'text-left' : 'text-right'} text-sm font-medium`}>
                   {invoice.downloadUrl && onDownload && (
                     <button
                       onClick={() => onDownload(invoice)}
@@ -285,7 +291,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
                           d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         />
                       </svg>
-                      Download
+                      {t['billing.invoice.download']}
                     </button>
                   )}
                 </td>
@@ -298,12 +304,12 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
       {/* Empty filtered state */}
       {sortedInvoices.length === 0 && statusFilter !== 'all' && (
         <div className="text-center py-8">
-          <p className="text-sm text-gray-500">No {statusFilter} invoices found</p>
+          <p className="text-sm text-gray-500">{(t['billing.invoice.noFilteredInvoices'] as string).replace('{status}', t[`billing.invoice.status${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}` as keyof typeof t] as string)}</p>
           <button
             onClick={() => setStatusFilter('all')}
             className="mt-2 text-sm text-blue-600 hover:text-blue-800"
           >
-            Clear filter
+            {t['billing.invoice.clearFilter']}
           </button>
         </div>
       )}

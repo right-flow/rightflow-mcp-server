@@ -3,6 +3,7 @@
 // Purpose: Toggle between monthly and yearly pricing
 
 import React from 'react';
+import { useTranslation, useDirection } from '../../../i18n';
 
 interface PricingToggleProps {
   isYearly: boolean;
@@ -21,8 +22,12 @@ export const PricingToggle: React.FC<PricingToggleProps> = ({
   yearlyDiscount,
   className = '',
 }) => {
+  const t = useTranslation();
+  const direction = useDirection();
+  const isRtl = direction === 'rtl';
+
   return (
-    <div className={`flex items-center justify-center gap-3 ${className}`}>
+    <div className={`flex items-center justify-center gap-3 ${className}`} dir={direction}>
       <button
         type="button"
         onClick={() => onChange(false)}
@@ -33,7 +38,7 @@ export const PricingToggle: React.FC<PricingToggleProps> = ({
         }`}
         aria-pressed={!isYearly}
       >
-        Monthly
+        {t['billing.toggle.monthly']}
       </button>
 
       <button
@@ -46,10 +51,10 @@ export const PricingToggle: React.FC<PricingToggleProps> = ({
         }`}
         aria-pressed={isYearly}
       >
-        Yearly
+        {t['billing.toggle.yearly']}
         {yearlyDiscount && (
-          <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-            {yearlyDiscount}% off
+          <span className={`absolute -top-2 ${isRtl ? '-left-2' : '-right-2'} bg-green-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full`}>
+            {(t['billing.toggle.percentOff'] as string).replace('{percent}', yearlyDiscount.toString())}
           </span>
         )}
       </button>

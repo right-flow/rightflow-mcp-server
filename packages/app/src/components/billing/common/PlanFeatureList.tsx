@@ -36,25 +36,26 @@ export const PlanFeatureList: React.FC<PlanFeatureListProps> = ({ plan, classNam
     }
 
     // 3. מיתוג (Branding)
-    let branding = 'חובה (לוגו המערכת)'; // Default
     if (plan.name === 'FREE' || plan.name === 'BASIC') {
-      branding = 'חובה (לוגו המערכת)';
+      features.push('מיתוג: חובה (לוגו המערכת)');
     } else if (plan.name === 'EXPANDED') {
-      branding = 'ללא מיתוג (White Label)';
+      features.push('מיתוג: ללא מיתוג (White Label)');
     } else if (plan.name === 'ENTERPRISE') {
-      branding = 'דומיין מותאם אישית';
+      // Enterprise has both White Label AND custom domain
+      features.push('מיתוג: ללא מיתוג (White Label)');
+      features.push('דומיין מותאם אישית');
     }
-    features.push(`מיתוג: ${branding}`);
 
     // 4. מעקב נטישה (Abandonment tracking)
     let abandonment = 'ללא';
-    if (planFeatures.abandonmentTracking === false || !planFeatures.abandonmentTracking) {
+    const trackingValue = planFeatures.abandonmentTracking;
+    if (trackingValue === false || trackingValue === 'none' || !trackingValue) {
       abandonment = 'ללא';
-    } else if (planFeatures.abandonmentTracking === 'view') {
+    } else if (trackingValue === 'view') {
       abandonment = 'צפייה בלבד (ללא תזכורות)';
-    } else if (planFeatures.abandonmentTracking === 'auto') {
+    } else if (trackingValue === 'auto') {
       abandonment = 'תזכורות אוטו\' (SMS/Mail)';
-    } else if (planFeatures.abandonmentTracking === 'full') {
+    } else if (trackingValue === 'full') {
       abandonment = 'ניתוח משפך המרה מלא';
     }
     features.push(`מעקב נטישה: ${abandonment}`);
