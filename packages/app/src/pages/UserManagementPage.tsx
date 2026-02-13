@@ -21,6 +21,7 @@ import {
 import { AddUserModal } from '../components/dashboard/widgets/admin/user-management/AddUserModal';
 import { EditUserRoleModal } from '../components/dashboard/widgets/admin/user-management/EditUserRoleModal';
 import { RemoveUserModal } from '../components/dashboard/widgets/admin/user-management/RemoveUserModal';
+import { useNamespaceTranslation, languageConfig } from '../i18n';
 import type { UserProfile, UserRole } from '../api/types/role';
 
 interface UserStats {
@@ -35,6 +36,7 @@ interface UserStats {
 export function UserManagementPage() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
+  const { t, language } = useNamespaceTranslation('dashboard');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,11 +113,11 @@ export function UserManagementPage() {
   function getRoleLabel(role: UserRole) {
     switch (role) {
       case 'admin':
-        return 'מנהל';
+        return t.role.admin;
       case 'manager':
-        return 'מנהל צוות';
+        return t.role.manager;
       case 'worker':
-        return 'עובד';
+        return t.role.worker;
     }
   }
 
@@ -131,7 +133,8 @@ export function UserManagementPage() {
   }
 
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('he-IL', {
+    const locale = languageConfig[language]?.locale || 'he-IL';
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -154,22 +157,22 @@ export function UserManagementPage() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <button onClick={() => navigate('/dashboard')} className="hover:text-primary">
-              לוח בקרה
+              {t.userManagementPage.dashboard}
             </button>
             <ChevronRight className="w-4 h-4" />
-            <span>ניהול משתמשים</span>
+            <span>{t.userManagementPage.title}</span>
           </div>
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Users className="w-6 h-6 text-primary" />
-              ניהול משתמשים
+              {t.userManagementPage.title}
             </h1>
             <button
               onClick={() => setShowAddModal(true)}
               className="btn-primary flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
-              הזמן משתמש
+              {t.userManagementPage.inviteUser}
             </button>
           </div>
         </div>
@@ -181,28 +184,28 @@ export function UserManagementPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-background p-4 rounded-xl border border-border">
               <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <div className="text-sm text-muted-foreground">סה"כ משתמשים</div>
+              <div className="text-sm text-muted-foreground">{t.userManagementPage.totalUsers}</div>
             </div>
             <div className="bg-background p-4 rounded-xl border border-border">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-purple-500" />
                 <span className="text-2xl font-bold">{stats.roleDistribution.admin}</span>
               </div>
-              <div className="text-sm text-muted-foreground">מנהלים</div>
+              <div className="text-sm text-muted-foreground">{t.widgets.userManagement.admins}</div>
             </div>
             <div className="bg-background p-4 rounded-xl border border-border">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-blue-500" />
                 <span className="text-2xl font-bold">{stats.roleDistribution.manager}</span>
               </div>
-              <div className="text-sm text-muted-foreground">מנהלי צוות</div>
+              <div className="text-sm text-muted-foreground">{t.widgets.userManagement.managers}</div>
             </div>
             <div className="bg-background p-4 rounded-xl border border-border">
               <div className="flex items-center gap-2">
                 <HardHat className="w-5 h-5 text-amber-500" />
                 <span className="text-2xl font-bold">{stats.roleDistribution.worker}</span>
               </div>
-              <div className="text-sm text-muted-foreground">עובדים</div>
+              <div className="text-sm text-muted-foreground">{t.widgets.userManagement.workers}</div>
             </div>
           </div>
         )}
@@ -215,7 +218,7 @@ export function UserManagementPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="חפש לפי שם או אימייל..."
+              placeholder={t.userManagementPage.searchPlaceholder}
               className="w-full pr-10 pl-4 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
@@ -228,7 +231,7 @@ export function UserManagementPage() {
                   : 'bg-background border border-border hover:bg-zinc-50 dark:hover:bg-zinc-900'
               }`}
             >
-              הכל
+              {t.userManagementPage.all}
             </button>
             <button
               onClick={() => setRoleFilter('admin')}
@@ -238,7 +241,7 @@ export function UserManagementPage() {
                   : 'bg-background border border-border hover:bg-zinc-50 dark:hover:bg-zinc-900'
               }`}
             >
-              מנהלים
+              {t.widgets.userManagement.admins}
             </button>
             <button
               onClick={() => setRoleFilter('manager')}
@@ -248,7 +251,7 @@ export function UserManagementPage() {
                   : 'bg-background border border-border hover:bg-zinc-50 dark:hover:bg-zinc-900'
               }`}
             >
-              מנהלי צוות
+              {t.widgets.userManagement.managers}
             </button>
             <button
               onClick={() => setRoleFilter('worker')}
@@ -258,7 +261,7 @@ export function UserManagementPage() {
                   : 'bg-background border border-border hover:bg-zinc-50 dark:hover:bg-zinc-900'
               }`}
             >
-              עובדים
+              {t.widgets.userManagement.workers}
             </button>
           </div>
         </div>
@@ -268,15 +271,15 @@ export function UserManagementPage() {
           {loading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">טוען משתמשים...</p>
+              <p className="text-muted-foreground">{t.userManagementPage.loadingUsers}</p>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-8 text-center">
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
               <p className="text-muted-foreground">
                 {searchQuery || roleFilter !== 'all'
-                  ? 'לא נמצאו משתמשים התואמים לחיפוש'
-                  : 'אין משתמשים בארגון'}
+                  ? t.userManagementPage.noUsersFound
+                  : t.userManagementPage.noUsersInOrg}
               </p>
             </div>
           ) : (
@@ -284,16 +287,16 @@ export function UserManagementPage() {
               <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-border">
                 <tr>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    משתמש
+                    {t.userManagementPage.user}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
-                    תפקיד
+                    {t.userManagementPage.roleColumn}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground hidden md:table-cell">
-                    הצטרף בתאריך
+                    {t.userManagementPage.joinedDate}
                   </th>
                   <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground w-12">
-                    פעולות
+                    {t.userManagementPage.actions}
                   </th>
                 </tr>
               </thead>
@@ -310,7 +313,7 @@ export function UserManagementPage() {
                             .slice(0, 2) || user.email[0].toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-medium">{user.name || 'ללא שם'}</div>
+                          <div className="font-medium">{user.name || t.widgets.userManagement.noName}</div>
                           <div className="text-sm text-muted-foreground">{user.email}</div>
                         </div>
                       </div>
@@ -349,7 +352,7 @@ export function UserManagementPage() {
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 text-right"
                               >
                                 <Pencil className="w-4 h-4" />
-                                ערוך תפקיד
+                                {t.userManagementPage.editRole}
                               </button>
                               <button
                                 onClick={() => {
@@ -359,7 +362,7 @@ export function UserManagementPage() {
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 text-right text-destructive"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                הסר משתמש
+                                {t.userManagementPage.removeUser}
                               </button>
                             </div>
                           </>
@@ -380,7 +383,7 @@ export function UserManagementPage() {
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowRight className="w-4 h-4" />
-            חזרה ללוח הבקרה
+            {t.userManagementPage.backToDashboard}
           </button>
         </div>
       </div>
