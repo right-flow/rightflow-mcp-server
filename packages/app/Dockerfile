@@ -33,7 +33,7 @@ ENV VITE_ROOBZ_API_ENDPOINT=$VITE_ROOBZ_API_ENDPOINT
 # Build frontend
 RUN npm run build
 
-# Build stage for backend API
+# Build stage for old backend API (api/ folder)
 FROM node:20.18.0-alpine AS backend-builder
 
 WORKDIR /app
@@ -47,8 +47,25 @@ COPY backend/ ./backend/
 COPY packages/app/backend/ ./packages/app/backend/
 COPY tsconfig.api.json ./
 
-# Build backend
+# Build old backend API
 RUN npm run build:api
+
+# Build stage for new backend API (packages/app/backend/)
+FROM node:20.18.0-alpine AS new-backend-builder
+
+WORKDIR /app/packages/app/backend
+
+# Copy backend package files
+COPY packages/app/backend/package*.json ./
+
+# Install backend dependencies
+RUN npm ci
+
+# Copy backend source
+COPY packages/app/backend/ ./
+
+# Build new backend
+RUN npm run build
 
 # Production stage
 FROM node:20.18.0-alpine
@@ -62,10 +79,15 @@ RUN npm ci --production
 # Copy built frontend
 COPY --from=frontend-builder /app/dist ./dist
 
-# Copy built backend
+# Copy built old backend
 COPY --from=backend-builder /app/dist-api ./dist-api
 
-# Copy backend source (needed for some imports)
+# Copy built new backend (packages/app/backend)
+COPY --from=new-backend-builder /app/packages/app/backend/dist ./backend-v1/dist
+COPY --from=new-backend-builder /app/packages/app/backend/node_modules ./backend-v1/node_modules
+COPY --from=new-backend-builder /app/packages/app/backend/package.json ./backend-v1/package.json
+
+# Copy old backend source (needed for some imports)
 COPY backend/ ./backend/
 
 # Copy server and config files from packages/app (build context is repo root)

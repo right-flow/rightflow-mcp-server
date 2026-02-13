@@ -85,7 +85,7 @@ const createApiHandler = (handlerPath) => async (req, res) => {
   }
 };
 
-// Mount all API endpoints
+// Mount old API endpoints (legacy)
 app.post('/api/extract-fields', createApiHandler('extract-fields.ts'));
 app.all('/api/forms', createApiHandler('forms.ts'));
 app.all('/api/forms-publish', createApiHandler('forms-publish.ts'));
@@ -96,6 +96,48 @@ app.all('/api/billing', createApiHandler('billing.ts'));
 app.all('/api/plans', createApiHandler('plans.ts'));
 app.all('/api/webhooks/clerk', createApiHandler('webhooks/clerk.ts'));
 app.all('/api/webhooks/grow', createApiHandler('webhooks/grow.ts'));
+
+// ============================================================================
+// NEW BACKEND API V1 ROUTES
+// ============================================================================
+
+/**
+ * Mount the new backend API routes from packages/app/backend
+ * These routes handle /api/v1/* endpoints including:
+ * - /api/v1/users (user profiles, roles)
+ * - /api/v1/forms (form management)
+ * - /api/v1/submissions (form submissions)
+ * - /api/v1/analytics (analytics data)
+ * - /api/v1/whatsapp (WhatsApp integration)
+ * - /api/v1/integrations (connectors, mappings)
+ */
+let backendV1Loaded = false;
+const loadBackendV1Routes = async () => {
+  try {
+    // Dynamic import of the new backend routes (CommonJS module)
+    const backendRoutesPath = join(__dirname, 'backend-v1/dist/routes.js');
+    const backendModule = await import(backendRoutesPath);
+    const apiV1Router = backendModule.apiV1Router || backendModule.default;
+
+    if (apiV1Router) {
+      // Mount the new API v1 routes
+      app.use('/api/v1', apiV1Router);
+      backendV1Loaded = true;
+      console.log('✅ Backend API v1 routes mounted successfully');
+    } else {
+      console.error('❌ Backend API v1 router not found in module');
+    }
+  } catch (error) {
+    console.error('❌ Failed to load backend API v1 routes:', error.message);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('   Stack:', error.stack);
+    }
+    console.error('   The /api/v1/* endpoints will not be available');
+  }
+};
+
+// Load backend v1 routes immediately
+await loadBackendV1Routes();
 
 // Health check endpoint (used by Railway)
 app.get('/api/health', async (req, res) => {
@@ -227,7 +269,7 @@ server.listen(PORT, () => {
   console.log(`Server URL:   http://localhost:${PORT}`);
   console.log(`Health Check: http://localhost:${PORT}/api/health`);
   console.log('='.repeat(60));
-  console.log('\n📡 API Endpoints:');
+  console.log('\n📡 Legacy API Endpoints:');
   console.log(`   POST   /api/extract-fields`);
   console.log(`   ALL    /api/forms`);
   console.log(`   ALL    /api/forms-publish`);
@@ -238,6 +280,17 @@ server.listen(PORT, () => {
   console.log(`   POST   /api/webhooks/clerk`);
   console.log(`   POST   /api/webhooks/grow`);
   console.log(`   GET    /api/health`);
+  if (backendV1Loaded) {
+    console.log('\n📡 API v1 Endpoints:');
+    console.log(`   ALL    /api/v1/users`);
+    console.log(`   ALL    /api/v1/forms`);
+    console.log(`   ALL    /api/v1/submissions`);
+    console.log(`   ALL    /api/v1/analytics`);
+    console.log(`   ALL    /api/v1/activity`);
+    console.log(`   ALL    /api/v1/whatsapp`);
+    console.log(`   ALL    /api/v1/webhooks`);
+    console.log(`   ALL    /api/v1/integrations/*`);
+  }
   console.log('\n📁 Static Files:');
   console.log(`   Serving from: ${distPath}`);
   console.log(`   SPA fallback: Enabled (React Router)`);
