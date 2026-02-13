@@ -2,12 +2,13 @@
 // Created: 2026-02-08
 // Updated: 2026-02-11 - Added i18n for demo data, loading state, RTL fix
 // Updated: 2026-02-11 - Fixed infinite loop, added 10-min refresh interval
+// Updated: 2026-02-12 - Added retry logic via useApiWithRetry hook
 // Purpose: Display form completion rates with progress bars (from Dashboard1.html)
 
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { useTranslation } from '../../../../i18n';
+import { useApiWithRetry } from '../../../../hooks/useApiWithRetry';
 
 // Refresh interval: 10 minutes
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
@@ -24,75 +25,75 @@ interface FormPerformanceWidgetProps {
 
 export function FormPerformanceWidget({ className }: FormPerformanceWidgetProps) {
   const t = useTranslation();
-  const { getToken } = useAuth();
+  const { fetchWithRetry, abortAll } = useApiWithRetry({ maxRetries: 3 });
   const [forms, setForms] = useState<FormPerformance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const isMounted = useRef(true);
+  const hasLoadedRef = useRef(false);
 
-  // Get default demo forms (computed at render time, not in effect)
-  const getDefaultForms = useCallback((): FormPerformance[] => [
+  // Store refs to avoid effect re-runs
+  const fetchWithRetryRef = useRef(fetchWithRetry);
+  const abortAllRef = useRef(abortAll);
+  fetchWithRetryRef.current = fetchWithRetry;
+  abortAllRef.current = abortAll;
+
+  // Get default demo forms
+  const getDefaultForms = (): FormPerformance[] => [
     { id: '1', name: t['dashboard.demo.forms.serviceJoin'], completionRate: 92 },
     { id: '2', name: t['dashboard.demo.forms.techSupport'], completionRate: 75 },
     { id: '3', name: t['dashboard.demo.forms.satisfaction'], completionRate: 48 },
     { id: '4', name: t['dashboard.demo.forms.jobApplication'], completionRate: 85 },
-  ], [t]);
+  ];
 
-  // Load data function - separated from effect
-  const loadData = useCallback(async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-    setError(null);
+  // Initial load and refresh interval - runs ONCE on mount
+  useEffect(() => {
+    isMounted.current = true;
 
-    try {
-      const token = await getToken();
-      if (!token || !isMounted.current) {
-        if (isMounted.current) setForms(getDefaultForms());
-        return;
-      }
+    const loadData = async (showLoading = true) => {
+      if (showLoading) setIsLoading(true);
+      setError(null);
 
-      const response = await fetch('/api/v1/analytics/form-performance', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        const data = await fetchWithRetryRef.current<FormPerformance[]>('/api/v1/analytics/form-performance');
 
-      if (!isMounted.current) return;
+        if (!isMounted.current) return;
 
-      if (response.ok) {
-        const data = await response.json();
         if (data && data.length > 0) {
           setForms(data);
         } else {
           setForms(getDefaultForms());
         }
-      } else {
-        // Don't treat auth errors as critical - just show demo data
-        setForms(getDefaultForms());
+      } catch (err) {
+        // Don't log AbortError - it's expected on unmount
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Failed to load form performance:', err);
+        if (isMounted.current) {
+          setError('Failed to load');
+          setForms(getDefaultForms());
+        }
+      } finally {
+        if (isMounted.current) setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load form performance:', err);
-      if (isMounted.current) {
-        setError('Failed to load');
-        setForms(getDefaultForms());
-      }
-    } finally {
-      if (isMounted.current) setIsLoading(false);
-    }
-  }, [getToken, getDefaultForms]);
+    };
 
-  // Initial load and refresh interval
-  useEffect(() => {
-    isMounted.current = true;
-    loadData();
+    // Only load once
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      loadData();
+    }
 
     // Set up refresh interval (10 minutes)
     const intervalId = setInterval(() => {
-      loadData(false); // Don't show loading on refresh
+      loadData(false);
     }, REFRESH_INTERVAL_MS);
 
     return () => {
       isMounted.current = false;
       clearInterval(intervalId);
+      abortAllRef.current();
     };
-  }, []); // Empty deps - only run once on mount
+  }, []); // Empty dependency array - runs once on mount
 
   return (
     <Card className={`bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 ${className || ''}`}>

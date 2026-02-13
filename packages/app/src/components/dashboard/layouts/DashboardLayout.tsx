@@ -1,6 +1,7 @@
 // Dashboard Layout
 // Created: 2026-02-07
 // Updated: 2026-02-08 - Added Automation nav item and language switcher
+// Updated: 2026-02-13 - Added White Label support (hide logo for EXPANDED/ENTERPRISE plans)
 // Purpose: Shared layout wrapper for role-based dashboards
 
 import { ReactNode, useState } from 'react';
@@ -10,6 +11,7 @@ import { MaterialIcon } from '@/components/ui/MaterialIcon';
 import { useTranslation, useDirection } from '../../../i18n';
 import { useRole } from '../../../contexts/RoleContext';
 import { useAppStore, type Language } from '../../../store/appStore';
+import { useSubscription } from '../../../hooks/useSubscription';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +24,7 @@ interface NavItem {
   label: string;
   path: string;
   roles?: ('admin' | 'manager' | 'worker')[];
+  disabled?: boolean;
 }
 
 export function DashboardLayout({
@@ -34,6 +37,19 @@ export function DashboardLayout({
   const direction = useDirection();
   const { role } = useRole();
   const { organization } = useOrganization();
+  const { hasWhiteLabel, loading: subscriptionLoading, subscription } = useSubscription();
+
+  // Show logo by default during loading, hide only when White Label is confirmed
+  const showSystemLogo = subscriptionLoading || !hasWhiteLabel;
+
+  // DEBUG: Log subscription state
+  console.log('[DashboardLayout] Logo Debug:', {
+    showSystemLogo,
+    hasWhiteLabel,
+    subscriptionLoading,
+    planName: subscription?.plan?.name,
+    customBranding: subscription?.plan?.features?.customBranding,
+  });
 
   // Language state from store
   const { language, setLanguage } = useAppStore();
@@ -60,8 +76,8 @@ export function DashboardLayout({
     },
     {
       id: 'responses',
-      icon: 'analytics',
-      label: t.analytics,
+      icon: 'chat',
+      label: t.responses,
       path: '/responses',
     },
     {
@@ -70,6 +86,7 @@ export function DashboardLayout({
       label: t.automation,
       path: '/automation',
       roles: ['admin', 'manager'],
+      disabled: true,
     },
     {
       id: 'users',
@@ -138,13 +155,16 @@ export function DashboardLayout({
           borderRight: isRTL ? 'none' : '1px solid rgba(255,255,255,0.1)',
         }}
       >
-        {/* Logo */}
+        {/* Logo - Hidden for White Label plans (EXPANDED/ENTERPRISE) */}
+        {/* DEBUG: Temporarily always show to test if logo loads */}
         <div className="mb-6 mx-2 overflow-hidden rounded-xl bg-gray-100" style={{ height: '140px' }}>
           <img
-            src="/logo.png"
+            src="/images/logo.png"
             alt="RightFlow Logo"
             className="w-full h-full object-cover object-center"
             style={{ transform: 'scale(1.3)', transformOrigin: 'center center' }}
+            onError={(e) => console.error('[Logo] Failed to load:', e)}
+            onLoad={() => console.log('[Logo] Loaded successfully')}
           />
         </div>
 
@@ -171,17 +191,27 @@ export function DashboardLayout({
         <nav className="flex-1 space-y-1">
           {visibleNavItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const isDisabled = item.disabled === true;
             return (
               <button
                 key={item.id}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
-                  ? 'bg-white/10 text-white font-bold'
-                  : 'text-white/70 hover:bg-white/5 hover:text-white'
-                  }`}
+                onClick={() => !isDisabled && navigate(item.path)}
+                disabled={isDisabled}
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  isDisabled
+                    ? 'text-white/30 cursor-not-allowed'
+                    : isActive
+                      ? 'bg-white/10 text-white font-bold'
+                      : 'text-white/70 hover:bg-white/5 hover:text-white'
+                }`}
               >
                 <MaterialIcon name={item.icon} size="md" />
                 {item.label}
+                {isDisabled && (
+                  <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white/40 ms-auto">
+                    בקרוב
+                  </span>
+                )}
               </button>
             );
           })}
