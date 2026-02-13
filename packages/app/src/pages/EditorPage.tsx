@@ -932,185 +932,195 @@ export function EditorPage() {
     },
   ];
 
+  const isRTL = direction === 'rtl';
+
   return (
-    <div className="w-screen h-screen flex flex-col bg-background" dir={direction}>
-      {/* Recovery Dialog */}
-      {recoveryData && (
-        <RecoveryDialog
-          recoveryData={recoveryData}
-          onRestore={handleRestore}
-          onDiscard={handleDiscardRecovery}
-        />
-      )}
+    <div
+      className="w-screen h-screen flex bg-background"
+      dir={direction}
+      style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}
+    >
 
-      {/* Upload Warning Dialog */}
-      {showUploadWarning && (
-        <UploadWarningDialog
-          fieldCount={fields.length}
-          onNewDocument={handleUploadWarningNewDocument}
-          onNewVersion={handleUploadWarningNewVersion}
-          onCancel={handleUploadWarningCancel}
-        />
-      )}
-
-      {/* Hidden file inputs */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/pdf"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-      <input
-        ref={fieldTemplateInputRef}
-        type="file"
-        accept="application/json"
-        onChange={handleFieldTemplateChange}
-        style={{ display: 'none' }}
-      />
-
-      <TopToolbar
-        currentPage={currentPage}
-        totalPages={totalPages}
-        zoomLevel={zoomLevel}
-        onPageChange={setCurrentPage}
-        onZoomChange={setZoomLevel}
-        onUpload={handleUpload}
-        onSave={handleSave}
-        onSettings={() => setIsSettingsOpen(true)}
-        hasDocument={!!pdfFile}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo()}
-        canRedo={canRedo()}
-        onExtractFields={handleExtractFields}
-        isExtractingFields={isExtractingFields}
-        onExportHtml={handleExportHtml}
-        onPublish={handlePublish}
-        isPublishing={isPublishing}
-        formStatus={formStatus}
-        onViewHistory={handleViewHistory}
-      />
-
-      {/* Tools Bar - Field Creation Tools */}
-      {pdfFile && !isMobile && <ToolsBar activeTool={activeTool} onToolChange={setActiveTool} />}
-
-      {/* Mobile Toolbar - Bottom Navigation (Mobile Only) */}
-      {pdfFile && isMobile && (
-        <EditorMobileToolbar
-          activeTool={activeTool}
-          onToolChange={setActiveTool}
-          showLabels={true}
-        />
-      )}
-
-      {/* Settings Modal */}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-
-      {/* HTML Preview Dialog */}
-      <HtmlPreviewDialog
-        isOpen={isHtmlDialogOpen}
-        onClose={handleCloseHtmlDialog}
-        result={generatedHtml}
-        isLoading={isGeneratingHtml}
-        loadingStatus={htmlLoadingStatus}
-        pdfFileName={pdfFile?.name}
-        pdfFile={pdfFile}
-        fields={fields}
-        formMetadata={extractedFormMetadata}
-      />
-
-      {/* Publish Dialog */}
-      <PublishDialog
-        open={isPublishDialogOpen}
-        onOpenChange={setIsPublishDialogOpen}
-        formId="temp-form-id"
-        formTitle={pdfFile?.name?.replace(/\.pdf$/i, '') || 'טופס'}
-        onPublish={handlePublishConfirm}
-        isPublishing={isPublishing}
-        publishedUrl={publishedUrl}
-        shortUrl={shortUrl}
-        isPremiumUser={false}
-      />
-
-      {/* Version History Dialog */}
-      <VersionHistory
-        open={isHistoryDialogOpen}
-        onOpenChange={setIsHistoryDialogOpen}
-        formId={currentFormId || ''}
-        onRestore={handleRestoreVersion}
-      />
-
-      {/* Error Dialog */}
-      <ErrorDialog
-        open={errorDialogOpen}
-        onOpenChange={setErrorDialogOpen}
-        title={errorDialogTitle}
-        errors={errorDialogErrors}
-        description="ניתן להעתיק את השגיאות ולתקן את השדות"
-      />
-
-      <MainLayout>
-        {/* Page Thumbnail Sidebar - Desktop Only */}
-        {pdfFile && totalPages > 0 && !isMobile && (
-          <PageThumbnailSidebar
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageSelect={setCurrentPage}
-            thumbnails={thumbnails}
-            onReprocessPage={handleReprocessPage}
-            isReprocessing={isReprocessing}
-            reprocessingPage={reprocessingPage}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Recovery Dialog */}
+        {recoveryData && (
+          <RecoveryDialog
+            recoveryData={recoveryData}
+            onRestore={handleRestore}
+            onDiscard={handleDiscardRecovery}
           />
         )}
 
-        {/* PDF Viewer - Main Canvas */}
-        <PDFViewer
-          file={pdfFile}
-          pageNumber={currentPage}
-          scale={zoomLevel}
-          userId={user?.id}
-          onLoadSuccess={handlePDFLoadSuccess}
-          onLoadError={handlePDFLoadError}
-          onPageRender={handlePageRender}
+        {/* Upload Warning Dialog */}
+        {showUploadWarning && (
+          <UploadWarningDialog
+            fieldCount={fields.length}
+            onNewDocument={handleUploadWarningNewDocument}
+            onNewVersion={handleUploadWarningNewVersion}
+            onCancel={handleUploadWarningCancel}
+          />
+        )}
+
+        {/* Hidden file inputs */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <input
+          ref={fieldTemplateInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleFieldTemplateChange}
+          style={{ display: 'none' }}
+        />
+
+        <TopToolbar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          zoomLevel={zoomLevel}
+          onPageChange={setCurrentPage}
           onZoomChange={setZoomLevel}
+          onUpload={handleUpload}
+          onSave={handleSave}
+          onSettings={() => setIsSettingsOpen(true)}
+          hasDocument={!!pdfFile}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={canUndo()}
+          canRedo={canRedo()}
+          onExtractFields={handleExtractFields}
+          isExtractingFields={isExtractingFields}
+          onExportHtml={handleExportHtml}
+          onPublish={handlePublish}
+          isPublishing={isPublishing}
+          formStatus={formStatus}
+          onViewHistory={handleViewHistory}
         />
 
-        {/* Field List Sidebar - Desktop Only */}
-        {pdfFile && !isMobile && (
-          <FieldListSidebar
-            fields={fields}
-            selectedFieldId={selectedFieldId}
-            selectedFieldIds={selectedFieldIds}
-            currentPage={currentPage}
-            errorFieldIds={errorFieldIds}
-            onFieldSelect={selectField}
-            onToggleFieldSelection={toggleFieldSelection}
-            onFieldDelete={deleteField}
-            onPageNavigate={setCurrentPage}
-            hoveredFieldId={hoveredFieldId}
-            onFieldHover={setHoveredField}
-            onLoadFieldsFromHistory={handleLoadFieldsFromHistory}
+        {/* Tools Bar - Field Creation Tools */}
+        {pdfFile && !isMobile && <ToolsBar activeTool={activeTool} onToolChange={setActiveTool} />}
+
+        {/* Mobile Toolbar - Bottom Navigation (Mobile Only) */}
+        {pdfFile && isMobile && (
+          <EditorMobileToolbar
+            activeTool={activeTool}
+            onToolChange={setActiveTool}
+            showLabels={true}
           />
         )}
 
-        {/* Mobile Toolbar Spacer - Prevents content from being hidden behind toolbar */}
-        {pdfFile && isMobile && <EditorMobileToolbarSpacer />}
-      </MainLayout>
+        {/* Settings Modal */}
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      {/* FloatingNavbar - Premium navigation overlay */}
-      {pdfFile && (
-        <FloatingNavbar
-          tabs={floatingNavbarTabs}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          actions={floatingNavbarActions}
-          direction={direction}
-          draggable
-          constrainToViewport
-          autoAdjustPosition
+        {/* HTML Preview Dialog */}
+        <HtmlPreviewDialog
+          isOpen={isHtmlDialogOpen}
+          onClose={handleCloseHtmlDialog}
+          result={generatedHtml}
+          isLoading={isGeneratingHtml}
+          loadingStatus={htmlLoadingStatus}
+          pdfFileName={pdfFile?.name}
+          pdfFile={pdfFile}
+          fields={fields}
+          formMetadata={extractedFormMetadata}
         />
-      )}
+
+        {/* Publish Dialog */}
+        <PublishDialog
+          open={isPublishDialogOpen}
+          onOpenChange={setIsPublishDialogOpen}
+          formId="temp-form-id"
+          formTitle={pdfFile?.name?.replace(/\.pdf$/i, '') || 'טופס'}
+          onPublish={handlePublishConfirm}
+          isPublishing={isPublishing}
+          publishedUrl={publishedUrl}
+          shortUrl={shortUrl}
+          isPremiumUser={false}
+        />
+
+        {/* Version History Dialog */}
+        <VersionHistory
+          open={isHistoryDialogOpen}
+          onOpenChange={setIsHistoryDialogOpen}
+          formId={currentFormId || ''}
+          onRestore={handleRestoreVersion}
+        />
+
+        {/* Error Dialog */}
+        <ErrorDialog
+          open={errorDialogOpen}
+          onOpenChange={setErrorDialogOpen}
+          title={errorDialogTitle}
+          errors={errorDialogErrors}
+          description="ניתן להעתיק את השגיאות ולתקן את השדות"
+        />
+
+        <MainLayout>
+          {/* Page Thumbnail Sidebar - Desktop Only */}
+          {pdfFile && totalPages > 0 && !isMobile && (
+            <PageThumbnailSidebar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageSelect={setCurrentPage}
+              thumbnails={thumbnails}
+              onReprocessPage={handleReprocessPage}
+              isReprocessing={isReprocessing}
+              reprocessingPage={reprocessingPage}
+            />
+          )}
+
+          {/* PDF Viewer - Main Canvas */}
+          <PDFViewer
+            file={pdfFile}
+            pageNumber={currentPage}
+            scale={zoomLevel}
+            userId={user?.id}
+            onLoadSuccess={handlePDFLoadSuccess}
+            onLoadError={handlePDFLoadError}
+            onPageRender={handlePageRender}
+            onZoomChange={setZoomLevel}
+          />
+
+          {/* Field List Sidebar - Desktop Only */}
+          {pdfFile && !isMobile && (
+            <FieldListSidebar
+              fields={fields}
+              selectedFieldId={selectedFieldId}
+              selectedFieldIds={selectedFieldIds}
+              currentPage={currentPage}
+              errorFieldIds={errorFieldIds}
+              onFieldSelect={selectField}
+              onToggleFieldSelection={toggleFieldSelection}
+              onFieldDelete={deleteField}
+              onPageNavigate={setCurrentPage}
+              hoveredFieldId={hoveredFieldId}
+              onFieldHover={setHoveredField}
+              onLoadFieldsFromHistory={handleLoadFieldsFromHistory}
+            />
+          )}
+
+          {/* Mobile Toolbar Spacer - Prevents content from being hidden behind toolbar */}
+          {pdfFile && isMobile && <EditorMobileToolbarSpacer />}
+        </MainLayout>
+
+        {/* FloatingNavbar - Premium navigation overlay */}
+        {pdfFile && (
+          <FloatingNavbar
+            tabs={floatingNavbarTabs}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            actions={floatingNavbarActions}
+            direction={direction}
+            draggable
+            constrainToViewport
+            autoAdjustPosition
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -71,7 +71,7 @@ export const mockPlans: Plan[] = [
       advancedReports: false, // בסיסי (גרפים)
       apiAccess: false, // ללא
       prioritySupport: false,
-      abandonmentTracking: false, // ללא
+      abandonmentTracking: 'none', // ללא
       whatsappIntegration: false, // ללא אינטגרציות
     },
     isActive: true,
@@ -92,7 +92,7 @@ export const mockPlans: Plan[] = [
       advancedReports: false, // בסיסי (גרפים)
       apiAccess: false,
       prioritySupport: false,
-      abandonmentTracking: true, // צפייה בלבד (ללא תזכורות)
+      abandonmentTracking: 'view', // צפייה בלבד (ללא תזכורות)
       whatsappIntegration: true, // בסיסיות (WhatsApp)
     },
     isActive: true,
@@ -113,7 +113,7 @@ export const mockPlans: Plan[] = [
       advancedReports: true, // השוואת נתונים היסטוריים
       apiAccess: false,
       prioritySupport: false,
-      abandonmentTracking: true, // תזכורות אוטו' (SMS/Mail)
+      abandonmentTracking: 'auto', // תזכורות אוטו' (SMS/Mail)
       whatsappIntegration: true, // פרימיום (WhatsApp, SMS, Mail)
       smsIntegration: true,
       emailIntegration: true,
@@ -125,8 +125,8 @@ export const mockPlans: Plan[] = [
     id: 'plan_enterprise',
     name: 'ENTERPRISE',
     displayName: 'Enterprise',
-    priceMonthly: 0, // מותאם אישית (custom pricing)
-    priceYearly: null, // מותאם אישית
+    priceMonthly: 90000, // החל מ-900 ₪ לחודש (starting from 900 ₪/month)
+    priceYearly: null, // מותאם אישית - יצירת קשר למחיר
     maxForms: -1, // ללא הגבלה
     maxSubmissionsPerMonth: 5000, // 5,000+
     maxStorageMB: -1, // unlimited
@@ -136,7 +136,7 @@ export const mockPlans: Plan[] = [
       advancedReports: true, // מודל מסקנות והמלצות AI
       apiAccess: true, // API ו-Webhooks מלאים
       prioritySupport: true,
-      abandonmentTracking: true, // ניתוח משפך המרה מלא
+      abandonmentTracking: 'full', // ניתוח משפך המרה מלא
       whatsappIntegration: true,
       smsIntegration: true,
       emailIntegration: true,
@@ -296,7 +296,7 @@ export function getMockResponse(url: string, method: string = 'GET'): any {
     return { success: true, data: mockSubscription };
   }
 
-  // Usage endpoints
+  // Usage endpoints - order matters! More specific routes first
   if (url.includes('/usage/') && url.includes('/quota-status')) {
     return { success: true, data: mockQuotaStatus };
   }
@@ -306,8 +306,24 @@ export function getMockResponse(url: string, method: string = 'GET'): any {
   if (url.includes('/usage/') && url.includes('/check-quota')) {
     return { success: true, data: mockQuotaCheckResult };
   }
-  if (url.includes('/usage/') && method === 'POST') {
+  if (url.includes('/usage/') && url.includes('/increment') && method === 'POST') {
     return { success: true, message: 'Usage incremented' };
+  }
+  // Base usage endpoint: GET /usage/{orgId}
+  if (url.match(/\/usage\/[^/]+$/) && method === 'GET') {
+    return {
+      success: true,
+      data: {
+        totalSubmissions: mockQuotaStatus.totalSubmissions,
+        quotaLimit: mockQuotaStatus.quotaLimit,
+        remaining: mockQuotaStatus.remaining,
+        percentUsed: mockQuotaStatus.percentUsed,
+        isExceeded: mockQuotaStatus.isExceeded,
+        overageAmount: mockQuotaStatus.overageAmount,
+        billingPeriodStart: mockQuotaStatus.billingPeriodStart,
+        billingPeriodEnd: mockQuotaStatus.billingPeriodEnd,
+      },
+    };
   }
 
   // Invoice endpoints

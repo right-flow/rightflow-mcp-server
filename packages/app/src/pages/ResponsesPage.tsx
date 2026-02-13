@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUser, useAuth, UserButton } from '@clerk/clerk-react';
+import { useUser, useAuth, useOrganization } from '@clerk/clerk-react';
 import { ResponseExportButton } from '../components/responses/ResponseExportButton';
 import { useTranslation, useDirection } from '../i18n';
-import { motion } from 'framer-motion';
-import { Calendar, MessageSquare, ArrowLeft, Layout, Search, Bell, HelpCircle, FileText, BarChart3, Settings, AlertCircle } from 'lucide-react';
+import { Calendar, MessageSquare, ArrowLeft, AlertCircle } from 'lucide-react';
+import { DashboardLayout } from '../components/dashboard/layouts/DashboardLayout';
+import { RoleProvider } from '../contexts/RoleContext';
 
 interface Response {
   id: string;
@@ -23,8 +24,43 @@ interface FormField {
 }
 
 export function ResponsesPage() {
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const t = useTranslation();
+
+  // Show loading while organization loads
+  if (!orgLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-muted-foreground text-sm">{t['common.loading']}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If no organization, redirect to dashboard to create one
+  if (!organization) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground">{t['dashboard.welcome.description']}</p>
+          <a href="/dashboard" className="btn-primary">{t.overview}</a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <RoleProvider orgId={organization.id}>
+      <ResponsesPageContent />
+    </RoleProvider>
+  );
+}
+
+function ResponsesPageContent() {
   const { formId } = useParams<{ formId: string }>();
-  const { isSignedIn, isLoaded, user } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const t = useTranslation();
@@ -89,103 +125,100 @@ export function ResponsesPage() {
   if (!isLoaded) return null;
 
   return (
-    <div className="dashboard-grid" dir={direction}>
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="flex items-center gap-3 mb-10 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-9 h-9 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-            <Layout className="text-white dark:text-black w-5 h-5" />
-          </div>
-          <span className="text-xl font-bold tracking-tight">RightFlow</span>
+    <DashboardLayout showSearch={false}>
+      {/* Page Header with Back Button */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => navigate('/responses')}
+          className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <ArrowLeft className={`w-5 h-5 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
+        </button>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {direction === 'rtl' ? 'תגובות לטופס' : 'Form Responses'}
+        </h1>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-
-        <nav className="flex-1 space-y-1">
-          <button onClick={() => navigate('/dashboard')} className="sidebar-link"><Layout className="w-4 h-4" />{t.overview}</button>
-          <button onClick={() => navigate('/dashboard')} className="sidebar-link"><FileText className="w-4 h-4" />{t.myForms}</button>
-          <button onClick={() => navigate('/responses')} className="sidebar-link sidebar-link-active"><BarChart3 className="w-4 h-4" />{t.responses}</button>
-          <button onClick={() => navigate('/organization')} className="sidebar-link"><Settings className="w-4 h-4" />{t.settings}</button>
-        </nav>
-
-        <div className="mt-auto space-y-1 pt-6 border-t border-border">
-          <button className="sidebar-link"><HelpCircle className="w-4 h-4" />{t.helpCenter}</button>
-          <div className="px-3 py-2 text-xs text-muted-foreground text-center">
-            גרסה 2.4.2
-          </div>
+      ) : error ? (
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-700 rounded-xl p-10 text-center max-w-md mx-auto">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-lg font-bold mb-2">{error}</h2>
+          <button
+            onClick={() => navigate('/responses')}
+            className="bg-primary hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-bold w-full mt-4 transition-colors"
+          >
+            {direction === 'rtl' ? 'חזרה' : 'Go Back'}
+          </button>
         </div>
-      </aside>
+      ) : responses.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-20 text-center flex flex-col items-center">
+          <MessageSquare className="text-zinc-300 w-16 h-16 mb-4" />
+          <h2 className="text-xl font-bold mb-2">
+            {direction === 'rtl' ? 'אין עדיין תגובות' : 'No responses yet'}
+          </h2>
+          <button
+            onClick={() => navigate('/responses')}
+            className="mt-6 px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+          >
+            {direction === 'rtl' ? 'חזרה לרשימת הטפסים' : 'Back to Forms List'}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6 max-w-5xl">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold">
+              {responses.length} {direction === 'rtl' ? 'תגובות נמצאו' : 'responses found'}
+            </h2>
+            {formId && <ResponseExportButton formId={formId} />}
+          </div>
 
-      <main className="main-content">
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/dashboard')} className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
-              <ArrowLeft className={`w-5 h-5 ${direction === 'rtl' ? 'rotate-180' : ''}`} />
-            </button>
-            <h1 className="text-2xl font-bold tracking-tight">{direction === 'rtl' ? 'תגובות לטופס' : 'Form Responses'}</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <UserButton appearance={{ elements: { userButtonAvatarBox: 'w-10 h-10 rounded-lg' } }} />
-          </div>
-        </header>
-
-        {isLoading ? (
-          <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-        ) : error ? (
-          <div className="premium-card p-10 text-center max-w-md mx-auto">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-lg font-bold mb-2">{error}</h2>
-            <button onClick={() => navigate('/dashboard')} className="btn-primary w-full mt-4">חזרה</button>
-          </div>
-        ) : responses.length === 0 ? (
-          <div className="premium-card p-20 text-center flex flex-col items-center border-dashed">
-            <MessageSquare className="text-zinc-300 w-16 h-16 mb-4" />
-            <h2 className="text-xl font-bold mb-2">{direction === 'rtl' ? 'אין עדיין תגובות' : 'No responses yet'}</h2>
-            <button onClick={() => navigate('/dashboard')} className="btn-secondary mt-6">חזרה ללוח הבקרה</button>
-          </div>
-        ) : (
-          <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold">{responses.length} תגובות נמצאו</h2>
-              {formId && <ResponseExportButton formId={formId} />}
-            </div>
-
-            <div className="grid gap-6">
-              {responses.map((response) => (
-                <div key={response.id} className="premium-card group overflow-hidden">
-                  <div className="p-6 border-b border-border bg-zinc-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
-                    <div className="flex items-center gap-3 text-sm font-medium">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      {new Date(response.submittedAt).toLocaleString(direction === 'rtl' ? 'he-IL' : 'en-US')}
-                    </div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">ID: {response.id.slice(0, 8)}</span>
+          <div className="grid gap-6">
+            {responses.map((response) => (
+              <div key={response.id} className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-zinc-800/50 flex justify-between items-center">
+                  <div className="flex items-center gap-3 text-sm font-medium">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    {new Date(response.submittedAt).toLocaleString(direction === 'rtl' ? 'he-IL' : 'en-US')}
                   </div>
-                  <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                    {Object.entries(response.data).map(([fieldId, value]) => {
-                      const field = formFields.find(f => f.id === fieldId);
-                      const label = field?.label || field?.name || fieldId;
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">
+                    ID: {response.id.slice(0, 8)}
+                  </span>
+                </div>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  {Object.entries(response.data).map(([fieldId, value]) => {
+                    const field = formFields.find(f => f.id === fieldId);
+                    const label = field?.label || field?.name || fieldId;
 
-                      if ((field?.type === 'signature' || field?.type === 'camera') && typeof value === 'string' && value.startsWith('data:image')) {
-                        return (
-                          <div key={fieldId} className="md:col-span-2 space-y-2">
-                            <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
-                            <div className="border border-border rounded-lg bg-zinc-50 p-2 inline-block"><img src={value} alt={label} className="max-h-48 rounded" /></div>
-                          </div>
-                        );
-                      }
-
+                    if ((field?.type === 'signature' || field?.type === 'camera') && typeof value === 'string' && value.startsWith('data:image')) {
                       return (
-                        <div key={fieldId} className="space-y-1">
+                        <div key={fieldId} className="md:col-span-2 space-y-2">
                           <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
-                          <p className="text-foreground font-medium">{value === true ? 'כן' : value === false ? 'לא' : String(value || '-')}</p>
+                          <div className="border border-border rounded-lg bg-zinc-50 p-2 inline-block">
+                            <img src={value} alt={label} className="max-h-48 rounded" />
+                          </div>
                         </div>
                       );
-                    })}
-                  </div>
+                    }
+
+                    return (
+                      <div key={fieldId} className="space-y-1">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
+                        <p className="text-foreground font-medium">
+                          {value === true ? (direction === 'rtl' ? 'כן' : 'Yes') : value === false ? (direction === 'rtl' ? 'לא' : 'No') : String(value || '-')}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </DashboardLayout>
   );
 }
