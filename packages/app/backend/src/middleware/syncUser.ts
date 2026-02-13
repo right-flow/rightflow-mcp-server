@@ -8,6 +8,12 @@ import logger from '../utils/logger';
  * This middleware runs AFTER authenticateJWT.
  * It ensures the user exists in our database (upsert).
  * IMPORTANT: Does NOT overwrite existing role - allows DB-based role management
+ *
+ * Flow (handles chicken-and-egg with owner_id):
+ * 1. Check if user exists by clerk_id
+ * 2. If user exists with organization - use that org
+ * 3. If user exists without organization - create org with user as owner
+ * 4. If new user - create user first, then create org with user as owner
  */
 export async function syncUser(req: Request, _res: Response, next: NextFunction) {
   try {
@@ -16,95 +22,109 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       return next();
     }
 
-    const { id: clerkUserId, organizationId, email, name, role: clerkRole } = req.user;
+    const { id: clerkUserId, organizationId: clerkOrgId, email, name, role: clerkRole } = req.user;
 
-    // 1. Upsert organization (if doesn't exist) and get the internal DB ID
-    const orgResult = await query<{ id: string }>(
-      `
-      INSERT INTO organizations (clerk_org_id, name)
-      VALUES ($1, $2)
-      ON CONFLICT (clerk_org_id) DO UPDATE
-      SET updated_at = NOW()
-      RETURNING id
-    `,
-      [organizationId, (name?.split(' ')[0] || 'User') + "'s Organization"], // Default org name
-    );
-
-    // Get the internal organization ID (UUID)
-    const dbOrganizationId = orgResult[0]?.id;
-
-    // 2. Check if user exists and get their current role
-    const existingUser = await query<{ id: string; role: string }>(
-      `SELECT id, role FROM users WHERE clerk_user_id = $1`,
+    // Try both column names for compatibility (clerk_user_id and clerk_id)
+    let existingUser = await query<{ id: string; role: string; organization_id: string | null }>(
+      `SELECT id, role, organization_id FROM users WHERE clerk_user_id = $1`,
       [clerkUserId],
-    );
+    ).catch(() => []);
+
+    // Fallback to clerk_id column if clerk_user_id doesn't exist or returned empty
+    if (existingUser.length === 0) {
+      existingUser = await query<{ id: string; role: string; organization_id: string | null }>(
+        `SELECT id, role, organization_id FROM users WHERE clerk_id = $1`,
+        [clerkUserId],
+      ).catch(() => []);
+    }
 
     let dbRole: string;
     let dbUserId: string;
+    let dbOrganizationId: string;
 
     if (existingUser.length > 0) {
-      // User exists - keep their database role, only update email/name
-      dbRole = existingUser[0].role;
+      // User exists
       dbUserId = existingUser[0].id;
-      await query(
-        `
-        UPDATE users
-        SET email = $2, name = $3, updated_at = NOW()
-        WHERE clerk_user_id = $1
-        `,
-        [clerkUserId, email, name],
-      );
-    } else {
-      // New user - check if this is the first user in the organization
-      const existingOrgUsers = await query<{ count: string }>(
-        `SELECT COUNT(*) as count FROM users WHERE organization_id = $1`,
-        [dbOrganizationId],
-      );
-      const isFirstUser = parseInt(existingOrgUsers[0]?.count || '0') === 0;
+      dbRole = existingUser[0].role || clerkRole || 'worker';
 
-      // First user in org gets admin role, others get the Clerk role (defaults to 'worker')
-      const assignedRole = isFirstUser ? 'admin' : clerkRole;
+      if (existingUser[0].organization_id) {
+        // User already has an organization
+        dbOrganizationId = existingUser[0].organization_id;
+      } else {
+        // User exists but has no organization - create one
+        const orgResult = await query<{ id: string }>(
+          `INSERT INTO organizations (id, name, owner_id, clerk_org_id, tenant_type)
+           VALUES (gen_random_uuid(), $1, $2, $3, 'rightflow')
+           RETURNING id`,
+          [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, clerkOrgId || 'default-org'],
+        );
+        dbOrganizationId = orgResult[0]?.id;
 
-      const result = await query<{ id: string }>(
-        `
-        INSERT INTO users (
-          clerk_user_id,
-          organization_id,
-          email,
-          name,
-          role
-        )
-        VALUES (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5
-        )
-        RETURNING id
-        `,
-        [clerkUserId, dbOrganizationId, email, name, assignedRole],
-      );
-      dbRole = assignedRole;
-      dbUserId = result[0]?.id;
+        // Update user with organization_id
+        await query(
+          `UPDATE users SET organization_id = $1, updated_at = NOW() WHERE id = $2`,
+          [dbOrganizationId, dbUserId],
+        );
 
-      if (isFirstUser) {
-        logger.info('First user in organization - assigned admin role', {
-          clerkUserId,
-          dbOrganizationId,
-          email,
+        logger.info('Created organization for existing user', {
+          userId: dbUserId,
+          organizationId: dbOrganizationId,
         });
       }
+
+      // Update user email/name if changed (try both column names)
+      await query(
+        `UPDATE users SET email = $2, name = $3, updated_at = NOW() WHERE id = $1`,
+        [dbUserId, email, name],
+      ).catch(() => {
+        // name column might not exist, try without it
+        return query(
+          `UPDATE users SET email = $2, updated_at = NOW() WHERE id = $1`,
+          [dbUserId, email],
+        );
+      });
+    } else {
+      // New user - create user first (without organization_id)
+      const userResult = await query<{ id: string }>(
+        `INSERT INTO users (id, clerk_id, email, name, role, tenant_type)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, 'rightflow')
+         ON CONFLICT (clerk_id) DO UPDATE SET email = $2, name = $3, updated_at = NOW()
+         RETURNING id`,
+        [clerkUserId, email, name, 'admin'], // First user is admin
+      );
+      dbUserId = userResult[0]?.id;
+      dbRole = 'admin';
+
+      // Now create organization with the user as owner
+      const orgResult = await query<{ id: string }>(
+        `INSERT INTO organizations (id, name, owner_id, clerk_org_id, tenant_type)
+         VALUES (gen_random_uuid(), $1, $2, $3, 'rightflow')
+         RETURNING id`,
+        [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, clerkOrgId || 'default-org'],
+      );
+      dbOrganizationId = orgResult[0]?.id;
+
+      // Update user with organization_id
+      await query(
+        `UPDATE users SET organization_id = $1 WHERE id = $2`,
+        [dbOrganizationId, dbUserId],
+      );
+
+      logger.info('Created new user and organization', {
+        userId: dbUserId,
+        organizationId: dbOrganizationId,
+        email,
+      });
     }
 
-    // 3. Update req.user with the database role and internal organization ID
+    // Update req.user with the database values
     req.user.role = dbRole;
     req.user.organizationId = dbOrganizationId;
 
     logger.debug('User synced to database', {
       clerkUserId,
       dbUserId,
-      clerkOrgId: organizationId,
+      clerkOrgId,
       dbOrgId: dbOrganizationId,
       email,
       role: dbRole,
@@ -114,6 +134,7 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
   } catch (error: any) {
     logger.error('Failed to sync user to database', {
       error: error.message,
+      stack: error.stack,
       user: req.user,
     });
     // Don't block request if sync fails - log and continue
