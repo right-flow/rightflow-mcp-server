@@ -1,0 +1,113 @@
+import type { WorkflowTranslations } from '../../types/workflow.types';
+
+// Hebrew translations
+const workflow: WorkflowTranslations = {
+  // Approval Chain
+  approval: {
+    chainSettings: 'הגדרות שרשרת אישורים',
+    overallTimeout: 'זמן קצוב כולל (שעות)',
+    hours: 'שעות',
+    onTimeout: 'בתום הזמן',
+    timeout: {
+      fail: 'כשל באישור',
+      escalate: 'הסלם למנהל הבא',
+      autoApprove: 'אישור אוטומטי',
+    },
+    addLevel: 'הוסף רמת אישור',
+    level: 'רמה',
+    approvalType: 'סוג אישור',
+    approvalTypeAny: 'אישור אחד מספיק',
+    approvalTypeAll: 'כולם חייבים לאשר',
+    approvalTypeAllDescription: 'כל המאשרים ברמה זו חייבים לאשר את הבקשה',
+    approvalTypeAnyDescription: 'מאשר אחד ברמה זו מספיק להמשך',
+    approvers: 'מאשרים',
+    addApprover: 'הוסף מאשר',
+    timeoutLevel: 'זמן קצוב לרמה זו',
+    escalation: {
+      title: 'הסלמה',
+      timeoutHours: 'הסלם לאחר (שעות)',
+      escalateTo: 'הסלם אל',
+    },
+    addEscalation: 'הוסף הסלמה',
+    removeEscalation: 'הסר הסלמה',
+    approverType: {
+      user: 'משתמש ספציפי',
+      role: 'תפקיד ארגוני',
+      dynamic: 'מאשר דינמי',
+    },
+    selectUser: 'בחר משתמש',
+    selectRole: 'בחר תפקיד',
+  },
+
+  // Workflow Template
+  template: {
+    gallery: 'גלריית תבניות',
+    searchPlaceholder: 'חפש תבנית...',
+    allCategories: 'כל הקטגוריות',
+    category: {
+      all: 'הכל',
+      approval: 'אישורים',
+      dataCollection: 'איסוף נתונים',
+      dataCollectionKebab: 'איסוף נתונים',
+      automation: 'אוטומציה',
+      conditional: 'תנאי',
+      integration: 'אינטגרציות',
+      notification: 'התראות',
+      custom: 'מותאם אישית',
+    },
+    sortBy: 'מיין לפי',
+    sort: {
+      usageDesc: 'הכי בשימוש',
+      usageAsc: 'הכי פחות בשימוש',
+      dateDesc: 'החדש ביותר',
+      dateAsc: 'הישן ביותר',
+      nameAsc: 'שם (א-ת)',
+      nameDesc: 'שם (ת-א)',
+      mostUsed: 'הכי בשימוש',
+      leastUsed: 'הכי פחות בשימוש',
+      newest: 'החדש ביותר',
+      oldest: 'הישן ביותר',
+      nameAZ: 'שם (א-ת)',
+      nameZA: 'שם (ת-א)',
+    },
+    viewGrid: 'תצוגת רשת',
+    viewList: 'תצוגת רשימה',
+    used: 'בשימוש',
+    times: 'פעמים',
+    useTemplate: 'השתמש בתבנית',
+    exportTemplate: 'ייצא תבנית',
+    deleteTemplate: 'מחק תבנית',
+    importTemplate: 'ייבא תבנית',
+    search: 'חיפוש',
+    noTemplates: 'לא נמצאו תבניות',
+    noResults: 'לא נמצאו תוצאות',
+    empty: 'אין תבניות זמינות',
+    system: 'מערכת',
+    storageUsed: 'אחסון בשימוש',
+    storageWarning: 'האחסון מתקרב למגבלה',
+  },
+
+  // Workflow Condition (Builder)
+  condition: {
+    rootGroup: 'תנאי שורש',
+    nestedGroup: 'תנאי מקונן',
+    addCondition: 'הוסף תנאי',
+    addGroup: 'הוסף קבוצה',
+    operator: {
+      eq: '=',
+      ne: '!=',
+      gt: '>',
+      lt: '<',
+      gte: '>=',
+      lte: '<=',
+      contains: 'מכיל',
+      exists: 'קיים',
+      in: 'ברשימה',
+      notIn: 'לא ברשימה',
+    },
+    selectField: 'בחר שדה',
+    enterValue: 'הזן ערך',
+  },
+};
+
+export default workflow;
