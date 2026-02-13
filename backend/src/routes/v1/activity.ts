@@ -58,8 +58,14 @@ router.get('/recent', async (req, res, next) => {
     }));
 
     res.json(activities);
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    // Handle missing table gracefully - return empty array instead of 500
+    const pgError = error as { code?: string; message?: string };
+    if (pgError.code === '42P01' || pgError.message?.includes('does not exist')) {
+      // Table doesn't exist yet - return empty array
+      return res.json([]);
+    }
+    return next(error);
   }
 });
 

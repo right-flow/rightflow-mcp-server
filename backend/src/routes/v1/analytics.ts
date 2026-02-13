@@ -77,7 +77,7 @@ router.get('/overview', async (req, res, next) => {
       ),
     ]);
 
-    res.json({
+    return res.json({
       totals: {
         submissions: parseInt(submissionsCount[0]?.count || '0'),
         forms: parseInt(formsCount[0]?.count || '0'),
@@ -96,8 +96,17 @@ router.get('/overview', async (req, res, next) => {
         count: parseInt(row.count),
       })),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    // Handle missing tables gracefully - return zeros instead of 500
+    const pgError = error as { code?: string; message?: string };
+    if (pgError.code === '42P01' || pgError.message?.includes('does not exist')) {
+      return res.json({
+        totals: { submissions: 0, forms: 0, users: 0, webhooks: 0 },
+        submissionsByStatus: {},
+        recentActivity: [],
+      });
+    }
+    return next(error);
   }
 });
 
@@ -177,7 +186,7 @@ router.get('/submissions', async (req, res, next) => {
       ),
     ]);
 
-    res.json({
+    return res.json({
       byForm: submissionsByForm.map((row) => ({
         formId: row.formId,
         formName: row.formName,
@@ -193,8 +202,13 @@ router.get('/submissions', async (req, res, next) => {
         count: parseInt(row.count),
       })),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    // Handle missing tables gracefully
+    const pgError = error as { code?: string; message?: string };
+    if (pgError.code === '42P01' || pgError.message?.includes('does not exist')) {
+      return res.json({ byForm: [], byUser: [], byDay: [] });
+    }
+    return next(error);
   }
 });
 
@@ -259,7 +273,7 @@ router.get('/webhooks', async (req, res, next) => {
       ),
     ]);
 
-    res.json({
+    return res.json({
       deliveryStats: deliveryStats.map((row) => ({
         webhookId: row.webhookId,
         url: row.url,
@@ -280,8 +294,13 @@ router.get('/webhooks', async (req, res, next) => {
         createdAt: row.createdAt,
       })),
     });
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    // Handle missing tables gracefully
+    const pgError = error as { code?: string; message?: string };
+    if (pgError.code === '42P01' || pgError.message?.includes('does not exist')) {
+      return res.json({ deliveryStats: [], recentEvents: [] });
+    }
+    return next(error);
   }
 });
 
@@ -330,9 +349,14 @@ router.get('/form-performance', async (req, res, next) => {
       };
     });
 
-    res.json(result);
-  } catch (error) {
-    next(error);
+    return res.json(result);
+  } catch (error: unknown) {
+    // Handle missing table gracefully - return empty array instead of 500
+    const pgError = error as { code?: string; message?: string };
+    if (pgError.code === '42P01' || pgError.message?.includes('does not exist')) {
+      return res.json([]);
+    }
+    return next(error);
   }
 });
 

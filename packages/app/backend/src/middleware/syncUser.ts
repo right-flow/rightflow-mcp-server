@@ -18,8 +18,8 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
 
     const { id: clerkUserId, organizationId, email, name, role: clerkRole } = req.user;
 
-    // 1. Upsert organization (if doesn't exist)
-    await query(
+    // 1. Upsert organization (if doesn't exist) and get the internal DB ID
+    const orgResult = await query<{ id: string }>(
       `
       INSERT INTO organizations (clerk_org_id, name)
       VALUES ($1, $2)
@@ -29,6 +29,9 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
     `,
       [organizationId, (name?.split(' ')[0] || 'User') + "'s Organization"], // Default org name
     );
+
+    // Get the internal organization ID (UUID)
+    const dbOrganizationId = orgResult[0]?.id;
 
     // 2. Check if user exists and get their current role
     const existingUser = await query<{ id: string; role: string }>(
@@ -52,7 +55,16 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
         [clerkUserId, email, name],
       );
     } else {
-      // New user - insert with Clerk role (defaults to 'worker')
+      // New user - check if this is the first user in the organization
+      const existingOrgUsers = await query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM users WHERE organization_id = $1`,
+        [dbOrganizationId],
+      );
+      const isFirstUser = parseInt(existingOrgUsers[0]?.count || '0') === 0;
+
+      // First user in org gets admin role, others get the Clerk role (defaults to 'worker')
+      const assignedRole = isFirstUser ? 'admin' : clerkRole;
+
       const result = await query<{ id: string }>(
         `
         INSERT INTO users (
@@ -64,25 +76,36 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
         )
         VALUES (
           $1,
-          (SELECT id FROM organizations WHERE clerk_org_id = $2),
+          $2,
           $3,
           $4,
           $5
         )
         RETURNING id
         `,
-        [clerkUserId, organizationId, email, name, clerkRole],
+        [clerkUserId, dbOrganizationId, email, name, assignedRole],
       );
-      dbRole = clerkRole;
+      dbRole = assignedRole;
       dbUserId = result[0]?.id;
+
+      if (isFirstUser) {
+        logger.info('First user in organization - assigned admin role', {
+          clerkUserId,
+          dbOrganizationId,
+          email,
+        });
+      }
     }
 
-    // 3. Update req.user with the database role (overrides Clerk default)
+    // 3. Update req.user with the database role and internal organization ID
     req.user.role = dbRole;
+    req.user.organizationId = dbOrganizationId;
 
     logger.debug('User synced to database', {
       clerkUserId,
       dbUserId,
+      clerkOrgId: organizationId,
+      dbOrgId: dbOrganizationId,
       email,
       role: dbRole,
     });
