@@ -1,0 +1,113 @@
+import type { WorkflowTranslations } from '../../types/workflow.types';
+
+// Arabic translations - placeholder, needs proper translation
+const workflow: WorkflowTranslations = {
+  // Approval Chain
+  approval: {
+    chainSettings: 'إعدادات سلسلة الموافقة',
+    overallTimeout: 'المهلة الإجمالية (ساعات)',
+    hours: 'ساعات',
+    onTimeout: 'عند انتهاء المهلة',
+    timeout: {
+      fail: 'رفض الموافقة',
+      escalate: 'تصعيد للمدير التالي',
+      autoApprove: 'موافقة تلقائية',
+    },
+    addLevel: 'إضافة مستوى موافقة',
+    level: 'المستوى',
+    approvalType: 'نوع الموافقة',
+    approvalTypeAny: 'موافقة واحدة كافية',
+    approvalTypeAll: 'يجب أن يوافق الجميع',
+    approvalTypeAllDescription: 'يجب على جميع المعتمدين في هذا المستوى الموافقة على الطلب',
+    approvalTypeAnyDescription: 'معتمد واحد في هذا المستوى كافٍ للمتابعة',
+    approvers: 'المعتمدون',
+    addApprover: 'إضافة معتمد',
+    timeoutLevel: 'مهلة هذا المستوى',
+    escalation: {
+      title: 'التصعيد',
+      timeoutHours: 'التصعيد بعد (ساعات)',
+      escalateTo: 'التصعيد إلى',
+    },
+    addEscalation: 'إضافة تصعيد',
+    removeEscalation: 'إزالة التصعيد',
+    approverType: {
+      user: 'مستخدم محدد',
+      role: 'دور تنظيمي',
+      dynamic: 'معتمد ديناميكي',
+    },
+    selectUser: 'اختر مستخدم',
+    selectRole: 'اختر دور',
+  },
+
+  // Workflow Template
+  template: {
+    gallery: 'معرض القوالب',
+    searchPlaceholder: 'بحث عن قالب...',
+    allCategories: 'جميع الفئات',
+    category: {
+      all: 'الكل',
+      approval: 'الموافقات',
+      dataCollection: 'جمع البيانات',
+      dataCollectionKebab: 'جمع البيانات',
+      automation: 'الأتمتة',
+      conditional: 'شرطي',
+      integration: 'التكاملات',
+      notification: 'الإشعارات',
+      custom: 'مخصص',
+    },
+    sortBy: 'ترتيب حسب',
+    sort: {
+      usageDesc: 'الأكثر استخداماً',
+      usageAsc: 'الأقل استخداماً',
+      dateDesc: 'الأحدث',
+      dateAsc: 'الأقدم',
+      nameAsc: 'الاسم (أ-ي)',
+      nameDesc: 'الاسم (ي-أ)',
+      mostUsed: 'الأكثر استخداماً',
+      leastUsed: 'الأقل استخداماً',
+      newest: 'الأحدث',
+      oldest: 'الأقدم',
+      nameAZ: 'الاسم (أ-ي)',
+      nameZA: 'الاسم (ي-أ)',
+    },
+    viewGrid: 'عرض الشبكة',
+    viewList: 'عرض القائمة',
+    used: 'استُخدم',
+    times: 'مرات',
+    useTemplate: 'استخدام القالب',
+    exportTemplate: 'تصدير القالب',
+    deleteTemplate: 'حذف القالب',
+    importTemplate: 'استيراد القالب',
+    search: 'بحث',
+    noTemplates: 'لم يتم العثور على قوالب',
+    noResults: 'لم يتم العثور على نتائج',
+    empty: 'لا توجد قوالب متاحة',
+    system: 'النظام',
+    storageUsed: 'التخزين المستخدم',
+    storageWarning: 'التخزين يقترب من الحد',
+  },
+
+  // Workflow Condition (Builder)
+  condition: {
+    rootGroup: 'الشرط الجذري',
+    nestedGroup: 'شرط متداخل',
+    addCondition: 'إضافة شرط',
+    addGroup: 'إضافة مجموعة',
+    operator: {
+      eq: '=',
+      ne: '!=',
+      gt: '>',
+      lt: '<',
+      gte: '>=',
+      lte: '<=',
+      contains: 'يحتوي',
+      exists: 'موجود',
+      in: 'في القائمة',
+      notIn: 'ليس في القائمة',
+    },
+    selectField: 'اختر حقل',
+    enterValue: 'أدخل قيمة',
+  },
+};
+
+export default workflow;

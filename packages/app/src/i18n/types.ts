@@ -692,4 +692,233 @@ export interface Translations {
   contains: string;
   selectField: string;
   enterValue: string;
+
+  // Billing & Subscription
+  'billing.title': string;
+  'billing.nav.subscription': string;
+  'billing.nav.usage': string;
+  'billing.nav.history': string;
+
+  // Billing - Subscription Page
+  'billing.subscription.title': string;
+  'billing.subscription.description': string;
+  'billing.subscription.upgradedSuccess': string;
+  'billing.subscription.downgradedSuccess': string;
+  'billing.subscription.formsArchived': string;
+  'billing.subscription.cancelledSuccess': string;
+  'billing.subscription.failedUpgrade': string;
+  'billing.subscription.failedDowngrade': string;
+  'billing.subscription.failedCancel': string;
+
+  // Billing - Subscription Card
+  'billing.card.noSubscription': string;
+  'billing.card.billingCycle': string;
+  'billing.card.yearly': string;
+  'billing.card.monthly': string;
+  'billing.card.year': string;
+  'billing.card.month': string;
+  'billing.card.billedAnnually': string;
+  'billing.card.freeForever': string;
+  'billing.card.forms': string;
+  'billing.card.submissions': string;
+  'billing.card.perMonth': string;
+  'billing.card.storage': string;
+  'billing.card.teamMembers': string;
+  'billing.card.currentPeriod': string;
+  'billing.card.cancelledOn': string;
+  'billing.card.gracePeriodWarning': string;
+  'billing.card.suspendedWarning': string;
+  'billing.card.cancelledInfo': string;
+  'billing.card.upgradePlan': string;
+  'billing.card.downgradePlan': string;
+  'billing.card.viewAllPlans': string;
+  'billing.card.cancelSubscription': string;
+
+  // Billing - Plan Comparison
+  'billing.plans.title': string;
+  'billing.plans.description': string;
+  'billing.plans.customPlan': string;
+  'billing.plans.customPlanDescription': string;
+  'billing.plans.contactSales': string;
+  'billing.plans.freeTrial': string;
+  'billing.plans.cancel': string;
+
+  // Billing - Plan Card
+  'billing.planCard.currentPlan': string;
+  'billing.planCard.save': string;
+  'billing.planCard.free': string;
+  'billing.planCard.total': string;
+  'billing.planCard.totalPerYear': string;
+  'billing.planCard.selectPlan': string;
+  'billing.planCard.select': string;
+  'billing.planCard.notAvailable': string;
+  'billing.planCard.perMonth': string;
+  'billing.planCard.startingFrom': string;
+  'billing.planCard.contactUs': string;
+
+  // Billing - Cancel Subscription
+  'billing.cancel.title': string;
+  'billing.cancel.plan': string;
+  'billing.cancel.planLabel': string;
+  'billing.cancel.confirmQuestion': string;
+  'billing.cancel.activeUntil': string;
+  'billing.cancel.retainAccess': string;
+  'billing.cancel.dataPreserved': string;
+  'billing.cancel.whatYouLose': string;
+  'billing.cancel.loseAccess': string;
+  'billing.cancel.loseForms': string;
+  'billing.cancel.loseTeam': string;
+  'billing.cancel.loseSupport': string;
+  'billing.cancel.confirmCheckbox': string;
+  'billing.cancel.keepSubscription': string;
+  'billing.cancel.cancelling': string;
+  'billing.cancel.confirmCancel': string;
+  'billing.cancel.confirmButton': string;
+  'billing.cancel.closeModal': string;
+
+  // Billing - Status Badge
+  'billing.status.active': string;
+  'billing.status.gracePeriod': string;
+  'billing.status.suspended': string;
+  'billing.status.cancelled': string;
+  'billing.status.subscriptionStatus': string;
+
+  // Billing - Pricing Toggle
+  'billing.toggle.monthly': string;
+  'billing.toggle.yearly': string;
+  'billing.toggle.percentOff': string;
+
+  // Billing - Plan Comparison Modal
+  'billing.comparison.title': string;
+  'billing.comparison.description': string;
+  'billing.comparison.close': string;
+  'billing.comparison.customPlanTitle': string;
+  'billing.comparison.customPlanDescription': string;
+  'billing.comparison.contactSales': string;
+  'billing.comparison.trialNote': string;
+  'billing.comparison.cancel': string;
+
+  // Billing - Usage Dashboard
+  'billing.usage.title': string;
+  'billing.usage.description': string;
+  'billing.usage.refresh': string;
+  'billing.usage.refreshing': string;
+  'billing.usage.currentPlan': string;
+  'billing.usage.failedToLoad': string;
+  'billing.usage.failedLoad': string;
+  'billing.usage.tryAgain': string;
+  'billing.usage.totalForms': string;
+  'billing.usage.thisMonth': string;
+  'billing.usage.storageUsed': string;
+
+  // Billing - Quota Status
+  'billing.quota.title': string;
+  'billing.quota.noData': string;
+  'billing.quota.critical': string;
+  'billing.quota.warning': string;
+  'billing.quota.healthy': string;
+  'billing.quota.forms': string;
+  'billing.quota.submissionsMonth': string;
+  'billing.quota.submissionsThisMonth': string;
+  'billing.quota.storageMb': string;
+  'billing.quota.storageMB': string;
+  'billing.quota.limitReached': string;
+  'billing.quota.limitReachedDescription': string;
+  'billing.quota.limitReachedDesc': string;
+  'billing.quota.approachingLimit': string;
+  'billing.quota.approachingLimitDescription': string;
+  'billing.quota.approachingLimitDesc': string;
+  'billing.quota.viewPlans': string;
+  'billing.quota.upgradePlan': string;
+  'billing.quota.used': string;
+  'billing.quota.of': string;
+  'billing.quota.unlimited': string;
+
+  // Billing - History Page
+  'billing.history.title': string;
+  'billing.history.description': string;
+  'billing.history.failedLoad': string;
+  'billing.history.failedToLoad': string;
+  'billing.history.downloadNotAvailable': string;
+  'billing.history.downloading': string;
+  'billing.history.downloadFailed': string;
+  'billing.history.addPaymentNotImplemented': string;
+  'billing.history.paymentMethodRemoved': string;
+  'billing.history.removePaymentFailed': string;
+  'billing.history.defaultUpdated': string;
+  'billing.history.updateDefaultFailed': string;
+  'billing.history.tryAgain': string;
+
+  // Billing - Invoice Table
+  'billing.invoice.title': string;
+  'billing.invoice.noInvoices': string;
+  'billing.invoice.filter': string;
+  'billing.invoice.allStatuses': string;
+  'billing.invoice.invoiceNumber': string;
+  'billing.invoice.date': string;
+  'billing.invoice.amount': string;
+  'billing.invoice.status': string;
+  'billing.invoice.actions': string;
+  'billing.invoice.download': string;
+  'billing.invoice.noFilteredInvoices': string;
+  'billing.invoice.clearFilter': string;
+  'billing.invoice.statusPaid': string;
+  'billing.invoice.statusPending': string;
+  'billing.invoice.statusFailed': string;
+  'billing.invoice.statusRefunded': string;
+
+  // Help Widget
+  'help.title': string;
+  'help.restartTutorial': string;
+  'help.quickLinks': string;
+  'help.gettingStartedGuide': string;
+  'help.templateGallery': string;
+  'help.howToShareForms': string;
+  'help.understandingAnalytics': string;
+  'help.videoTutorials': string;
+  'help.videoTutorialsComingSoon': string;
+
+  // Billing - Payment Methods
+  'billing.payment.title': string;
+  'billing.payment.add': string;
+  'billing.payment.addPaymentMethod': string;
+  'billing.payment.noMethods': string;
+  'billing.payment.addFirst': string;
+  'billing.payment.addFirstMethod': string;
+  'billing.payment.default': string;
+  'billing.payment.expires': string;
+  'billing.payment.added': string;
+  'billing.payment.setDefault': string;
+  'billing.payment.remove': string;
+  'billing.payment.note': string;
+  'billing.payment.noteText': string;
+  'billing.payment.cardEnding': string;
+  'billing.payment.cardEndingIn': string;
+  'billing.payment.card': string;
+  'billing.payment.paypal': string;
+  'billing.payment.bankTransfer': string;
+  'billing.payment.paymentMethod': string;
+
+  // Billing - Pricing (legacy keys)
+  'billing.pricing.monthly': string;
+  'billing.pricing.yearly': string;
+  'billing.pricing.off': string;
+
+  // Billing - Invoices (legacy keys)
+  'billing.invoices.title': string;
+  'billing.invoices.noInvoices': string;
+  'billing.invoices.filter': string;
+  'billing.invoices.allStatuses': string;
+  'billing.invoices.invoiceNumber': string;
+  'billing.invoices.date': string;
+  'billing.invoices.amount': string;
+  'billing.invoices.status': string;
+  'billing.invoices.actions': string;
+  'billing.invoices.download': string;
+  'billing.invoices.noFiltered': string;
+  'billing.invoices.clearFilter': string;
+  'billing.invoices.status.paid': string;
+  'billing.invoices.status.pending': string;
+  'billing.invoices.status.failed': string;
+  'billing.invoices.status.refunded': string;
 }

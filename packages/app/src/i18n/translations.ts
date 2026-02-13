@@ -30,5 +30,13 @@ export function translate(language: Language, key: keyof Translations, params?: 
   return result;
 }
 
+/**
+ * Short alias for translate function - for tests and simple usage
+ */
+export function t(language: Language, key: keyof Translations): string {
+  const text = translations[language][key];
+  return typeof text === 'string' ? text : String(key);
+}
+
 // Re-export types
 export type { Translations } from './types';
