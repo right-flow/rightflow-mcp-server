@@ -42,12 +42,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Copy API source
-COPY api/ ./api/
+# Copy backend source (api folder excluded - those are Vercel functions)
 COPY backend/ ./backend/
-COPY packages/app/src/ ./packages/app/src/
 COPY packages/app/backend/ ./packages/app/backend/
-COPY tsconfig.json ./
 COPY tsconfig.api.json ./
 
 # Build backend

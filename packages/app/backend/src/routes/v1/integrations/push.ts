@@ -109,7 +109,7 @@ router.post('/push', async (req: Request, res: Response): Promise<void> => {
         formId,
         connectorId,
         data,
-        endpoint,
+        endpoint: endpoint as any,
         retryCount: 0,
         createdAt: Date.now(),
       };

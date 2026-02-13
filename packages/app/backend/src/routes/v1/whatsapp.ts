@@ -150,7 +150,7 @@ router.post(
       const result = await sendService.sendFormLink({
         organizationId,
         ...data,
-      });
+      } as any);
       res.json({ data: result, message: 'הקישור נשלח בהצלחה' });
     } catch (error) {
       next(error);
@@ -167,7 +167,7 @@ router.post(
       const result = await sendService.sendPdf({
         organizationId,
         ...data,
-      });
+      } as any);
       res.json({ data: result, message: 'הטופס נשלח בהצלחה' });
     } catch (error) {
       next(error);

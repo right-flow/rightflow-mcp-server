@@ -98,7 +98,7 @@ router.post(
         ...data,
         organizationId,
         createdBy: userId
-      });
+      } as any);
 
       res.status(201).json(workflow);
     } catch (error) {
@@ -124,7 +124,7 @@ router.put(
         {
           ...data,
           updatedBy: userId
-        },
+        } as any,
         organizationId
       );
 
@@ -521,7 +521,7 @@ router.get(
       const analytics = await workflowService.getAnalytics(
         id,
         organizationId,
-        query
+        query as any
       );
 
       res.json(analytics);

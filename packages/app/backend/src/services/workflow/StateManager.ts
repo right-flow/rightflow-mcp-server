@@ -217,10 +217,10 @@ export class StateManager {
     const result = await this.redis.set(
       lockKey,
       lockId,
-      'NX',
       'EX',
-      ttlSeconds
-    );
+      ttlSeconds,
+      'NX'
+    ) as string | null;
 
     return result === 'OK';
   }

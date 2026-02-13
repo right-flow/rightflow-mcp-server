@@ -125,8 +125,8 @@ export async function listInstances(params: {
   }
 
   // Get total count
-  const countResult = await query.clone().count('* as total').first();
-  const total = parseInt(countResult?.total || '0');
+  const countResult = await query.clone().count('* as total').first() as { total?: string | number } | undefined;
+  const total = parseInt(String(countResult?.total || '0'));
 
   // Get paginated results
   const instances = await query
@@ -379,7 +379,7 @@ export async function getSystemHealth(
     .where('organization_id', organizationId)
     .whereIn('status', ['running', 'paused', 'waiting'])
     .count('* as count')
-    .first();
+    .first() as { count?: string | number } | undefined;
 
   // Get queued actions
   const queuedActions = await db('workflow_scheduled_tasks')
@@ -388,7 +388,7 @@ export async function getSystemHealth(
     .where('workflow_scheduled_tasks.is_executed', false)
     .where('workflow_scheduled_tasks.scheduled_for', '<=', new Date())
     .count('* as count')
-    .first();
+    .first() as { count?: string | number } | undefined;
 
   // Get recent error rate
   const recentInstances = await db('workflow_instances')
@@ -398,10 +398,10 @@ export async function getSystemHealth(
       db.raw('COUNT(*) as total'),
       db.raw('COUNT(CASE WHEN status = ? THEN 1 END) as failed', ['failed'])
     )
-    .first();
+    .first() as { total?: string | number; failed?: string | number } | undefined;
 
   const errorRate = recentInstances?.total
-    ? (parseInt(recentInstances.failed) / parseInt(recentInstances.total)) * 100
+    ? (parseInt(String(recentInstances.failed)) / parseInt(String(recentInstances.total))) * 100
     : 0;
 
   // Get average response time
@@ -415,10 +415,10 @@ export async function getSystemHealth(
   return {
     status: 'healthy',
     metrics: {
-      activeInstances: parseInt(activeInstances?.count || '0'),
-      queuedActions: parseInt(queuedActions?.count || '0'),
+      activeInstances: parseInt(String(activeInstances?.count || '0')),
+      queuedActions: parseInt(String(queuedActions?.count || '0')),
       workerStatus: 'running',
-      averageResponseTime: parseFloat(avgResponseTime?.avg || '0'),
+      averageResponseTime: parseFloat(String((avgResponseTime as any)?.avg || '0')),
       errorRate: errorRate.toFixed(2)
     },
     timestamp: new Date()

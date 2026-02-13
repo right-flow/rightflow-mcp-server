@@ -37,19 +37,10 @@ export function DashboardLayout({
   const direction = useDirection();
   const { role } = useRole();
   const { organization } = useOrganization();
-  const { hasWhiteLabel, loading: subscriptionLoading, subscription } = useSubscription();
+  const { hasWhiteLabel, loading: subscriptionLoading } = useSubscription();
 
   // Show logo by default during loading, hide only when White Label is confirmed
   const showSystemLogo = subscriptionLoading || !hasWhiteLabel;
-
-  // DEBUG: Log subscription state
-  console.log('[DashboardLayout] Logo Debug:', {
-    showSystemLogo,
-    hasWhiteLabel,
-    subscriptionLoading,
-    planName: subscription?.plan?.name,
-    customBranding: subscription?.plan?.features?.customBranding,
-  });
 
   // Language state from store
   const { language, setLanguage } = useAppStore();
@@ -156,17 +147,16 @@ export function DashboardLayout({
         }}
       >
         {/* Logo - Hidden for White Label plans (EXPANDED/ENTERPRISE) */}
-        {/* DEBUG: Temporarily always show to test if logo loads */}
-        <div className="mb-6 mx-2 overflow-hidden rounded-xl bg-gray-100" style={{ height: '140px' }}>
-          <img
-            src="/images/logo.png"
-            alt="RightFlow Logo"
-            className="w-full h-full object-cover object-center"
-            style={{ transform: 'scale(1.3)', transformOrigin: 'center center' }}
-            onError={(e) => console.error('[Logo] Failed to load:', e)}
-            onLoad={() => console.log('[Logo] Loaded successfully')}
-          />
-        </div>
+        {showSystemLogo && (
+          <div className="mb-6 mx-2 overflow-hidden rounded-xl bg-gray-100" style={{ height: '140px' }}>
+            <img
+              src="/images/logo.png"
+              alt="RightFlow Logo"
+              className="w-full h-full object-cover object-center"
+              style={{ transform: 'scale(1.3)', transformOrigin: 'center center' }}
+            />
+          </div>
+        )}
 
         {/* Tenant/Organization Logo */}
         {organization?.imageUrl && (

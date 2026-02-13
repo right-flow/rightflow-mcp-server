@@ -1,10 +1,10 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist-api",
-    "module": "ES2022",
+    "module": "NodeNext",
     "target": "ES2022",
-    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "moduleResolution": "NodeNext",
     "declaration": false,
     "sourceMap": true,
     "esModuleInterop": true,
@@ -13,33 +13,20 @@
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "strict": false,
     "noEmit": false,
     "allowImportingTsExtensions": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./packages/app/src/*"]
-    }
+    "isolatedModules": true,
+    "baseUrl": "."
   },
   "include": [
-    "api/**/*",
-    "packages/app/backend/src/**/*",
-    "packages/app/src/lib/**/*",
-    "packages/app/src/services/**/*",
-    "packages/app/src/store/**/*",
-    "packages/app/src/types/**/*",
-    "packages/app/src/utils/**/*",
-    "packages/app/src/vite-env.d.ts"
+    "packages/app/backend/src/**/*"
   ],
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/__tests__/**",
-    "packages/app/src/components/forms/FormBuilder.tsx",
-    "packages/app/src/services/workflowPersistence.ts",
-    "packages/app/src/services/workflowTemplateService.ts",
-    "packages/app/src/services/pdfFieldMapper.ts",
-    "packages/app/src/services/templateService.ts",
-    "packages/app/src/types/workflow-template.ts",
     "node_modules",
     "dist",
     "dist-api"
