@@ -219,7 +219,7 @@ describe('Webhook CRUD Operations', () => {
       // Secret should be returned (one-time)
       expect(result.secret).toBeDefined();
       expect(result.secret).toMatch(/^whsec_/);
-      expect(result.secret.length).toBeGreaterThan(30);
+      expect(result.secret!.length).toBeGreaterThan(30);
 
       // Verify webhook created in database
       const rows = await query(
@@ -251,7 +251,7 @@ describe('Webhook CRUD Operations', () => {
       expect(secretEncrypted).not.toBe(result.secret);
 
       // Encrypted secret should be longer (includes IV, auth tag)
-      expect(secretEncrypted.length).toBeGreaterThan(result.secret.length);
+      expect(secretEncrypted.length).toBeGreaterThan(result.secret!.length);
     });
 
     it('should reject invalid URL (localhost)', async () => {

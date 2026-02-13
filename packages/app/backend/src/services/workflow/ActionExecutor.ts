@@ -519,7 +519,7 @@ export class ActionExecutor extends EventEmitter {
 
       case 'api_key':
         const keyName = auth.credentials?.keyName || 'X-API-Key';
-        headers[keyName] = auth.credentials?.key;
+        headers[keyName] = auth.credentials?.key || '';
         break;
 
       case 'oauth2':
