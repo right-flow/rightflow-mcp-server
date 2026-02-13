@@ -1,6 +1,9 @@
 # Build stage for frontend
 FROM node:20-alpine AS frontend-builder
 
+# Force cache invalidation with timestamp file
+COPY packages/app/.build-timestamp /tmp/.build-timestamp
+
 WORKDIR /app
 
 # Copy package files
