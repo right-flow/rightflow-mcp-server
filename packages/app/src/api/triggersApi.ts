@@ -72,7 +72,14 @@ export interface TriggerWithActions extends EventTrigger {
   statistics?: TriggerStatistics;
 }
 
-export type ActionType = 'send_webhook' | 'send_email' | 'send_sms' | 'update_record' | 'trigger_workflow';
+export type ActionType =
+  | 'send_webhook'
+  | 'send_email'
+  | 'send_sms'
+  | 'update_crm'
+  | 'create_task'
+  | 'trigger_workflow'
+  | 'custom';
 
 export interface TriggerAction {
   id: string;

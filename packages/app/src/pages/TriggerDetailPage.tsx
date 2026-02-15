@@ -144,7 +144,7 @@ function TriggerDetailContent() {
           </button>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{trigger.name}</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            {t['triggers.eventType'] || 'סוג אירוע'}: {trigger.event_type}
+            {t['triggers.eventType'] || 'סוג אירוע'}: {t[`triggers.eventTypes.${trigger.event_type}`] || trigger.event_type}
           </p>
         </div>
 
@@ -184,13 +184,17 @@ function TriggerDetailContent() {
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 {t['triggers.level'] || 'רמה'}
               </dt>
-              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{trigger.level}</dd>
+              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                {t[`triggers.levels.${trigger.level}`] || trigger.level}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                {t['triggers.errorHandling'] || 'טיפול בשגיאות'}
+                {t['triggers.errorHandlingLabel'] || 'טיפול בשגיאות'}
               </dt>
-              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">{trigger.error_handling}</dd>
+              <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                {t[`triggers.errorHandling.${trigger.error_handling}`] || trigger.error_handling}
+              </dd>
             </div>
           </dl>
         </div>
@@ -226,10 +230,10 @@ function TriggerDetailContent() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {action.order}. {action.action_type}
+                        {action.order}. {t[`triggers.actionTypes.${action.action_type}`] || action.action_type}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Timeout: {action.timeout_ms}ms
+                        {t['triggers.timeout'] || 'זמן מקסימלי'}: {action.timeout_ms}ms
                         {action.is_critical && (
                           <span className="mx-2 px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs">
                             {t['triggers.critical'] || 'קריטי'}

@@ -17,11 +17,13 @@ interface AddActionModalProps {
 }
 
 const ACTION_TYPES: { value: ActionType; labelKey: string; defaultLabel: string }[] = [
-  { value: 'send_webhook', labelKey: 'triggers.actionType.webhook', defaultLabel: 'שליחת Webhook' },
-  { value: 'send_email', labelKey: 'triggers.actionType.email', defaultLabel: 'שליחת אימייל' },
-  { value: 'send_sms', labelKey: 'triggers.actionType.sms', defaultLabel: 'שליחת SMS' },
-  { value: 'update_crm', labelKey: 'triggers.actionType.crm', defaultLabel: 'עדכון CRM' },
-  { value: 'trigger_workflow', labelKey: 'triggers.actionType.workflow', defaultLabel: 'הפעלת Workflow' },
+  { value: 'send_webhook', labelKey: 'triggers.actionTypes.send_webhook', defaultLabel: 'שליחת Webhook' },
+  { value: 'send_email', labelKey: 'triggers.actionTypes.send_email', defaultLabel: 'שליחת אימייל' },
+  { value: 'send_sms', labelKey: 'triggers.actionTypes.send_sms', defaultLabel: 'שליחת SMS' },
+  { value: 'update_crm', labelKey: 'triggers.actionTypes.update_crm', defaultLabel: 'עדכון CRM' },
+  { value: 'create_task', labelKey: 'triggers.actionTypes.create_task', defaultLabel: 'יצירת משימה' },
+  { value: 'trigger_workflow', labelKey: 'triggers.actionTypes.trigger_workflow', defaultLabel: 'הפעלת Workflow' },
+  { value: 'custom', labelKey: 'triggers.actionTypes.custom', defaultLabel: 'פעולה מותאמת' },
 ];
 
 export function AddActionModal({ isOpen, onClose, triggerId, onActionAdded }: AddActionModalProps) {
@@ -89,9 +91,20 @@ export function AddActionModal({ isOpen, onClose, triggerId, onActionAdded }: Ad
           operation: 'create',
           entityType: 'contact',
         };
+      case 'create_task':
+        return {
+          title: '',
+          assignee: '',
+          dueDate: '',
+        };
       case 'trigger_workflow':
         return {
           workflowId: '',
+        };
+      case 'custom':
+        return {
+          handler: '',
+          params: {},
         };
       default:
         return {};
@@ -197,7 +210,7 @@ export function AddActionModal({ isOpen, onClose, triggerId, onActionAdded }: Ad
             >
               {ACTION_TYPES.map((type) => (
                 <option key={type.value} value={type.value}>
-                  {t[type.labelKey] || type.defaultLabel}
+                  {(t as unknown as Record<string, string>)[type.labelKey] || type.defaultLabel}
                 </option>
               ))}
             </select>

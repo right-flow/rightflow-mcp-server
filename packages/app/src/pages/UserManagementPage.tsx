@@ -36,7 +36,7 @@ interface UserStats {
 export function UserManagementPage() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
-  const { t, language } = useNamespaceTranslation('dashboard');
+  const { t, language, isLoading: translationsLoading } = useNamespaceTranslation('dashboard');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -143,12 +143,25 @@ export function UserManagementPage() {
 
   // Filter users
   const filteredUsers = users.filter((user) => {
+    const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.name?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower);
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  // Wait for translations to load to prevent render errors
+  if (translationsLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -310,11 +323,11 @@ export function UserManagementPage() {
                             ?.split(' ')
                             .map((n) => n[0])
                             .join('')
-                            .slice(0, 2) || user.email[0].toUpperCase()}
+                            .slice(0, 2) || user.email?.[0]?.toUpperCase() || '?'}
                         </div>
                         <div>
                           <div className="font-medium">{user.name || t.widgets.userManagement.noName}</div>
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                          <div className="text-sm text-muted-foreground">{user.email || '-'}</div>
                         </div>
                       </div>
                     </td>

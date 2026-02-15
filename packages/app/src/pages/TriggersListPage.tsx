@@ -178,10 +178,10 @@ function TriggersListContent() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary"
           >
             <option value="">{t['triggers.allEventTypes'] || 'כל סוגי האירועים'}</option>
-            <option value="form.submitted">{t['triggers.event.formSubmitted'] || 'טופס נשלח'}</option>
-            <option value="form.approved">{t['triggers.event.formApproved'] || 'טופס אושר'}</option>
-            <option value="form.rejected">{t['triggers.event.formRejected'] || 'טופס נדחה'}</option>
-            <option value="user.created">{t['triggers.event.userCreated'] || 'משתמש נוצר'}</option>
+            <option value="form.submitted">{t['triggers.eventTypes.form.submitted'] || 'טופס נשלח'}</option>
+            <option value="form.approved">{t['triggers.eventTypes.form.approved'] || 'טופס אושר'}</option>
+            <option value="form.rejected">{t['triggers.eventTypes.form.rejected'] || 'טופס נדחה'}</option>
+            <option value="user.created">{t['triggers.eventTypes.user.created'] || 'משתמש נוצר'}</option>
           </select>
         </div>
 
@@ -225,7 +225,9 @@ function TriggersListContent() {
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{trigger.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{trigger.event_type}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {t[`triggers.eventTypes.${trigger.event_type}`] || trigger.event_type}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
