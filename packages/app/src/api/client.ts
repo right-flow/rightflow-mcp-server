@@ -151,10 +151,12 @@ class ApiClient {
 
       // Check if request was successful
       if (!response.ok) {
+        // Handle error response - backend returns { error: { code, message } }
+        const errorObj = data.error || {};
         throw {
-          message: data.message || 'Request failed',
+          message: errorObj.message || data.message || 'Request failed',
           status: response.status,
-          code: data.error,
+          code: errorObj.code || data.code,
         } as ApiError;
       }
 
