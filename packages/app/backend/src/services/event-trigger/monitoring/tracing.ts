@@ -3,9 +3,10 @@
  * Includes P1 mitigations for context propagation and span lifecycle
  */
 
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
-import { Resource } from '@opentelemetry/resources';
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
@@ -70,12 +71,9 @@ export function initializeTracing(): void {
     return; // Already initialized
   }
 
-  const provider = new NodeTracerProvider({
-    resource: new Resource({
-      [ATTR_SERVICE_NAME]: 'event-trigger-system',
-      [ATTR_SERVICE_VERSION]: '1.0.0',
-    }),
-    sampler: new AdaptiveSampler(),
+  const resource = resourceFromAttributes({
+    [SEMRESATTRS_SERVICE_NAME]: 'event-trigger-system',
+    [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
   });
 
   // Jaeger Exporter
@@ -84,11 +82,17 @@ export function initializeTracing(): void {
   });
 
   // Batch Span Processor (batches spans before sending)
-  provider.addSpanProcessor(new BatchSpanProcessor(jaegerExporter, {
+  const spanProcessor = new BatchSpanProcessor(jaegerExporter, {
     maxQueueSize: 2048,
     maxExportBatchSize: 512,
     scheduledDelayMillis: 5000,
-  }));
+  });
+
+  const provider = new NodeTracerProvider({
+    resource,
+    sampler: new AdaptiveSampler(),
+    spanProcessors: [spanProcessor], // Pass span processors array in constructor (new SDK API)
+  });
 
   // Register provider globally
   provider.register();

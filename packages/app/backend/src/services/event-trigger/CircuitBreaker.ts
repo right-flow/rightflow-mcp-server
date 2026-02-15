@@ -14,6 +14,10 @@ import type {
   CircuitBreakerStats,
 } from '../../types/event-trigger';
 
+// Monitoring imports
+import { circuitBreakerMetrics } from './monitoring/metrics';
+import { logCircuitBreakerStateChange } from './monitoring/logger';
+
 export class CircuitBreaker {
   private state: CircuitBreakerState = 'closed';
   private failureCount = 0;
@@ -37,6 +41,8 @@ export class CircuitBreaker {
     // Check if circuit is open
     if (this.state === 'open') {
       if (Date.now() < this.nextAttemptTime) {
+        // 📊 Metrics: Request rejected (circuit open)
+        circuitBreakerMetrics.requests.inc({ status: 'rejected' });
         throw new Error('Circuit breaker is OPEN');
       }
       // Transition to half-open to test recovery
@@ -50,10 +56,17 @@ export class CircuitBreaker {
       // Record success
       this.onSuccess();
 
+      // 📊 Metrics: Request succeeded
+      circuitBreakerMetrics.requests.inc({ status: 'success' });
+
       return result;
     } catch (error) {
       // Record failure
       this.onFailure(error as Error);
+
+      // 📊 Metrics: Request failed
+      circuitBreakerMetrics.requests.inc({ status: 'failure' });
+
       throw error;
     }
   }
@@ -143,6 +156,7 @@ export class CircuitBreaker {
    * Transition to new state
    */
   private transitionTo(newState: CircuitBreakerState): void {
+    const oldState = this.state;
     this.state = newState;
     this.lastStateChange = Date.now();
 
@@ -155,6 +169,19 @@ export class CircuitBreaker {
       this.successCount = 0;
       this.consecutiveSuccesses = 0;
     }
+
+    // 📊 Metrics: Update circuit breaker state gauge (0=closed, 1=open, 2=half_open)
+    const stateValue = newState === 'closed' ? 0 : newState === 'open' ? 1 : 2;
+    circuitBreakerMetrics.state.set(stateValue);
+
+    // 📊 Metrics: Record state transition
+    circuitBreakerMetrics.stateTransitions.inc({
+      from_state: oldState,
+      to_state: newState,
+    });
+
+    // 📝 Logging: Log state change
+    logCircuitBreakerStateChange(oldState, newState);
   }
 
   /**

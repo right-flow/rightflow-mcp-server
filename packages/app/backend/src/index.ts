@@ -1,3 +1,7 @@
+// 🔍 CRITICAL: Initialize tracing FIRST (before any other imports)
+// This must be imported before express and other modules
+import './services/event-trigger/monitoring/tracing';
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -19,6 +23,7 @@ import whatsappWebhookRouter from './routes/v1/whatsapp-webhook';
 import extractionRouter from './routes/v1/extraction';
 import triggersRouter from './routes/v1/triggers';
 import dlqRouter from './routes/v1/dlq';
+import metricsRouter from './routes/v1/metrics'; // Prometheus metrics endpoint
 import './workers/webhookWorker'; // Initialize webhook worker
 import './workers/whatsappHealthWorker'; // Initialize WhatsApp health worker
 
@@ -78,6 +83,9 @@ app.use('/api/v1/whatsapp', whatsappWebhookRouter);
 app.use('/api/v1/triggers', triggersRouter);
 app.use('/api/v1/dlq', dlqRouter);
 app.use('/api/v1', extractionRouter);
+
+// 📊 Monitoring endpoints (Prometheus metrics)
+app.use('/api/v1/metrics', metricsRouter);
 
 // 404 handler
 app.use((_req, res) => {
