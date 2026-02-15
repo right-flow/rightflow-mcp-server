@@ -17,6 +17,8 @@ import mappingsRouter from './routes/v1/integrations/mappings';
 import whatsappRouter from './routes/v1/whatsapp';
 import whatsappWebhookRouter from './routes/v1/whatsapp-webhook';
 import extractionRouter from './routes/v1/extraction';
+import triggersRouter from './routes/v1/triggers';
+import dlqRouter from './routes/v1/dlq';
 import './workers/webhookWorker'; // Initialize webhook worker
 import './workers/whatsappHealthWorker'; // Initialize WhatsApp health worker
 
@@ -73,6 +75,8 @@ app.use('/api/v1/integrations/connectors', connectorsRouter);
 app.use('/api/v1/integrations/mappings', mappingsRouter);
 app.use('/api/v1/whatsapp', whatsappRouter);
 app.use('/api/v1/whatsapp', whatsappWebhookRouter);
+app.use('/api/v1/triggers', triggersRouter);
+app.use('/api/v1/dlq', dlqRouter);
 app.use('/api/v1', extractionRouter);
 
 // 404 handler
