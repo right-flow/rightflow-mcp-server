@@ -6,11 +6,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, useOrganization } from '@clerk/clerk-react';
-import { triggersApi, TriggerWithActions } from '../api/triggersApi';
+import { triggersApi, TriggerWithActions, TriggerAction } from '../api/triggersApi';
 import { apiClient } from '../api/client';
 import { DashboardLayout } from '../components/dashboard/layouts/DashboardLayout';
 import { RoleProvider } from '../contexts/RoleContext';
 import { useTranslation } from '../i18n';
+import { AddActionModal } from '../components/triggers/AddActionModal';
 
 export function TriggerDetailPage() {
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -55,6 +56,13 @@ function TriggerDetailContent() {
   const [trigger, setTrigger] = useState<TriggerWithActions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddActionModal, setShowAddActionModal] = useState(false);
+
+  const handleActionAdded = (newAction: TriggerAction) => {
+    setShowAddActionModal(false);
+    // Reload trigger to get updated actions list
+    loadTrigger();
+  };
 
   const loadTrigger = useCallback(async () => {
     if (!id) return;
@@ -116,6 +124,16 @@ function TriggerDetailContent() {
 
   return (
     <DashboardLayout showSearch={false}>
+      {/* Add Action Modal */}
+      {id && (
+        <AddActionModal
+          isOpen={showAddActionModal}
+          onClose={() => setShowAddActionModal(false)}
+          triggerId={id}
+          onActionAdded={handleActionAdded}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <button
@@ -183,7 +201,10 @@ function TriggerDetailContent() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {t['triggers.actions'] || 'פעולות'} ({trigger.actions.length})
             </h2>
-            <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
+            <button
+              onClick={() => setShowAddActionModal(true)}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+            >
               {t['triggers.addAction'] || 'הוסף פעולה'}
             </button>
           </div>
