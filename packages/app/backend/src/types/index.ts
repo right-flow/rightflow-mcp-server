@@ -125,7 +125,8 @@ declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string;
+        id: string;           // Database UUID (set by syncUser)
+        clerkId?: string;     // Original Clerk user ID (preserved by syncUser)
         organizationId: string;
         role: string;
         email: string;

@@ -15,9 +15,9 @@ router.use(syncUser);
  */
 router.get('/me', async (req, res, next) => {
   try {
-    const { id: clerkUserId, organizationId } = req.user!;
+    const { id: dbUserId, organizationId } = req.user!;
 
-    // Get user from database (synced by middleware)
+    // Get user from database by database UUID (set by syncUser middleware)
     const users = await query<{
       id: string;
       email: string;
@@ -28,9 +28,9 @@ router.get('/me', async (req, res, next) => {
       `
       SELECT id, email, name, role, created_at as "createdAt"
       FROM users
-      WHERE clerk_user_id = $1
+      WHERE id = $1
       `,
-      [clerkUserId],
+      [dbUserId],
     );
 
     if (users.length === 0) {
@@ -331,13 +331,8 @@ router.delete('/:id', async (req, res, next) => {
       });
     }
 
-    // Prevent self-deletion
-    const userToDelete = await query<{ clerk_user_id: string }>(
-      `SELECT clerk_user_id FROM users WHERE id = $1 AND organization_id = $2`,
-      [id, organizationId],
-    );
-
-    if (userToDelete.length > 0 && userToDelete[0].clerk_user_id === currentUserId) {
+    // Prevent self-deletion (currentUserId is now database UUID)
+    if (id === currentUserId) {
       return res.status(400).json({
         error: {
           code: 'CANNOT_DELETE_SELF',
