@@ -73,11 +73,10 @@ export function DashboardLayout({
     },
     {
       id: 'automation',
-      icon: 'automation',
+      icon: 'bolt',
       label: t.automation,
-      path: '/automation',
+      path: '/triggers',
       roles: ['admin', 'manager'],
-      disabled: true,
     },
     {
       id: 'users',
