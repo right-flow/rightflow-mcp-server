@@ -189,9 +189,14 @@ function TriggerDetailContent() {
           </div>
 
           {trigger.actions.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center">
               <div className="text-4xl mb-2">⚙️</div>
-              <p>{t['triggers.noActions'] || 'עדיין לא הוגדרו פעולות'}</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t['triggers.noActions'] || 'עדיין לא הוגדרו פעולות'}</p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-amber-800 dark:text-amber-200 text-sm">
+                  ⚠️ {t['triggers.warning.noActionsCannotActivate'] || 'לא ניתן להפעיל טריגר ללא פעולות. יש להוסיף לפחות פעולה אחת.'}
+                </p>
+              </div>
             </div>
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">

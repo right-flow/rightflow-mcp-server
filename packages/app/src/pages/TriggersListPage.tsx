@@ -98,7 +98,12 @@ function TriggersListContent() {
       await triggersApi.toggleTrigger(triggerId);
       await loadTriggers(); // Reload list
     } catch (err: any) {
-      setError(err.message || 'Failed to toggle trigger');
+      // Check for NO_ACTIONS error code
+      if (err.code === 'NO_ACTIONS') {
+        setError(t['triggers.error.noActions'] || 'לא ניתן להפעיל טריגר ללא פעולות. לחץ על הטריגר כדי להוסיף פעולות.');
+      } else {
+        setError(err.message || 'Failed to toggle trigger');
+      }
     }
   };
 

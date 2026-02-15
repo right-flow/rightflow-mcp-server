@@ -767,6 +767,24 @@ router.patch('/:id/toggle', async (req: Request, res: Response, next: NextFuncti
     // Toggle status
     const newStatus = current[0].status === 'active' ? 'inactive' : 'active';
 
+    // If trying to activate, check if trigger has at least one action
+    if (newStatus === 'active') {
+      const actions = await query(
+        'SELECT COUNT(*) as count FROM trigger_actions WHERE trigger_id = $1',
+        [id]
+      );
+
+      if (parseInt(actions[0]?.count || '0') === 0) {
+        return res.status(400).json({
+          error: {
+            code: 'NO_ACTIONS',
+            message: 'לא ניתן להפעיל טריגר ללא פעולות. יש להוסיף לפחות פעולה אחת.',
+            messageEn: 'Cannot activate trigger without actions. Please add at least one action.',
+          }
+        });
+      }
+    }
+
     const result = await query<EventTrigger>(
       `UPDATE event_triggers
        SET status = $1
