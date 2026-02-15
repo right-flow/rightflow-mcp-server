@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.6-clerk-org-id-fix-20260213-200000
+ARG CACHE_BUST=v2.4.7-fix-dockerfile-backend-ref-20260215-233500
 
 # Copy source files
 COPY . .

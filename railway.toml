@@ -1,7 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "packages/app/Dockerfile"
-watchPatterns = ["packages/app/**", "api/**", "backend/**", "tailwind.config.js", "vite.config.ts", "package.json"]
+watchPatterns = ["packages/app/**", "api/**", "tailwind.config.js", "vite.config.ts", "package.json"]
 
 [deploy]
 startCommand = "npm run start:railway"

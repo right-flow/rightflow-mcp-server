@@ -5,7 +5,7 @@
     "dockerfilePath": "packages/app/Dockerfile",
     "buildContext": ".",
     "buildArgs": {
-      "FORCE_REBUILD": "20260213-153000"
+      "FORCE_REBUILD": "20260215-233500"
     }
   },
   "deploy": {
