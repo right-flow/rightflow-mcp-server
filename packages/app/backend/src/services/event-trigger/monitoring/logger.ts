@@ -100,7 +100,7 @@ const eventTriggerFormat = winston.format.combine(
 
     return redacted;
   })(),
-  winston.format.json()
+  winston.format.json(),
 );
 
 /**
@@ -117,7 +117,7 @@ export const eventLogger = winston.createLogger({
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        winston.format.simple()
+        winston.format.simple(),
       ),
     }),
     new winston.transports.File({
@@ -161,7 +161,7 @@ export class RateLimitedLogger {
       maxLogsPerSecond?: number;
       windowMs?: number;
       adaptiveLevel?: boolean;
-    } = {}
+    } = {},
   ) {
     this.logger = logger;
     this.maxLogsPerSecond = options.maxLogsPerSecond || 1000;
@@ -289,7 +289,7 @@ export function logActionExecution(meta: EventTriggerLogMeta): void {
 export function logError(
   message: string,
   error: Error,
-  meta: EventTriggerLogMeta
+  meta: EventTriggerLogMeta,
 ): void {
   rateLimitedLogger.error(message, {
     ...meta,
@@ -307,7 +307,7 @@ export function logError(
 export function logCircuitBreakerStateChange(
   fromState: string,
   toState: string,
-  meta?: Partial<EventTriggerLogMeta>
+  meta?: Partial<EventTriggerLogMeta>,
 ): void {
   rateLimitedLogger.warn('Circuit Breaker state changed', {
     component: 'CircuitBreaker',

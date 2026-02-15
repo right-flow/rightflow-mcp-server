@@ -17,6 +17,9 @@ import { ReportsPage } from './pages/ReportsPage';
 import WhatsAppChannelsPage from './pages/WhatsAppChannelsPage';
 import { BillingHistoryPage } from './components/billing/history/BillingHistoryPage';
 import { UserManagementPage } from './pages/UserManagementPage';
+import { TriggersListPage } from './pages/TriggersListPage';
+import { TriggerDetailPage } from './pages/TriggerDetailPage';
+import { DLQDashboardPage } from './pages/DLQDashboardPage';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { AuthPageWrapper } from './components/auth/AuthPageWrapper';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -219,6 +222,34 @@ const router = createBrowserRouter([
         element: <BillingHistoryPage />,
       },
     ],
+  },
+
+  // Event Triggers routes
+  {
+    path: '/triggers',
+    element: (
+      <AuthGuard>
+        <TriggersListPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/triggers/:id',
+    element: (
+      <AuthGuard>
+        <TriggerDetailPage />
+      </AuthGuard>
+    ),
+  },
+
+  // Dead Letter Queue Dashboard
+  {
+    path: '/dlq',
+    element: (
+      <AuthGuard>
+        <DLQDashboardPage />
+      </AuthGuard>
+    ),
   },
 
   // 404 Not Found

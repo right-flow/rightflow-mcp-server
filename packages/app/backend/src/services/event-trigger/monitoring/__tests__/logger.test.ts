@@ -6,7 +6,6 @@
 import {
   eventLogger,
   logEventEmit,
-  logActionExecution,
   logError,
   logCircuitBreakerStateChange,
   RateLimitedLogger,
@@ -76,7 +75,7 @@ describe('Event Trigger Logger', () => {
         // Should emit warning about dropped logs
         expect(warnSpy).toHaveBeenCalledWith(
           expect.stringContaining('drop'),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -297,7 +296,7 @@ describe('Event Trigger Logger', () => {
         expect.objectContaining({
           message: hebrewMessage,
           event_type: 'משתמש.רישום',
-        })
+        }),
       );
     });
 
@@ -315,7 +314,7 @@ describe('Event Trigger Logger', () => {
         expect.any(String),
         expect.objectContaining({
           message: mixedMessage,
-        })
+        }),
       );
     });
   });
@@ -338,7 +337,7 @@ describe('Event Trigger Logger', () => {
           event_id: 'evt_123',
           event_type: 'form.submitted',
           organization_id: 'org_456',
-        })
+        }),
       );
     });
 
@@ -367,7 +366,7 @@ describe('Event Trigger Logger', () => {
             message: 'Test error',
             stack: expect.any(String),
           }),
-        })
+        }),
       );
     });
 
@@ -382,7 +381,7 @@ describe('Event Trigger Logger', () => {
           component: 'CircuitBreaker',
           from_state: 'closed',
           to_state: 'open',
-        })
+        }),
       );
     });
   });
