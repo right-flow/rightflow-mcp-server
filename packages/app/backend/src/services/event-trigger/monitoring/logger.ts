@@ -35,7 +35,8 @@ export function redactPII(data: any): any {
   const redacted = Array.isArray(data) ? [...data] : { ...data };
 
   // Email redaction pattern: user@example.com → u***@e***.com
-  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+  // Also matches single-part domains: user@localhost → u***@***.localhost
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\b/g;
 
   // Phone number redaction pattern: +972501234567 → +972***4567
   const phoneRegex = /\+?\d{1,4}[\s-]?\(?\d{1,5}\)?[\s-]?\d{1,5}[\s-]?\d{1,9}/g;
@@ -47,7 +48,13 @@ export function redactPII(data: any): any {
       redacted[key] = redacted[key].replace(emailRegex, (email: string) => {
         const [user, domain] = email.split('@');
         const domainParts = domain.split('.');
-        const tld = domainParts.pop();
+        const tld = domainParts.pop() || '';
+
+        // Handle single-part domains (e.g., user@localhost, user@com)
+        if (domainParts.length === 0) {
+          return `${user[0]}***@***.${tld}`;
+        }
+
         return `${user[0]}***@${domainParts[0][0]}***.${tld}`;
       });
 

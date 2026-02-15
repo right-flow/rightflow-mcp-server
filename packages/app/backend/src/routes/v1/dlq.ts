@@ -46,11 +46,11 @@ router.get('/stats', async (req: Request, res: Response, next: NextFunction) => 
     const result = stats[0];
 
     res.json({
-      total: parseInt(result.total as string),
-      pending: parseInt(result.pending as string),
-      processing: parseInt(result.processing as string),
-      resolved: parseInt(result.resolved as string),
-      failed: parseInt(result.failed as string),
+      total: parseInt(result.total as string) || 0,
+      pending: parseInt(result.pending as string) || 0,
+      processing: parseInt(result.processing as string) || 0,
+      resolved: parseInt(result.resolved as string) || 0,
+      failed: parseInt(result.failed as string) || 0,
     });
   } catch (error) {
     next(error);

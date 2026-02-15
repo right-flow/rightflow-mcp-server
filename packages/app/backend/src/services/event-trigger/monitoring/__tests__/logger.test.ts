@@ -241,6 +241,42 @@ describe('Event Trigger Logger', () => {
 
         expect(redacted).toEqual(data);
       });
+
+      it('should handle malformed emails with single-part domains', () => {
+        const data = {
+          email: 'test@com',
+          message: 'Contact user@localhost for details',
+        };
+
+        const redacted = redactPII(data);
+
+        // Should not crash
+        expect(redacted).toBeDefined();
+
+        // Should redact single-part domain emails
+        expect(redacted.email).toBe('t***@***.com');
+        expect(redacted.message).toContain('u***@***.localhost');
+        expect(redacted.message).not.toContain('user@localhost');
+      });
+
+      it('should handle edge cases in email redaction', () => {
+        const data = {
+          singlePartDomain: 'admin@test',
+          normalEmail: 'john@example.com',
+          localDev: 'dev@localhost',
+        };
+
+        const redacted = redactPII(data);
+
+        // Single-part domain
+        expect(redacted.singlePartDomain).toBe('a***@***.test');
+
+        // Normal multi-part domain
+        expect(redacted.normalEmail).toMatch(/j\*\*\*@e\*\*\*\.com/);
+
+        // Localhost (single-part)
+        expect(redacted.localDev).toBe('d***@***.localhost');
+      });
     });
   });
 
