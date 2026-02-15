@@ -96,10 +96,10 @@ describe.skip('GROW Integration E2E', () => {
 MANUAL TESTING GUIDE:
 =====================
 
-1. Set environment variables:
-   export GROW_API_KEY="your-sandbox-api-key"
-   export GROW_API_SECRET="your-sandbox-api-secret"
-   export GROW_ENVIRONMENT="sandbox"
+1. Set environment variables (get values from GROW dashboard):
+   export GROW_API_KEY=<your-key-from-grow-dashboard>
+   export GROW_API_SECRET=<your-secret-from-grow-dashboard>
+   export GROW_ENVIRONMENT=sandbox
 
 2. Run specific test:
    npm test -- grow.integration.test.ts

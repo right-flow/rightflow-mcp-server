@@ -5,13 +5,12 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { getDb, closeDb, testConnection } from './db';
+import { setupTestDatabase, getInvalidDatabaseUrl } from '../test-utils/test-env';
 
 describe('Database Connection (Railway PostgreSQL)', () => {
   beforeAll(async () => {
-    // Setup test environment
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
-    }
+    // Setup test environment from centralized config
+    setupTestDatabase();
   });
 
   afterAll(async () => {
@@ -54,7 +53,7 @@ describe('Database Connection (Railway PostgreSQL)', () => {
   it('handles connection errors gracefully', async () => {
     // This test ensures error handling exists
     const originalUrl = process.env.DATABASE_URL;
-    process.env.DATABASE_URL = 'postgresql://invalid:invalid@localhost:9999/invalid';
+    process.env.DATABASE_URL = getInvalidDatabaseUrl();
 
     // Close existing connection
     await closeDb();

@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FormsService } from './forms.service';
 import { closeDb } from '../../lib/db';
 import crypto from 'crypto';
+import { setupTestDatabase } from '../../test-utils/test-env';
 
 describe('FormsService (Form CRUD)', () => {
   let formsService: FormsService;
@@ -16,10 +17,8 @@ describe('FormsService (Form CRUD)', () => {
     formsService = new FormsService();
     testUserId = crypto.randomUUID();
 
-    // Mock environment for testing
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
-    }
+    // Setup test database from centralized config
+    setupTestDatabase();
 
     // Create test user in database (required for foreign key constraint)
     const db = await import('../../lib/db').then(m => m.getDb());

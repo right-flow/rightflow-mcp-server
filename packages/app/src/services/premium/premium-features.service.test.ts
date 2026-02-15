@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PremiumFeaturesService } from './premium-features.service';
 import { closeDb } from '../../lib/db';
 import crypto from 'crypto';
+import { setupTestDatabase } from '../../test-utils/test-env';
 
 describe('PremiumFeaturesService', () => {
   let service: PremiumFeaturesService;
@@ -16,9 +17,8 @@ describe('PremiumFeaturesService', () => {
     service = new PremiumFeaturesService();
     testUserId = crypto.randomUUID();
 
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
-    }
+    // Setup test database from centralized config
+    setupTestDatabase();
   });
 
   afterEach(async () => {

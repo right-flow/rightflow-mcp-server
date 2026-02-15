@@ -9,6 +9,7 @@ import { FormsService } from '../src/services/forms/forms.service';
 import { closeDb } from '../src/lib/db';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
+import { setupTestDatabase } from '../src/test-utils/test-env';
 
 // Mock response helpers
 function createMockRequest(overrides: Partial<VercelRequest> = {}): VercelRequest {
@@ -44,9 +45,8 @@ describe('Form Versions API', () => {
     testUserId = crypto.randomUUID();
     mockToken = `mock.jwt.token.${testUserId}`;
 
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
-    }
+    // Setup test database from centralized config
+    setupTestDatabase();
 
     // Create a test form
     const created = await formsService.createForm({

@@ -5,6 +5,7 @@
 
 import { GrowClient } from './GrowClient';
 import axios from 'axios';
+import { TEST_MOCK_CREDENTIALS } from '../../test-utils/test-env';
 
 // Mock axios
 jest.mock('axios');
@@ -12,8 +13,9 @@ const mockAxios = axios as jest.Mocked<typeof axios>;
 
 describe('GrowClient', () => {
   let client: GrowClient;
-  const mockApiKey = 'test-api-key-12345';
-  const mockApiSecret = 'test-api-secret-67890';
+  // Use centralized mock credentials - clearly marked as test-only
+  const mockApiKey = TEST_MOCK_CREDENTIALS.MOCK_BILLING_API_KEY;
+  const mockApiSecret = TEST_MOCK_CREDENTIALS.MOCK_BILLING_API_SECRET;
 
   beforeEach(() => {
     client = new GrowClient({

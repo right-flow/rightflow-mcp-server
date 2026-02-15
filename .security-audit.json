@@ -1,0 +1,196 @@
+{
+  "$schema": "./scripts/security/security-audit.schema.json",
+  "version": "1.0.0",
+  "enabled": true,
+  "severityThreshold": "HIGH",
+  "categories": {
+    "IAM": {
+      "enabled": true,
+      "severity": "CRITICAL",
+      "checks": [
+        "hardcoded-secrets",
+        "env-files-in-git",
+        "weak-jwt-config",
+        "missing-auth-middleware",
+        "permissive-cors"
+      ]
+    },
+    "IOV": {
+      "enabled": true,
+      "severity": "CRITICAL",
+      "checks": [
+        "sql-injection",
+        "command-injection",
+        "xss-vulnerabilities",
+        "path-traversal",
+        "input-validation",
+        "prompt-injection"
+      ]
+    },
+    "DEP": {
+      "enabled": true,
+      "severity": "HIGH",
+      "checks": [
+        "sensitive-data-in-logs",
+        "https-enforcement",
+        "weak-encryption",
+        "pii-exposure"
+      ]
+    },
+    "SCS": {
+      "enabled": true,
+      "severity": "HIGH",
+      "checks": [
+        "vulnerable-dependencies",
+        "outdated-packages",
+        "lockfile-integrity",
+        "typosquatting"
+      ]
+    },
+    "SEC": {
+      "enabled": true,
+      "severity": "MEDIUM",
+      "checks": [
+        "csp-header",
+        "x-frame-options",
+        "x-content-type-options",
+        "hsts",
+        "rate-limiting",
+        "stack-traces"
+      ]
+    },
+    "RES": {
+      "enabled": true,
+      "severity": "MEDIUM",
+      "checks": [
+        "rate-limiting",
+        "unbounded-queries",
+        "file-upload-limits",
+        "request-size-limits"
+      ]
+    },
+    "ERR": {
+      "enabled": true,
+      "severity": "MEDIUM",
+      "checks": [
+        "stack-traces-production",
+        "detailed-error-messages",
+        "database-errors-exposed",
+        "global-error-handler"
+      ]
+    },
+    "SES": {
+      "enabled": true,
+      "severity": "HIGH",
+      "checks": [
+        "secure-cookie-flags",
+        "session-fixation",
+        "token-expiration",
+        "csrf-protection"
+      ]
+    },
+    "AUD": {
+      "enabled": true,
+      "severity": "LOW",
+      "checks": [
+        "auth-event-logging",
+        "security-event-logging",
+        "audit-trail",
+        "log-injection"
+      ]
+    }
+  },
+  "ignore": {
+    "paths": [
+      "node_modules/**",
+      "**/node_modules/**",
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "**/__tests__/**",
+      "**/__mocks__/**",
+      "**/test-utils/**",
+      "Phase0-Testing/**"
+    ],
+    "rules": [],
+    "files": []
+  },
+  "customPatterns": {
+    "secrets": [
+      {
+        "name": "Clerk Secret Key",
+        "pattern": "sk_(?:test|live)_[a-zA-Z0-9]{20,}",
+        "severity": "CRITICAL"
+      },
+      {
+        "name": "Azure AI Key",
+        "pattern": "[a-f0-9]{32}",
+        "severity": "HIGH",
+        "context": "azure|cognitive|document-intelligence"
+      }
+    ],
+    "injection": [],
+    "exposure": []
+  },
+  "stageConfig": {
+    "1": {
+      "scanType": "config-only",
+      "categories": ["IAM"],
+      "blockingThreshold": null
+    },
+    "2": {
+      "scanType": "partial",
+      "categories": ["IAM", "SCS"],
+      "blockingThreshold": "CRITICAL"
+    },
+    "3": {
+      "scanType": "full",
+      "categories": ["ALL"],
+      "blockingThreshold": "CRITICAL"
+    },
+    "4": {
+      "scanType": "incremental",
+      "categories": ["IAM", "IOV", "DEP"],
+      "blockingThreshold": "CRITICAL"
+    },
+    "5": {
+      "scanType": "full",
+      "categories": ["ALL"],
+      "blockingThreshold": "HIGH"
+    },
+    "7": {
+      "scanType": "full-deep",
+      "categories": ["ALL"],
+      "blockingThreshold": "MEDIUM",
+      "requireManualReview": true
+    },
+    "8": {
+      "scanType": "verification",
+      "categories": ["SEC", "SCS", "IAM"],
+      "blockingThreshold": "CRITICAL"
+    }
+  },
+  "reporting": {
+    "format": "markdown",
+    "outputPath": "security-reports/",
+    "generateHtml": false,
+    "notifyOnCritical": true,
+    "saveHistory": true
+  },
+  "integrations": {
+    "eslint": {
+      "enabled": true,
+      "configPath": ".eslintrc.security.js"
+    },
+    "npm": {
+      "auditLevel": "moderate",
+      "fixOnWarning": false
+    },
+    "git": {
+      "preCommitHook": true,
+      "blockOnCritical": true
+    }
+  }
+}

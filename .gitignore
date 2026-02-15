@@ -61,3 +61,6 @@ test-api-direct.mjs
 test-autofill.js
 screenshots/
 nul
+
+# Security audit reports (keep scripts, ignore outputs)
+security-reports/
