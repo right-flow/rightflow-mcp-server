@@ -14,14 +14,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
 import { TriggerAction, ActionType } from '../../types/event-trigger';
-import { authenticateJWT } from '../../middleware/auth';
 
 const router = Router({ mergeParams: true }); // Merge params from parent router
 
-// Apply authentication to all routes (skip in test environment)
-if (process.env.NODE_ENV !== 'test') {
-  router.use(authenticateJWT);
-}
+// NOTE: Authentication and syncUser middleware are applied by parent router (triggers.ts)
+// Do not add authenticateJWT here as it will overwrite req.user.id set by syncUser
 
 /**
  * GET /api/v1/triggers/:triggerId/actions

@@ -11,14 +11,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
 import { ActionExecution } from '../../types/event-trigger';
-import { authenticateJWT } from '../../middleware/auth';
 
 const router = Router({ mergeParams: true });
 
-// Apply authentication (skip in test)
-if (process.env.NODE_ENV !== 'test') {
-  router.use(authenticateJWT);
-}
+// NOTE: Authentication and syncUser middleware are applied by parent router (triggers.ts)
+// Do not add authenticateJWT here as it will overwrite req.user.id set by syncUser
 
 /**
  * GET /api/v1/triggers/:triggerId/executions/stats
