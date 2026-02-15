@@ -11,6 +11,17 @@ import type {
   TriggerAction,
 } from '../../types/event-trigger';
 
+// Monitoring imports
+import { actionMetrics, normalizeErrorType } from './monitoring/metrics';
+import { logActionExecution, logError } from './monitoring/logger';
+import {
+  createActionExecutionSpan,
+  setSpanSuccess,
+  recordSpanException,
+  endSpan,
+  instrumentAsync,
+} from './monitoring/tracing';
+
 interface ActionChainExecutorConfig {
   db: Knex;
   actionExecutor: any; // Will be the existing ActionExecutor service
@@ -41,46 +52,60 @@ export class ActionChainExecutor {
    * Execute all actions for a trigger in order
    */
   async executeChain(event: Event, trigger: EventTrigger): Promise<void> {
-    // Fetch actions for this trigger, ordered by order field
-    const actions = await this.db('trigger_actions')
-      .where('trigger_id', trigger.id)
-      .orderBy('order', 'asc');
+    // 🔍 Tracing: Create span for entire action chain
+    return await instrumentAsync(
+      'action_chain_execution',
+      {
+        trigger_id: trigger.id,
+        trigger_name: trigger.name,
+        event_id: event.id,
+        organization_id: event.organization_id,
+      },
+      async (span) => {
+        // Fetch actions for this trigger, ordered by order field
+        const actions = await this.db('trigger_actions')
+          .where('trigger_id', trigger.id)
+          .orderBy('order', 'asc');
 
-    const executedActions: Array<{ action: TriggerAction; result: ExecutionResult }> = [];
+        span.setAttribute('action_count', actions.length);
 
-    for (const actionRow of actions) {
-      const action: TriggerAction = {
-        ...actionRow,
-        config: JSON.parse(actionRow.config || '{}'),
-        retry_config: JSON.parse(actionRow.retry_config || '{}'),
-      };
+        const executedActions: Array<{ action: TriggerAction; result: ExecutionResult }> = [];
 
-      try {
-        const result = await this.executeAction(action, event);
-        executedActions.push({ action, result });
-      } catch (error) {
-        // Handle error based on trigger's error_handling strategy
-        await this.handleActionError(
-          error as Error,
-          action,
-          event,
-          trigger,
-          executedActions,
-        );
+        for (const actionRow of actions) {
+          const action: TriggerAction = {
+            ...actionRow,
+            config: JSON.parse(actionRow.config || '{}'),
+            retry_config: JSON.parse(actionRow.retry_config || '{}'),
+          };
 
-        // Stop or continue based on strategy
-        if (trigger.error_handling === 'stop_on_first_error') {
-          throw error;
+          try {
+            const result = await this.executeAction(action, event);
+            executedActions.push({ action, result });
+          } catch (error) {
+            // Handle error based on trigger's error_handling strategy
+            await this.handleActionError(
+              error as Error,
+              action,
+              event,
+              trigger,
+              executedActions,
+            );
+
+            // Stop or continue based on strategy
+            if (trigger.error_handling === 'stop_on_first_error') {
+              throw error;
+            }
+
+            if (trigger.error_handling === 'rollback_on_error') {
+              await this.rollbackExecutedActions(executedActions, event);
+              throw error;
+            }
+
+            // continue_on_error: Keep going
+          }
         }
-
-        if (trigger.error_handling === 'rollback_on_error') {
-          await this.rollbackExecutedActions(executedActions, event);
-          throw error;
-        }
-
-        // continue_on_error: Keep going
       }
-    }
+    );
   }
 
   /**
@@ -90,50 +115,134 @@ export class ActionChainExecutor {
     action: TriggerAction,
     event: Event,
   ): Promise<ExecutionResult> {
+    const startTime = Date.now();
     let lastError: Error | null = null;
     const maxAttempts = action.retry_config.max_attempts || 3;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      // Record execution start
-      const executionId = await this.recordExecutionStart(action, event, attempt);
+    // 🔍 Tracing: Create span for action execution
+    const span = createActionExecutionSpan(
+      action.id,
+      action.action_type,
+      event.organization_id
+    );
 
-      try {
-        // Execute with timeout
-        const result = await this.executeWithTimeout(action, event);
+    try {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        // Record execution start
+        const executionId = await this.recordExecutionStart(action, event, attempt);
 
-        // Record success
-        await this.recordExecutionSuccess(executionId, result);
+        try {
+          // Execute with timeout
+          const result = await this.executeWithTimeout(action, event);
 
-        return result;
-      } catch (error) {
-        lastError = error as Error;
+          // Record success
+          await this.recordExecutionSuccess(executionId, result);
 
-        // Check if error is retryable
-        if (!this.isRetryableError(error as Error)) {
-          // Non-retryable error - send to DLQ immediately
+          // 📊 Metrics: Action execution succeeded
+          const duration = (Date.now() - startTime) / 1000;
+          actionMetrics.duration.observe(
+            { action_type: action.action_type },
+            duration
+          );
+          actionMetrics.executionsTotal.inc({
+            action_type: action.action_type,
+            status: 'success',
+            organization_id: event.organization_id,
+          });
+
+          // 📝 Logging: Log successful execution
+          logActionExecution({
+            component: 'ActionChainExecutor',
+            action_id: action.id,
+            event_id: event.id,
+            organization_id: event.organization_id,
+            action_type: action.action_type,
+            duration_ms: duration * 1000,
+            attempt,
+          });
+
+          // 🔍 Tracing: Mark success
+          setSpanSuccess(span);
+
+          return result;
+        } catch (error) {
+          lastError = error as Error;
+
+          // Check if error is retryable
+          if (!this.isRetryableError(error as Error)) {
+            // Non-retryable error - send to DLQ immediately
+            await this.recordExecutionFailure(executionId, error as Error);
+            await this.sendToDlq(action, event, error as Error, attempt);
+
+            // 📊 Metrics: Action execution failed (non-retryable)
+            actionMetrics.executionsTotal.inc({
+              action_type: action.action_type,
+              status: 'failure',
+              organization_id: event.organization_id,
+            });
+
+            // 📝 Logging: Log error
+            logError('Action execution failed (non-retryable)', error as Error, {
+              component: 'ActionChainExecutor',
+              action_id: action.id,
+              event_id: event.id,
+              organization_id: event.organization_id,
+            });
+
+            throw error;
+          }
+
+          // Record failure
           await this.recordExecutionFailure(executionId, error as Error);
-          await this.sendToDlq(action, event, error as Error, attempt);
-          throw error;
-        }
 
-        // Record failure
-        await this.recordExecutionFailure(executionId, error as Error);
+          // 📊 Metrics: Retry attempt
+          if (attempt < maxAttempts) {
+            actionMetrics.retriesTotal.inc({
+              action_type: action.action_type,
+              organization_id: event.organization_id,
+            });
+          }
 
-        // If not last attempt, wait before retry (exponential backoff)
-        if (attempt < maxAttempts) {
-          const delay = this.calculateBackoffDelay(action, attempt);
-          await this.sleep(delay);
+          // If not last attempt, wait before retry (exponential backoff)
+          if (attempt < maxAttempts) {
+            const delay = this.calculateBackoffDelay(action, attempt);
+            await this.sleep(delay);
+          }
         }
       }
-    }
 
-    // Max retries exceeded - send to DLQ
-    if (lastError) {
-      await this.sendToDlq(action, event, lastError, maxAttempts);
-      throw lastError;
-    }
+      // Max retries exceeded - send to DLQ
+      if (lastError) {
+        await this.sendToDlq(action, event, lastError, maxAttempts);
 
-    throw new Error('Action execution failed');
+        // 📊 Metrics: Action execution failed (max retries exceeded)
+        actionMetrics.executionsTotal.inc({
+          action_type: action.action_type,
+          status: 'failure',
+          organization_id: event.organization_id,
+        });
+
+        // 📝 Logging: Log error
+        logError('Action execution failed (max retries exceeded)', lastError, {
+          component: 'ActionChainExecutor',
+          action_id: action.id,
+          event_id: event.id,
+          organization_id: event.organization_id,
+          max_attempts: maxAttempts,
+        });
+
+        throw lastError;
+      }
+
+      throw new Error('Action execution failed');
+    } catch (error) {
+      // 🔍 Tracing: Record exception
+      recordSpanException(span, error as Error);
+      throw error;
+    } finally {
+      // 🔍 Tracing: End span
+      endSpan(span);
+    }
   }
 
   /**
@@ -375,6 +484,22 @@ export class ActionChainExecutor {
       action_type: 'rollback' as any,
       config: rollbackConfig,
     };
+
+    // 📊 Metrics: Track compensating transaction
+    actionMetrics.compensationsTotal.inc({
+      action_type: action.action_type,
+      organization_id: event.organization_id,
+    });
+
+    // 📝 Logging: Log rollback execution
+    logActionExecution({
+      component: 'ActionChainExecutor',
+      action_id: action.id,
+      event_id: event.id,
+      organization_id: event.organization_id,
+      action_type: 'rollback',
+      message: `Executing compensating transaction for ${action.action_type}`,
+    });
 
     await this.actionExecutor.execute(rollbackAction, event);
   }

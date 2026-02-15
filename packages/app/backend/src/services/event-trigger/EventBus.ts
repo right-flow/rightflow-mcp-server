@@ -9,6 +9,22 @@ import type Redis from 'ioredis';
 import type { Event, ProcessingMode } from '../../types/event-trigger';
 import type { CircuitBreaker } from './CircuitBreaker';
 
+// Monitoring imports
+import {
+  eventMetrics,
+  redisMetrics,
+  normalizeEventType,
+  normalizeErrorType,
+} from './monitoring/metrics';
+import { logEventEmit, logError, rateLimitedLogger } from './monitoring/logger';
+import {
+  createEventEmitSpan,
+  setSpanSuccess,
+  recordSpanException,
+  endSpan,
+  withContext,
+} from './monitoring/tracing';
+
 interface EventBusConfig {
   redis: Redis;
   db: Knex;
@@ -39,45 +55,131 @@ export class EventBus {
    * Emit an event with hybrid Redis + PostgreSQL persistence
    */
   async emit(event: Event): Promise<EmitResult> {
-    // 1. Check for duplicates
-    await this.checkDuplicateEvent(event);
+    const startTime = Date.now();
+    const normalizedEventType = normalizeEventType(event.event_type);
 
-    // 2. Normalize Unicode in event data (remove dangerous control characters)
-    const normalizedEvent = this.normalizeEventData(event);
-
-    // 3. Always persist to PostgreSQL first (source of truth)
-    const persistedEvent = await this.persistEvent(normalizedEvent);
-
-    // 4. Try to publish to Redis (with Circuit Breaker)
-    let processingMode: ProcessingMode = 'poll';
+    // 🔍 Tracing: Create root span for event emission
+    const span = createEventEmitSpan(
+      event.id || 'unknown',
+      normalizedEventType,
+      event.organization_id
+    );
 
     try {
-      await this.circuitBreaker.execute(async () => {
-        const subscribers = await this.redis.publish(
-          'rightflow:events',
-          JSON.stringify(persistedEvent),
-        );
-        return subscribers;
+      // 📊 Metrics: Increment events total
+      eventMetrics.eventsTotal.inc({
+        organization_id: event.organization_id,
+        event_type: normalizedEventType,
       });
 
-      // Successfully published to Redis
-      processingMode = 'redis';
+      // 📝 Logging: Log event emission
+      logEventEmit({
+        component: 'EventBus',
+        event_id: event.id,
+        event_type: normalizedEventType,
+        organization_id: event.organization_id,
+        entity_type: event.entity_type,
+        entity_id: event.entity_id,
+      });
 
-      // Update event processing mode
-      await this.db('events')
-        .where('id', persistedEvent.id)
-        .update({ processing_mode: 'redis' });
+      // 1. Check for duplicates
+      await this.checkDuplicateEvent(event);
+
+      // 2. Normalize Unicode in event data (remove dangerous control characters)
+      const normalizedEvent = this.normalizeEventData(event);
+
+      // 3. Always persist to PostgreSQL first (source of truth)
+      const persistedEvent = await this.persistEvent(normalizedEvent);
+
+      // 4. Try to publish to Redis (with Circuit Breaker)
+      let processingMode: ProcessingMode = 'poll';
+
+      try {
+        await this.circuitBreaker.execute(async () => {
+          const subscribers = await this.redis.publish(
+            'rightflow:events',
+            JSON.stringify(persistedEvent),
+          );
+          return subscribers;
+        });
+
+        // Successfully published to Redis
+        processingMode = 'redis';
+
+        // 📊 Metrics: Redis publish success
+        redisMetrics.publishesTotal.inc({ status: 'success' });
+
+        // Update event processing mode
+        await this.db('events')
+          .where('id', persistedEvent.id)
+          .update({ processing_mode: 'redis' });
+      } catch (error) {
+        // 📊 Metrics: Redis publish failure
+        redisMetrics.publishesFailed.inc({
+          error_type: normalizeErrorType(error as Error),
+        });
+        redisMetrics.publishesTotal.inc({ status: 'failure' });
+
+        // 📝 Logging: Redis failure
+        logError('Redis publish failed, using polling fallback', error as Error, {
+          component: 'EventBus',
+          event_id: persistedEvent.id,
+          event_type: normalizedEventType,
+          organization_id: event.organization_id,
+        });
+
+        await this.markForPolling(persistedEvent.id);
+      }
+
+      // 📊 Metrics: Processing duration
+      const duration = (Date.now() - startTime) / 1000;
+      eventMetrics.processingDuration.observe(
+        {
+          organization_id: event.organization_id,
+          event_type: normalizedEventType,
+          status: 'success',
+        },
+        duration
+      );
+
+      // 📊 Metrics: Events processed
+      eventMetrics.eventsProcessed.inc({
+        organization_id: event.organization_id,
+        event_type: normalizedEventType,
+        status: 'success',
+      });
+
+      // 🔍 Tracing: Mark success
+      setSpanSuccess(span);
+
+      return {
+        event_id: persistedEvent.id,
+        processing_mode: processingMode,
+      };
     } catch (error) {
-      // Redis failed or circuit is open - fallback to polling
-      console.error('EventBus: Redis publish failed, using polling fallback', error);
+      // 📊 Metrics: Event failed
+      eventMetrics.eventsFailed.inc({
+        organization_id: event.organization_id,
+        event_type: normalizedEventType,
+        error_type: normalizeErrorType(error as Error),
+      });
 
-      await this.markForPolling(persistedEvent.id);
+      // 📝 Logging: Error
+      logError('Event emission failed', error as Error, {
+        component: 'EventBus',
+        event_type: normalizedEventType,
+        organization_id: event.organization_id,
+        event_id: event.id,
+      });
+
+      // 🔍 Tracing: Record exception
+      recordSpanException(span, error as Error);
+
+      throw error;
+    } finally {
+      // 🔍 Tracing: End span
+      endSpan(span);
     }
-
-    return {
-      event_id: persistedEvent.id,
-      processing_mode: processingMode,
-    };
   }
 
   /**

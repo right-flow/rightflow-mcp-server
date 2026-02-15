@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FormsService } from './forms.service';
 import { closeDb } from '../../lib/db';
 import crypto from 'crypto';
+import { setupTestDatabase } from '../../test-utils/test-env';
 
 describe('FormsService (Version Management)', () => {
   let formsService: FormsService;
@@ -16,9 +17,8 @@ describe('FormsService (Version Management)', () => {
     formsService = new FormsService();
     testUserId = crypto.randomUUID();
 
-    if (!process.env.DATABASE_URL) {
-      process.env.DATABASE_URL = 'postgresql://postgres:test@localhost:5432/rightflow_test';
-    }
+    // Setup test database from centralized config
+    setupTestDatabase();
   });
 
   afterEach(async () => {

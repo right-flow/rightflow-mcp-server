@@ -49,6 +49,7 @@ Phase0-Testing/output/*.pdf
 
 !Documents/Deployment-Infrastructure/
 !Documents/Deployment-Infrastructure/**/*.md
+!scripts/security/*.md
 
 .claude
 !.claude/commands/
@@ -61,3 +62,6 @@ test-api-direct.mjs
 test-autofill.js
 screenshots/
 nul
+
+# Security audit reports (keep scripts, ignore outputs)
+security-reports/

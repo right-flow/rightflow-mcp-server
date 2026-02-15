@@ -50,7 +50,7 @@ export type ExecutionStatus =
   | 'retrying'
   | 'cancelled';
 
-export type DlqStatus = 'pending' | 'processing' | 'resolved' | 'failed';
+export type DlqStatus = 'pending' | 'processing' | 'resolved' | 'failed' | 'ignored';
 
 export interface Event {
   id: string;

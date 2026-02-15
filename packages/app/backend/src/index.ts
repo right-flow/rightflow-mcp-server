@@ -1,3 +1,7 @@
+// 🔍 CRITICAL: Initialize tracing FIRST (before any other imports)
+// This must be imported before express and other modules
+import './services/event-trigger/monitoring/tracing';
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -14,11 +18,19 @@ import activityRouter from './routes/v1/activity';
 import usersRouter from './routes/v1/users';
 import connectorsRouter from './routes/v1/integrations/connectors';
 import mappingsRouter from './routes/v1/integrations/mappings';
+import integrationsRouter from './routes/v1/integrations';
 import whatsappRouter from './routes/v1/whatsapp';
 import whatsappWebhookRouter from './routes/v1/whatsapp-webhook';
 import extractionRouter from './routes/v1/extraction';
+import triggersRouter from './routes/v1/triggers';
+import dlqRouter from './routes/v1/dlq';
+import healthRouter from './routes/v1/health';
+import eventsRouter from './routes/v1/events';
+import metricsRouter from './routes/v1/metrics'; // Prometheus metrics endpoint
 import './workers/webhookWorker'; // Initialize webhook worker
 import './workers/whatsappHealthWorker'; // Initialize WhatsApp health worker
+import './workers/eventWorker'; // Initialize event processing worker
+import './workers/dlqWorker'; // Initialize DLQ retry worker
 
 const app = express();
 
@@ -71,9 +83,17 @@ app.use('/api/v1/analytics', analyticsRouter);
 app.use('/api/v1/activity', activityRouter);
 app.use('/api/v1/integrations/connectors', connectorsRouter);
 app.use('/api/v1/integrations/mappings', mappingsRouter);
+app.use('/api/v1/integrations', integrationsRouter);
 app.use('/api/v1/whatsapp', whatsappRouter);
 app.use('/api/v1/whatsapp', whatsappWebhookRouter);
+app.use('/api/v1/triggers', triggersRouter);
+app.use('/api/v1/dlq', dlqRouter);
+app.use('/api/v1/health', healthRouter);
+app.use('/api/v1/events', eventsRouter);
 app.use('/api/v1', extractionRouter);
+
+// 📊 Monitoring endpoints (Prometheus metrics)
+app.use('/api/v1/metrics', metricsRouter);
 
 // 404 handler
 app.use((_req, res) => {

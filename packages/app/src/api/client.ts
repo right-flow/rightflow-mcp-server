@@ -100,6 +100,25 @@ class ApiClient {
   }
 
   /**
+   * Make a PATCH request
+   */
+  async patch<T = any>(
+    endpoint: string,
+    body?: any,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+  }
+
+  /**
    * Make a DELETE request
    */
   async delete<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
@@ -132,10 +151,12 @@ class ApiClient {
 
       // Check if request was successful
       if (!response.ok) {
+        // Handle error response - backend returns { error: { code, message } }
+        const errorObj = data.error || {};
         throw {
-          message: data.message || 'Request failed',
+          message: errorObj.message || data.message || 'Request failed',
           status: response.status,
-          code: data.error,
+          code: errorObj.code || data.code,
         } as ApiError;
       }
 

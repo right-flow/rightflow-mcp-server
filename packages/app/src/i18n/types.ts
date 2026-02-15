@@ -921,4 +921,97 @@ export interface Translations {
   'billing.invoices.status.pending': string;
   'billing.invoices.status.failed': string;
   'billing.invoices.status.refunded': string;
+
+  // Triggers - Event Types
+  'triggers.eventTypes.form.submitted': string;
+  'triggers.eventTypes.form.approved': string;
+  'triggers.eventTypes.form.rejected': string;
+  'triggers.eventTypes.form.deleted': string;
+  'triggers.eventTypes.form.created': string;
+  'triggers.eventTypes.form.updated': string;
+  'triggers.eventTypes.user.created': string;
+  'triggers.eventTypes.user.updated': string;
+  'triggers.eventTypes.submission.created': string;
+  'triggers.eventTypes.submission.updated': string;
+
+  // Triggers - Levels
+  'triggers.levels.user_defined': string;
+  'triggers.levels.system': string;
+
+  // Triggers - Error Handling Strategies
+  'triggers.errorHandling.stop_on_first_error': string;
+  'triggers.errorHandling.continue_on_error': string;
+  'triggers.errorHandling.retry_failed': string;
+
+  // Triggers - Action Types
+  'triggers.actionTypes.send_webhook': string;
+  'triggers.actionTypes.send_email': string;
+  'triggers.actionTypes.send_sms': string;
+  'triggers.actionTypes.update_crm': string;
+  'triggers.actionTypes.create_task': string;
+  'triggers.actionTypes.trigger_workflow': string;
+  'triggers.actionTypes.custom': string;
+
+  // Triggers - Additional Labels
+  'triggers.timeout': string;
+  'triggers.timeoutMs': string;
+  'triggers.backToList': string;
+  'triggers.details': string;
+  'triggers.actions': string;
+  'triggers.addAction': string;
+  'triggers.noActions': string;
+  'triggers.warning.noActionsCannotActivate': string;
+  'triggers.critical': string;
+  'triggers.executionStats': string;
+  'triggers.totalExecutions': string;
+  'triggers.successRate': string;
+  'triggers.avgTime': string;
+  'triggers.eventType': string;
+  'triggers.level': string;
+  'triggers.errorHandlingLabel': string;
+  'triggers.table.status': string;
+  'triggers.table.priority': string;
+  'triggers.status.active': string;
+  'triggers.status.inactive': string;
+  'triggers.status.draft': string;
+
+  // Triggers - Action Modal
+  'triggers.actionType': string;
+  'triggers.actionType.webhook': string;
+  'triggers.actionType.email': string;
+  'triggers.actionType.sms': string;
+  'triggers.actionType.crm': string;
+  'triggers.actionType.workflow': string;
+  'triggers.criticalHelp': string;
+  'triggers.webhookUrl': string;
+  'triggers.webhookMethod': string;
+  'triggers.emailTo': string;
+  'triggers.emailSubject': string;
+  'triggers.emailBody': string;
+  'triggers.smsTo': string;
+  'triggers.smsMessage': string;
+  'triggers.error.urlRequired': string;
+  'triggers.error.emailRequired': string;
+  'triggers.error.phoneRequired': string;
+  'common.cancel': string;
+  'common.add': string;
+  'common.adding': string;
+  'common.edit': string;
+
+  // Triggers - List Page
+  'triggers.createNew': string;
+  'triggers.search': string;
+  'triggers.allStatuses': string;
+  'triggers.allEventTypes': string;
+  'triggers.empty.title': string;
+  'triggers.empty.description': string;
+  'triggers.table.name': string;
+  'triggers.table.eventType': string;
+  'triggers.table.actions': string;
+  'triggers.action.activate': string;
+  'triggers.action.deactivate': string;
+  'triggers.error.noActions': string;
+
+  // Allow dynamic keys for triggers (index signature)
+  [key: `triggers.${string}`]: string;
 }

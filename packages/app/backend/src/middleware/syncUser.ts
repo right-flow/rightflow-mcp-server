@@ -124,6 +124,10 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
     }
 
     // Update req.user with the database values
+    // CRITICAL: Set the database UUID for id so routes can use it for foreign keys
+    // Preserve the original Clerk ID for any Clerk API calls
+    req.user.clerkId = clerkUserId;
+    req.user.id = dbUserId;
     req.user.role = dbRole;
     req.user.organizationId = dbOrganizationId;
 

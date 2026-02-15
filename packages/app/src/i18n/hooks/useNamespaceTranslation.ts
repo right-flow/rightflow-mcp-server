@@ -76,14 +76,9 @@ export function useNamespaceTranslation<N extends TranslationNamespace>(
     [translations]
   );
 
-  // Create a proxy that returns key path as fallback when loading
-  const safeTranslations = (translations ??
-    new Proxy(
-      {},
-      {
-        get: (_, prop) => String(prop),
-      }
-    )) as NamespaceTranslations<N>;
+  // Create a recursive proxy that returns key path as fallback when loading
+  // Handles nested access like t.widgets.userManagement.admins
+  const safeTranslations = (translations ?? createNestedFallbackProxy()) as NamespaceTranslations<N>;
 
   return {
     t: safeTranslations,
@@ -104,4 +99,31 @@ function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
     }
     return undefined;
   }, obj);
+}
+
+/**
+ * Create a recursive proxy that handles nested property access while translations are loading.
+ * IMPORTANT: Components MUST check `isLoading` before rendering to avoid React errors.
+ * This proxy is only a safeguard for property access - it cannot be rendered directly in JSX.
+ *
+ * @example
+ * // Correct usage:
+ * const { t, isLoading } = useNamespaceTranslation('dashboard');
+ * if (isLoading) return <Loading />;
+ * return <h1>{t.widgets.title}</h1>;
+ */
+function createNestedFallbackProxy(path: string[] = []): unknown {
+  const handler: ProxyHandler<object> = {
+    get: (_, prop) => {
+      // Handle Symbol.toPrimitive, toString, valueOf for string conversion
+      if (prop === Symbol.toPrimitive || prop === 'toString' || prop === 'valueOf') {
+        return () => (path.length > 0 ? path.join('.') : '');
+      }
+      // Ignore other symbols
+      if (typeof prop === 'symbol') return undefined;
+      // Return a new nested proxy for the next level
+      return createNestedFallbackProxy([...path, String(prop)]);
+    },
+  };
+  return new Proxy({}, handler);
 }

@@ -59,7 +59,12 @@
     "docker:db:reset": "docker-compose down -v && docker-compose up -d && npm run db:migrate",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "railway:build": "npm run build:railway"
+    "railway:build": "npm run build:railway",
+    "security:audit": "npx tsx scripts/security/scan.ts",
+    "security:quick": "npx tsx scripts/security/scan.ts --quick",
+    "security:full": "npx tsx scripts/security/scan.ts --threshold MEDIUM",
+    "security:stage": "npx tsx scripts/security/scan.ts --stage",
+    "security:lint": "eslint . --config .eslintrc.security.js --ext ts,tsx --report-unused-disable-directives"
   },
   "dependencies": {
     "@azure-rest/ai-document-intelligence": "^1.1.0",
@@ -145,6 +150,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "eslint-plugin-security": "^3.0.1",
     "jsdom": "^27.3.0",
     "playwright": "^1.57.0",
     "postcss": "^8.4.38",
