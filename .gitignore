@@ -49,6 +49,7 @@ Phase0-Testing/output/*.pdf
 
 !Documents/Deployment-Infrastructure/
 !Documents/Deployment-Infrastructure/**/*.md
+!scripts/security/*.md
 
 .claude
 !.claude/commands/
