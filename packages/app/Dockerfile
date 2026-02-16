@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.7-fix-dockerfile-backend-ref-20260215-233500
+ARG CACHE_BUST=v2.4.8-fix-api-paths-20260216-070000
 
 # Copy source files
 COPY . .
@@ -47,8 +47,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Copy backend source from packages/app/backend (old backend/ folder was removed)
-COPY packages/app/backend/ ./packages/app/backend/
+# Copy api/ folder (legacy API code) and its dependencies
+COPY api/ ./api/
+COPY packages/app/src/lib/ ./packages/app/src/lib/
 COPY tsconfig.api.json ./
 
 # Build old backend API
