@@ -4,6 +4,7 @@ import { syncUser } from '../../middleware/syncUser';
 import { query } from '../../config/database';
 
 const router = express.Router();
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
 
 // Apply authentication + user sync (manager+ only for analytics)
 router.use(authenticateJWT);
@@ -19,7 +20,7 @@ router.get('/overview', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty stats if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json({
         totals: { submissions: 0, forms: 0, users: 0, webhooks: 0 },
         submissionsByStatus: {},
@@ -119,7 +120,7 @@ router.get('/submissions', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty data if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json({ byForm: [], byUser: [], byDay: [] });
     }
 
@@ -222,7 +223,7 @@ router.get('/form-performance', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty array if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json([]);
     }
 
@@ -280,7 +281,7 @@ router.get('/webhooks', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty data if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json({ deliveryStats: [], recentEvents: [] });
     }
 
@@ -372,7 +373,7 @@ router.get('/team-performance', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty data if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json({
         totals: { totalSubmissions: 0, approvedSubmissions: 0, pendingSubmissions: 0 },
         topPerformer: null,
@@ -458,7 +459,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
     const { organizationId } = req.user!;
 
     // Return empty stats if no organization context
-    if (!organizationId) {
+    if (organizationId === NIL_UUID) {
       return res.json({
         monthlySubmissions: { value: 0, trend: 0, label: 'הגשות החודש' },
         completionRate: { value: 0, trend: 0, label: 'אחוז השלמה' },
