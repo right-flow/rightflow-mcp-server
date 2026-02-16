@@ -12,6 +12,7 @@ import { DashboardLayout } from '../components/dashboard/layouts/DashboardLayout
 import { RoleProvider } from '../contexts/RoleContext';
 import { useTranslation } from '../i18n';
 import { AddActionModal } from '../components/triggers/AddActionModal';
+import { TestTriggerModal } from '../components/triggers/TestTriggerModal';
 
 export function TriggerDetailPage() {
   const { organization, isLoaded: orgLoaded } = useOrganization();
@@ -57,8 +58,9 @@ function TriggerDetailContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddActionModal, setShowAddActionModal] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
 
-  const handleActionAdded = (newAction: TriggerAction) => {
+  const handleActionAdded = (_newAction: TriggerAction) => {
     setShowAddActionModal(false);
     // Reload trigger to get updated actions list
     loadTrigger();
@@ -134,6 +136,16 @@ function TriggerDetailContent() {
         />
       )}
 
+      {/* Test Trigger Modal */}
+      {id && trigger && (
+        <TestTriggerModal
+          isOpen={showTestModal}
+          onClose={() => setShowTestModal(false)}
+          triggerId={id}
+          eventType={trigger.event_type}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <button
@@ -205,12 +217,21 @@ function TriggerDetailContent() {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {t['triggers.actions'] || 'פעולות'} ({trigger.actions.length})
             </h2>
-            <button
-              onClick={() => setShowAddActionModal(true)}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-            >
-              {t['triggers.addAction'] || 'הוסף פעולה'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTestModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <span>🧪</span>
+                {t['triggers.testTrigger'] || 'בדיקה'}
+              </button>
+              <button
+                onClick={() => setShowAddActionModal(true)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+              >
+                {t['triggers.addAction'] || 'הוסף פעולה'}
+              </button>
+            </div>
           </div>
 
           {trigger.actions.length === 0 ? (
