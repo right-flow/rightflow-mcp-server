@@ -4,6 +4,7 @@
     "module": "ESNext",
     "target": "ES2022",
     "lib": ["ES2022"],
+    "types": ["vite/client"],
     "moduleResolution": "bundler",
     "declaration": false,
     "sourceMap": true,
@@ -16,6 +17,7 @@
     "noImplicitAny": false,
     "strict": false,
     "noEmit": false,
+    "noEmitOnError": false,
     "allowImportingTsExtensions": false,
     "isolatedModules": true,
     "baseUrl": "."

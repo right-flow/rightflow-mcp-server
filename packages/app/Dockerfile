@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.11-fix-bundler-resolution-20260216-073000
+ARG CACHE_BUST=v2.4.12-noEmitOnError-20260216-074000
 
 # Copy source files
 COPY . .
