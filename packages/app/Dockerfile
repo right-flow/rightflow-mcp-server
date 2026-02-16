@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.9-fix-api-services-20260216-071000
+ARG CACHE_BUST=v2.4.10-fix-api-services-specific-20260216-072000
 
 # Copy source files
 COPY . .
@@ -49,7 +49,14 @@ RUN npm ci
 
 # Copy api/ folder (legacy API code) and its dependencies
 COPY api/ ./api/
-COPY packages/app/src/ ./packages/app/src/
+COPY packages/app/src/lib/ ./packages/app/src/lib/
+COPY packages/app/src/services/billing/ ./packages/app/src/services/billing/
+COPY packages/app/src/services/data-sources/ ./packages/app/src/services/data-sources/
+COPY packages/app/src/services/storage/ ./packages/app/src/services/storage/
+COPY packages/app/src/services/forms/ ./packages/app/src/services/forms/
+COPY packages/app/src/services/responses/ ./packages/app/src/services/responses/
+COPY packages/app/src/services/auth/ ./packages/app/src/services/auth/
+COPY packages/app/src/services/access-control/ ./packages/app/src/services/access-control/
 COPY tsconfig.api.json ./
 
 # Build old backend API

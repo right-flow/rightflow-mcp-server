@@ -23,7 +23,13 @@
   "include": [
     "api/**/*",
     "packages/app/src/lib/**/*",
-    "packages/app/src/services/**/*"
+    "packages/app/src/services/billing/**/*",
+    "packages/app/src/services/data-sources/**/*",
+    "packages/app/src/services/storage/**/*",
+    "packages/app/src/services/forms/**/*",
+    "packages/app/src/services/responses/**/*",
+    "packages/app/src/services/auth/**/*",
+    "packages/app/src/services/access-control/**/*"
   ],
   "exclude": [
     "**/*.test.ts",
