@@ -15,7 +15,7 @@ import logger from '../utils/logger';
  * 3. If user exists without organization - create org with user as owner
  * 4. If new user - create user first, then create org with user as owner
  */
-export async function syncUser(req: Request, _res: Response, next: NextFunction) {
+export async function syncUser(req: Request, res: Response, next: NextFunction) {
   try {
     if (!req.user) {
       // authenticateJWT should have set req.user
@@ -76,25 +76,42 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
         });
       }
 
-      // Update user email/name if changed (try both column names)
-      await query(
-        `UPDATE users SET email = $2, name = $3, updated_at = NOW() WHERE id = $1`,
-        [dbUserId, email, name],
-      ).catch(() => {
-        // name column might not exist, try without it
-        return query(
-          `UPDATE users SET email = $2, updated_at = NOW() WHERE id = $1`,
-          [dbUserId, email],
-        );
-      });
+      // Update user email/name if changed (only if values are not null)
+      if (email) {
+        await query(
+          `UPDATE users SET email = $2, name = $3, updated_at = NOW() WHERE id = $1`,
+          [dbUserId, email, name || ''],
+        ).catch(() => {
+          // name column might not exist, try without it
+          return query(
+            `UPDATE users SET email = $2, updated_at = NOW() WHERE id = $1`,
+            [dbUserId, email],
+          );
+        });
+      } else if (name) {
+        // Only update name if email is null but name exists
+        await query(
+          `UPDATE users SET name = $2, updated_at = NOW() WHERE id = $1`,
+          [dbUserId, name],
+        ).catch(() => {
+          // Ignore if name column doesn't exist
+        });
+      }
     } else {
       // New user - create user first (without organization_id)
+      // Use a placeholder email if not provided (will be updated later from Clerk webhook)
+      const userEmail = email || `pending_${clerkUserId}@placeholder.local`;
+      const userName = name || clerkUserId.substring(0, 20);
+
       const userResult = await query<{ id: string }>(
         `INSERT INTO users (id, clerk_id, email, name, role, tenant_type)
          VALUES (gen_random_uuid(), $1, $2, $3, $4, 'rightflow')
-         ON CONFLICT (clerk_id) DO UPDATE SET email = $2, name = $3, updated_at = NOW()
+         ON CONFLICT (clerk_id) DO UPDATE SET
+           email = CASE WHEN $2 NOT LIKE 'pending_%' THEN $2 ELSE users.email END,
+           name = COALESCE(NULLIF($3, ''), users.name),
+           updated_at = NOW()
          RETURNING id`,
-        [clerkUserId, email, name, 'admin'], // First user is admin
+        [clerkUserId, userEmail, userName, 'admin'], // First user is admin
       );
       dbUserId = userResult[0]?.id;
       dbRole = 'admin';
@@ -119,7 +136,7 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       logger.info('Created new user and organization', {
         userId: dbUserId,
         organizationId: dbOrganizationId,
-        email,
+        email: userEmail,
       });
     }
 
@@ -147,7 +164,14 @@ export async function syncUser(req: Request, _res: Response, next: NextFunction)
       stack: error.stack,
       user: req.user,
     });
-    // Don't block request if sync fails - log and continue
-    next();
+
+    // If we couldn't sync the user, the req.user.id is still the Clerk ID
+    // which will cause UUID errors in routes. Return an error instead.
+    return res.status(500).json({
+      error: {
+        code: 'USER_SYNC_FAILED',
+        message: 'שגיאה בסנכרון המשתמש',
+      },
+    });
   }
 }
