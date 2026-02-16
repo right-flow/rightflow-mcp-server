@@ -10,7 +10,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database';
-import { getRedisClient } from '../../config/redis';
+import { redisConnection, checkRedisConnection } from '../../config/redis';
 
 const router = Router();
 
@@ -37,13 +37,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     // Check Redis
     try {
-      const redis = getRedisClient();
-      if (redis) {
-        const pong = await redis.ping();
-        components.redis = pong === 'PONG' ? 'healthy' : 'degraded';
-      } else {
-        components.redis = 'degraded';
-      }
+      const isConnected = await checkRedisConnection();
+      components.redis = isConnected ? 'healthy' : 'unhealthy';
     } catch (error) {
       components.redis = 'unhealthy';
     }
@@ -96,13 +91,10 @@ router.get('/eventbus', async (req: Request, res: Response, next: NextFunction) 
 
     // Check Redis connection and latency
     try {
-      const redis = getRedisClient();
-      if (redis) {
-        const start = Date.now();
-        const pong = await redis.ping();
-        redisLatency = Date.now() - start;
-        redisConnected = pong === 'PONG';
-      }
+      const start = Date.now();
+      const pong = await redisConnection.ping();
+      redisLatency = Date.now() - start;
+      redisConnected = pong === 'PONG';
     } catch (error) {
       redisConnected = false;
     }

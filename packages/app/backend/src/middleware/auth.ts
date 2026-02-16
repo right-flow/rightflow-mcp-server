@@ -40,22 +40,7 @@ function getKey(header: any, callback: any) {
   });
 }
 
-// Extend Express Request type
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        organizationId: string;
-        role: string;
-        email: string;
-        name: string;
-      };
-      id?: string;
-    }
-  }
-}
+// Note: Express Request type is extended in types/index.ts
 
 // Middleware: Authenticate JWT
 export async function authenticateJWT(
@@ -108,8 +93,9 @@ export async function authenticateJWT(
     }
 
     // organizationId is required for most API operations
-    // If not present, set to null and let routes handle it
-    const finalOrgId = organizationId || null;
+    // If not present, use a nil UUID - routes will check for this and return empty data
+    const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+    const finalOrgId = organizationId || NIL_UUID;
 
     // 4. Attach user info to request object
     req.user = {

@@ -13,12 +13,14 @@ router.use(syncUser);
  * GET /api/v1/activity/recent
  * Get recent activity for the organization (submissions, form updates, etc.)
  */
+const NIL_UUID = '00000000-0000-0000-0000-000000000000';
+
 router.get('/recent', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
 
-    // Return empty array if no organization context
-    if (!organizationId) {
+    // Return empty array if no organization context (nil UUID)
+    if (organizationId === NIL_UUID) {
       return res.json([]);
     }
 

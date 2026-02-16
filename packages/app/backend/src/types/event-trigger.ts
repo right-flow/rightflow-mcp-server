@@ -96,6 +96,8 @@ export type ConditionOperator =
   | 'not_equals'
   | 'contains'
   | 'not_contains'
+  | 'starts_with'
+  | 'ends_with'
   | 'greater_than'
   | 'less_than'
   | 'greater_than_or_equal'
@@ -103,7 +105,9 @@ export type ConditionOperator =
   | 'in'
   | 'not_in'
   | 'is_null'
-  | 'is_not_null';
+  | 'is_not_null'
+  | 'is_empty'
+  | 'is_not_empty';
 
 export interface TriggerAction {
   id: string;

@@ -15,7 +15,7 @@ import type {
 import { actionMetrics, normalizeErrorType } from './monitoring/metrics';
 import { logActionExecution, logError } from './monitoring/logger';
 import {
-  createActionExecutionSpan,
+  createActionExecuteSpan,
   setSpanSuccess,
   recordSpanException,
   endSpan,
@@ -120,7 +120,7 @@ export class ActionChainExecutor {
     const maxAttempts = action.retry_config.max_attempts || 3;
 
     // 🔍 Tracing: Create span for action execution
-    const span = createActionExecutionSpan(
+    const span = createActionExecuteSpan(
       action.id,
       action.action_type,
       event.organization_id
