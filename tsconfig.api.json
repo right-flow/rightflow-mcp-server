@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "./dist-api",
-    "module": "NodeNext",
+    "module": "ESNext",
     "target": "ES2022",
     "lib": ["ES2022"],
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "bundler",
     "declaration": false,
     "sourceMap": true,
     "esModuleInterop": true,
@@ -29,7 +29,10 @@
     "packages/app/src/services/forms/**/*",
     "packages/app/src/services/responses/**/*",
     "packages/app/src/services/auth/**/*",
-    "packages/app/src/services/access-control/**/*"
+    "packages/app/src/services/access-control/**/*",
+    "packages/app/src/services/organizations/**/*",
+    "packages/app/src/services/premium/**/*",
+    "packages/app/src/services/url-shortener/**/*"
   ],
   "exclude": [
     "**/*.test.ts",

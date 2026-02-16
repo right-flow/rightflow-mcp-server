@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.10-fix-api-services-specific-20260216-072000
+ARG CACHE_BUST=v2.4.11-fix-bundler-resolution-20260216-073000
 
 # Copy source files
 COPY . .
@@ -57,6 +57,9 @@ COPY packages/app/src/services/forms/ ./packages/app/src/services/forms/
 COPY packages/app/src/services/responses/ ./packages/app/src/services/responses/
 COPY packages/app/src/services/auth/ ./packages/app/src/services/auth/
 COPY packages/app/src/services/access-control/ ./packages/app/src/services/access-control/
+COPY packages/app/src/services/organizations/ ./packages/app/src/services/organizations/
+COPY packages/app/src/services/premium/ ./packages/app/src/services/premium/
+COPY packages/app/src/services/url-shortener/ ./packages/app/src/services/url-shortener/
 COPY tsconfig.api.json ./
 
 # Build old backend API
