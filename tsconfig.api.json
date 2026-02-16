@@ -21,7 +21,8 @@
     "baseUrl": "."
   },
   "include": [
-    "packages/app/backend/src/**/*"
+    "api/**/*",
+    "packages/app/src/lib/**/*"
   ],
   "exclude": [
     "**/*.test.ts",
