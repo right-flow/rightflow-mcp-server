@@ -16,6 +16,12 @@ router.use(syncUser);
 router.get('/recent', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
+
+    // Return empty array if no organization context
+    if (!organizationId) {
+      return res.json([]);
+    }
+
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
 
     // Get recent submissions with form and user info

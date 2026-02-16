@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.6-clerk-org-id-fix-20260213-200000
+ARG CACHE_BUST=v2.4.7-fix-dockerfile-backend-ref-20260215-233500
 
 # Copy source files
 COPY . .
@@ -47,8 +47,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Copy backend source (api folder excluded - those are Vercel functions)
-COPY backend/ ./backend/
+# Copy backend source from packages/app/backend (old backend/ folder was removed)
 COPY packages/app/backend/ ./packages/app/backend/
 COPY tsconfig.api.json ./
 
@@ -91,9 +90,6 @@ COPY --from=backend-builder /app/dist-api ./dist-api
 COPY --from=new-backend-builder /app/packages/app/backend/dist ./backend-v1/dist
 COPY --from=new-backend-builder /app/packages/app/backend/node_modules ./backend-v1/node_modules
 COPY --from=new-backend-builder /app/packages/app/backend/package.json ./backend-v1/package.json
-
-# Copy old backend source (needed for some imports)
-COPY backend/ ./backend/
 
 # Copy server and config files from packages/app (build context is repo root)
 COPY packages/app/server.mjs ./
