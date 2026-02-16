@@ -47,6 +47,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Cache bust argument for rebuild
+ARG CACHE_BUST=v2.4.14-url-shortener-fix-20260216-190500
+
 # Copy api/ folder (legacy API code) and its dependencies
 COPY api/ ./api/
 COPY packages/app/src/lib/ ./packages/app/src/lib/
