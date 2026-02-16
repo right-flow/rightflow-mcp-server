@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.12-noEmitOnError-20260216-074000
+ARG CACHE_BUST=v2.4.13-noEmitOnError-only-20260216-075000
 
 # Copy source files
 COPY . .
