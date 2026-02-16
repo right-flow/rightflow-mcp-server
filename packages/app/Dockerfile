@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Cache bust argument to force rebuild
-ARG CACHE_BUST=v2.4.8-fix-api-paths-20260216-070000
+ARG CACHE_BUST=v2.4.9-fix-api-services-20260216-071000
 
 # Copy source files
 COPY . .
@@ -49,7 +49,7 @@ RUN npm ci
 
 # Copy api/ folder (legacy API code) and its dependencies
 COPY api/ ./api/
-COPY packages/app/src/lib/ ./packages/app/src/lib/
+COPY packages/app/src/ ./packages/app/src/
 COPY tsconfig.api.json ./
 
 # Build old backend API

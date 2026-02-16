@@ -22,7 +22,8 @@
   },
   "include": [
     "api/**/*",
-    "packages/app/src/lib/**/*"
+    "packages/app/src/lib/**/*",
+    "packages/app/src/services/**/*"
   ],
   "exclude": [
     "**/*.test.ts",
