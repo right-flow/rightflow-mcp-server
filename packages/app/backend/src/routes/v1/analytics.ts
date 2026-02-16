@@ -39,13 +39,13 @@ router.get('/overview', async (req, res, next) => {
     ] = await Promise.all([
       // Total submissions
       query<{ count: string }>(
-        'SELECT COUNT(*) as count FROM submissions WHERE organization_id = $1 AND deleted_at IS NULL',
+        'SELECT COUNT(*) as count FROM submissions WHERE org_id = $1 AND deleted_at IS NULL',
         [organizationId],
       ),
 
       // Total forms
       query<{ count: string }>(
-        'SELECT COUNT(*) as count FROM forms WHERE organization_id = $1 AND deleted_at IS NULL',
+        'SELECT COUNT(*) as count FROM forms WHERE org_id = $1 AND deleted_at IS NULL',
         [organizationId],
       ),
 
@@ -66,7 +66,7 @@ router.get('/overview', async (req, res, next) => {
         `
         SELECT status, COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1 AND deleted_at IS NULL
+        WHERE org_id = $1 AND deleted_at IS NULL
         GROUP BY status
       `,
         [organizationId],
@@ -77,7 +77,7 @@ router.get('/overview', async (req, res, next) => {
         `
         SELECT DATE(created_at) as date, COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND created_at >= NOW() - INTERVAL '7 days'
         GROUP BY DATE(created_at)
@@ -127,7 +127,7 @@ router.get('/submissions', async (req, res, next) => {
     const { fromDate, toDate } = req.query;
 
     // Build date filter
-    const dateConditions: string[] = ['s.organization_id = $1', 's.deleted_at IS NULL'];
+    const dateConditions: string[] = ['s.org_id = $1', 's.deleted_at IS NULL'];
     const params: any[] = [organizationId];
     let paramIndex = 2;
 
@@ -150,12 +150,12 @@ router.get('/submissions', async (req, res, next) => {
         `
         SELECT
           f.id AS "formId",
-          f.name AS "formName",
+          f.title AS "formName",
           COUNT(s.id) as count
         FROM submissions s
         JOIN forms f ON s.form_id = f.id
         WHERE ${whereClause}
-        GROUP BY f.id, f.name
+        GROUP BY f.id, f.title
         ORDER BY count DESC
         LIMIT 10
       `,
@@ -238,15 +238,15 @@ router.get('/form-performance', async (req, res, next) => {
       `
       SELECT
         f.id,
-        f.name,
+        f.title as name,
         COUNT(s.id) as total,
         COUNT(CASE WHEN s.status IN ('submitted', 'approved') THEN 1 END) as completed
       FROM forms f
       LEFT JOIN submissions s ON f.id = s.form_id AND s.deleted_at IS NULL
-      WHERE f.organization_id = $1
+      WHERE f.org_id = $1
         AND f.deleted_at IS NULL
-        AND f.is_active = true
-      GROUP BY f.id, f.name
+        AND f.status = 'published'
+      GROUP BY f.id, f.title
       HAVING COUNT(s.id) > 0
       ORDER BY COUNT(s.id) DESC
       LIMIT 10
@@ -482,7 +482,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND created_at >= DATE_TRUNC('month', NOW())
         `,
@@ -494,7 +494,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND created_at >= DATE_TRUNC('month', NOW() - INTERVAL '1 month')
           AND created_at < DATE_TRUNC('month', NOW())
@@ -507,7 +507,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND status IN ('approved', 'submitted')
           AND created_at >= DATE_TRUNC('month', NOW())
@@ -520,7 +520,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(*) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND status IN ('approved', 'submitted')
           AND created_at >= DATE_TRUNC('month', NOW() - INTERVAL '1 month')
@@ -534,9 +534,9 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(*) as count
         FROM forms
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
-          AND is_active = true
+          AND status = 'published'
         `,
         [organizationId],
       ),
@@ -546,7 +546,7 @@ router.get('/dashboard-stats', async (req, res, next) => {
         `
         SELECT COUNT(DISTINCT submitted_by_id) as count
         FROM submissions
-        WHERE organization_id = $1
+        WHERE org_id = $1
           AND deleted_at IS NULL
           AND created_at >= NOW() - INTERVAL '30 days'
         `,
