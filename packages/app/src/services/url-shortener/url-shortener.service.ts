@@ -3,6 +3,13 @@
  * Uses ROO.bz Israeli URL shortening service
  */
 
+// Response type from ROO.bz API
+interface RooBzResponse {
+  short_url?: string;
+  shortUrl?: string;
+  url?: string;
+}
+
 /**
  * URL Shortener Provider Interface
  * Implement this for different providers (ROO.bz, Bitly, etc.)
@@ -37,8 +44,10 @@ export class RooBzProvider implements UrlShortenerProvider {
       this.apiEndpoint = process.env.VITE_ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
     } else {
       // Client-side (Browser / Vite)
-      this.apiKey = import.meta.env.VITE_ROOBZ_API_KEY || '';
-      this.apiEndpoint = import.meta.env.VITE_ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
+      // Use type assertion for import.meta.env compatibility with API build
+      const env = (import.meta as { env?: Record<string, string> }).env || {};
+      this.apiKey = env.VITE_ROOBZ_API_KEY || '';
+      this.apiEndpoint = env.VITE_ROOBZ_API_ENDPOINT || 'https://api.roo.bz/shorten';
     }
 
     if (!this.apiKey) {
@@ -68,7 +77,7 @@ export class RooBzProvider implements UrlShortenerProvider {
         throw new Error(`ROO.bz API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as RooBzResponse;
 
       return {
         success: true,
