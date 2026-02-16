@@ -161,8 +161,8 @@ router.post('/invite', async (req, res, next) => {
       updated_at: Date;
     }>(
       `
-      INSERT INTO users (organization_id, clerk_user_id, email, name, role)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO users (organization_id, clerk_id, email, name, role, tenant_type)
+      VALUES ($1, $2, $3, $4, $5, 'organization')
       RETURNING id, email, name, role, created_at, updated_at
       `,
       [organizationId, `pending_${Date.now()}_${email}`, email, email.split('@')[0], role],
