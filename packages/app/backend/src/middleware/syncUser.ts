@@ -55,10 +55,10 @@ export async function syncUser(req: Request, res: Response, next: NextFunction) 
         // Include both clerk_org_id and clerk_organization_id for schema compatibility
         const orgClerkId = clerkOrgId || `org_${dbUserId.substring(0, 8)}`;
         const orgResult = await query<{ id: string }>(
-          `INSERT INTO organizations (id, name, owner_id, clerk_org_id, clerk_organization_id, tenant_type)
-           VALUES (gen_random_uuid(), $1, $2, $3, $3, 'rightflow')
+          `INSERT INTO organizations (id, name, clerk_org_id, clerk_organization_id)
+           VALUES (gen_random_uuid(), $1, $2, $2)
            RETURNING id`,
-          [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, orgClerkId],
+          [(name?.split(' ')[0] || 'User') + "'s Organization", orgClerkId],
         );
         dbOrganizationId = orgResult[0]?.id;
 
@@ -105,7 +105,7 @@ export async function syncUser(req: Request, res: Response, next: NextFunction) 
 
       const userResult = await query<{ id: string }>(
         `INSERT INTO users (id, clerk_id, email, name, role, tenant_type)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, 'rightflow')
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, 'organization')
          ON CONFLICT (clerk_id) DO UPDATE SET
            email = CASE WHEN $2 NOT LIKE 'pending_%' THEN $2 ELSE users.email END,
            name = COALESCE(NULLIF($3, ''), users.name),
@@ -120,10 +120,10 @@ export async function syncUser(req: Request, res: Response, next: NextFunction) 
       // Include both clerk_org_id and clerk_organization_id for schema compatibility
       const orgClerkId = clerkOrgId || `org_${dbUserId.substring(0, 8)}`;
       const orgResult = await query<{ id: string }>(
-        `INSERT INTO organizations (id, name, owner_id, clerk_org_id, clerk_organization_id, tenant_type)
-         VALUES (gen_random_uuid(), $1, $2, $3, $3, 'rightflow')
+        `INSERT INTO organizations (id, name, clerk_org_id, clerk_organization_id)
+         VALUES (gen_random_uuid(), $1, $2, $2)
          RETURNING id`,
-        [(name?.split(' ')[0] || 'User') + "'s Organization", dbUserId, orgClerkId],
+        [(name?.split(' ')[0] || 'User') + "'s Organization", orgClerkId],
       );
       dbOrganizationId = orgResult[0]?.id;
 
