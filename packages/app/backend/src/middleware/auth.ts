@@ -107,9 +107,9 @@ export async function authenticateJWT(
       throw new InvalidTokenError('אסימון לא תקין - חסר מזהה משתמש');
     }
 
-    // For now, use a default organization if none is provided
-    // TODO: Implement proper organization selection in frontend
-    const finalOrgId = organizationId || 'default-org';
+    // organizationId is required for most API operations
+    // If not present, set to null and let routes handle it
+    const finalOrgId = organizationId || null;
 
     // 4. Attach user info to request object
     req.user = {

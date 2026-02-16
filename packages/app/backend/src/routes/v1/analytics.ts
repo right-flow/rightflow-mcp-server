@@ -18,6 +18,15 @@ router.get('/overview', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
 
+    // Return empty stats if no organization context
+    if (!organizationId) {
+      return res.json({
+        totals: { submissions: 0, forms: 0, users: 0, webhooks: 0 },
+        submissionsByStatus: {},
+        recentActivity: [],
+      });
+    }
+
     // Get statistics in parallel
     const [
       submissionsCount,
@@ -108,6 +117,12 @@ router.get('/overview', async (req, res, next) => {
 router.get('/submissions', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
+
+    // Return empty data if no organization context
+    if (!organizationId) {
+      return res.json({ byForm: [], byUser: [], byDay: [] });
+    }
+
     const { fromDate, toDate } = req.query;
 
     // Build date filter
@@ -206,6 +221,11 @@ router.get('/form-performance', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
 
+    // Return empty array if no organization context
+    if (!organizationId) {
+      return res.json([]);
+    }
+
     // Calculate completion rate per form
     // Completion = (approved + submitted) / total submissions for each form
     const formPerformance = await query<{
@@ -258,6 +278,11 @@ router.get('/form-performance', async (req, res, next) => {
 router.get('/webhooks', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
+
+    // Return empty data if no organization context
+    if (!organizationId) {
+      return res.json({ deliveryStats: [], recentEvents: [] });
+    }
 
     // Get webhook statistics
     const [deliveryStats, recentEvents] = await Promise.all([
@@ -346,6 +371,16 @@ router.get('/team-performance', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
 
+    // Return empty data if no organization context
+    if (!organizationId) {
+      return res.json({
+        totals: { totalSubmissions: 0, approvedSubmissions: 0, pendingSubmissions: 0 },
+        topPerformer: null,
+        avgPerPerson: 0,
+        members: [],
+      });
+    }
+
     // Get team members with their submission counts (last 30 days)
     const teamPerformance = await query<{
       userId: string;
@@ -421,6 +456,16 @@ router.get('/team-performance', async (req, res, next) => {
 router.get('/dashboard-stats', async (req, res, next) => {
   try {
     const { organizationId } = req.user!;
+
+    // Return empty stats if no organization context
+    if (!organizationId) {
+      return res.json({
+        monthlySubmissions: { value: 0, trend: 0, label: 'הגשות החודש' },
+        completionRate: { value: 0, trend: 0, label: 'אחוז השלמה' },
+        activeForms: { value: 0, label: 'טפסים פעילים' },
+        activeUsers: { value: 0, label: 'משתמשים פעילים' },
+      });
+    }
 
     // Get statistics in parallel
     const [
