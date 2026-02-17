@@ -144,6 +144,139 @@ async function handlePortal(
 }
 
 /**
+ * Handle POST /api/billing/payment-confirmed
+ * Called by ActivePieces when Grow payment is confirmed
+ * Activates user subscription
+ */
+async function handlePaymentConfirmed(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<void> {
+  const { email, planName, billingPeriod, transactionId, webhookKey } = req.body;
+
+  // Verify webhook key for security
+  const expectedKey = process.env.GROW_WEBHOOK_SECRET;
+
+  // In production, require webhook key to be configured
+  if (!expectedKey && process.env.NODE_ENV === 'production') {
+    console.error('GROW_WEBHOOK_SECRET not configured - rejecting webhook');
+    res.status(500).json({
+      error: 'Configuration error',
+      message: 'Webhook verification not configured',
+    });
+    return;
+  }
+
+  // Verify webhook key if configured
+  if (expectedKey && webhookKey !== expectedKey) {
+    console.error('Invalid webhook key received');
+    res.status(401).json({
+      error: 'Unauthorized',
+      message: 'Invalid webhook key',
+    });
+    return;
+  }
+
+  // Validate required fields
+  if (!email || !planName) {
+    res.status(400).json({
+      error: 'Missing required fields',
+      message: 'email and planName are required',
+    });
+    return;
+  }
+
+  try {
+    const db = getDb();
+
+    // Find user by email
+    const user = await db('users')
+      .whereRaw('LOWER(email) = ?', [email.toLowerCase()])
+      .first();
+
+    if (!user) {
+      console.error('User not found for payment confirmation:', email);
+      res.status(404).json({
+        error: 'User not found',
+        message: `No user found with email: ${email}`,
+      });
+      return;
+    }
+
+    // Find plan by name (case insensitive)
+    const plan = await db('plans')
+      .whereRaw('UPPER(name) = ?', [planName.toUpperCase()])
+      .where({ is_active: true })
+      .first();
+
+    if (!plan) {
+      console.error('Plan not found:', planName);
+      res.status(404).json({
+        error: 'Plan not found',
+        message: `No plan found with name: ${planName}`,
+      });
+      return;
+    }
+
+    // Calculate subscription dates
+    const now = new Date();
+    const periodMonths = billingPeriod === 'yearly' ? 12 : 1;
+    const endDate = new Date(now);
+    endDate.setMonth(endDate.getMonth() + periodMonths);
+
+    // Apply credit days from mid-period upgrade (if any)
+    const creditDays = user.pending_credit_days || 0;
+    if (creditDays > 0) {
+      endDate.setDate(endDate.getDate() + creditDays);
+      console.log('[Grow] Applied credit days:', {
+        creditDays,
+        originalEnd: new Date(now.getTime() + periodMonths * 30 * 24 * 60 * 60 * 1000),
+        newEnd: endDate,
+      });
+    }
+
+    // Update user's subscription
+    await db('users')
+      .where({ id: user.id })
+      .update({
+        plan_id: plan.id,
+        grow_subscription_id: transactionId || `grow_sub_${Date.now()}`,
+        subscription_start_date: now,
+        subscription_end_date: endDate,
+        billing_period: billingPeriod || 'monthly',
+        pending_plan_id: null,
+        pending_billing_period: null,
+        checkout_initiated_at: null,
+        pending_credit_days: 0, // Reset credit days after applying
+        updated_at: now,
+      });
+
+    console.log('[Grow] Payment confirmed:', {
+      userId: user.id,
+      email,
+      planName,
+      billingPeriod,
+      transactionId,
+      creditDays,
+      subscriptionEnd: endDate,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Subscription activated',
+      userId: user.id,
+      planId: plan.id,
+    });
+  } catch (error) {
+    console.error('Payment confirmation failed:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to activate subscription',
+    });
+  }
+}
+
+/**
  * Handle GET /api/billing/current
  * Get user's current plan, usage, and limits
  */
@@ -247,10 +380,13 @@ export default async function handler(
         await handleCheckout(req, res);
       } else if (action === 'portal') {
         await handlePortal(req, res);
+      } else if (action === 'payment-confirmed') {
+        // Called by ActivePieces when Grow payment succeeds
+        await handlePaymentConfirmed(req, res);
       } else {
         res.status(400).json({
           error: 'Invalid action',
-          message: 'Supported actions: checkout, portal',
+          message: 'Supported actions: checkout, portal, payment-confirmed',
         });
       }
     } else if (req.method === 'GET') {

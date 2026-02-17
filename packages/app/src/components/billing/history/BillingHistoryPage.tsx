@@ -1,227 +1,169 @@
-// BillingHistoryPage Component
-// Created: 2026-02-05
-// Purpose: Container page for billing history and payment methods
+/**
+ * Billing History Page Component
+ *
+ * Container page for billing history and payment methods.
+ * Integrates with BillingContext to fetch payment records from Grow API.
+ *
+ * @see ADR-009: Grow Payment API Integration
+ */
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
-import { Invoice, PaymentMethodInfo } from '../../../api/types';
-import { InvoiceTable } from './InvoiceTable';
-import { PaymentMethodCard } from './PaymentMethodCard';
-import { useToast } from '../../../hooks/useToast';
+import React, { useState, useEffect, useCallback } from 'react';
+import { PaymentHistoryTable } from './PaymentHistoryTable';
+import { useBilling } from '../../../contexts/BillingContext';
 import { useTranslation, useDirection } from '../../../i18n';
+import { Receipt, AlertCircle, RefreshCw, CreditCard } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface BillingHistoryPageProps {
   className?: string;
 }
 
+const PAGE_SIZE = 10;
+
 /**
  * Billing history page component
- * Orchestrates invoice history and payment method management
+ * Orchestrates payment history display with Grow API integration
  */
 export const BillingHistoryPage: React.FC<BillingHistoryPageProps> = ({
   className = '',
 }) => {
   const t = useTranslation();
   const direction = useDirection();
-  const isRtl = direction === 'rtl';
-  const { orgId } = useAuth();
-  const effectiveOrgId = orgId || 'org_demo';
-  const { success, error: showError } = useToast();
 
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodInfo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    paymentHistory,
+    paymentHistoryLoading,
+    getPaymentHistory,
+    error,
+    clearError,
+    subscription,
+  } = useBilling();
 
-  // Load billing history on mount
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Load initial payment history
   useEffect(() => {
-    loadBillingHistory();
-  }, [effectiveOrgId]);
+    loadPaymentHistory();
+  }, [loadPaymentHistory]);
 
-  // Load billing history
-  const loadBillingHistory = async () => {
-    setLoading(true);
-    setError(null);
-
+  // Load payment history
+  const loadPaymentHistory = useCallback(async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await billingApi.getBillingHistory(orgId);
-      // setInvoices(response.invoices);
-      // setPaymentMethods(response.paymentMethods);
-
-      // Mock data for now
-      const mockInvoices: Invoice[] = [
-        {
-          id: '1',
-          orgId: effectiveOrgId,
-          invoiceNumber: 'INV-2026-001',
-          status: 'paid',
-          amount: 9900, // 99.00 ILS
-          currency: 'ILS',
-          periodStart: new Date('2026-01-01'),
-          periodEnd: new Date('2026-01-31'),
-          issuedAt: new Date('2026-01-01'),
-          dueAt: new Date('2026-01-15'),
-          paidAt: new Date('2026-01-03'),
-          paymentMethod: 'credit_card',
-          downloadUrl: '/api/invoices/1/download',
-          description: 'Basic Plan - January 2026',
-        },
-        {
-          id: '2',
-          orgId: effectiveOrgId,
-          invoiceNumber: 'INV-2025-012',
-          status: 'paid',
-          amount: 9900,
-          currency: 'ILS',
-          periodStart: new Date('2025-12-01'),
-          periodEnd: new Date('2025-12-31'),
-          issuedAt: new Date('2025-12-01'),
-          dueAt: new Date('2025-12-15'),
-          paidAt: new Date('2025-12-02'),
-          paymentMethod: 'credit_card',
-          downloadUrl: '/api/invoices/2/download',
-          description: 'Basic Plan - December 2025',
-        },
-      ];
-
-      const mockPaymentMethods: PaymentMethodInfo[] = [
-        {
-          id: '1',
-          type: 'credit_card',
-          last4: '4242',
-          brand: 'Visa',
-          expiryMonth: 12,
-          expiryYear: 2027,
-          isDefault: true,
-          createdAt: new Date('2025-06-15'),
-        },
-      ];
-
-      setInvoices(mockInvoices);
-      setPaymentMethods(mockPaymentMethods);
+      await getPaymentHistory(1, PAGE_SIZE);
+      setCurrentPage(1);
+      setHasMore(true); // Will be updated based on actual response
     } catch (err) {
-      const message = err instanceof Error ? err.message : (t['billing.history.failedToLoad'] as string);
-      setError(message);
-      showError(message);
-    } finally {
-      setLoading(false);
+      // Error handled by context
     }
-  };
+  }, [getPaymentHistory]);
 
-  // Handle invoice download
-  const handleDownloadInvoice = async (invoice: Invoice) => {
+  // Load more payments
+  const handleLoadMore = useCallback(async () => {
     try {
-      if (!invoice.downloadUrl) {
-        showError(t['billing.history.downloadNotAvailable'] as string);
-        return;
+      const nextPage = currentPage + 1;
+      await getPaymentHistory(nextPage, PAGE_SIZE);
+      setCurrentPage(nextPage);
+      // If fewer items returned than page size, no more pages
+      if (paymentHistory.length < currentPage * PAGE_SIZE) {
+        setHasMore(false);
       }
-
-      // TODO: Implement actual download
-      // window.open(invoice.downloadUrl, '_blank');
-      success((t['billing.history.downloading'] as string).replace('{invoice}', invoice.invoiceNumber));
     } catch (err) {
-      showError(t['billing.history.downloadFailed'] as string);
+      // Error handled by context
     }
-  };
-
-  // Handle add payment method
-  const handleAddPaymentMethod = () => {
-    // TODO: Implement payment method modal/flow
-    showError(t['billing.history.addPaymentNotImplemented'] as string);
-  };
-
-  // Handle remove payment method
-  const handleRemovePaymentMethod = async (paymentMethodId: string) => {
-    try {
-      // TODO: Implement actual API call
-      // await billingApi.removePaymentMethod(orgId, paymentMethodId);
-
-      setPaymentMethods((prev) => prev.filter((pm) => pm.id !== paymentMethodId));
-      success(t['billing.history.paymentMethodRemoved'] as string);
-    } catch (err) {
-      showError(t['billing.history.removePaymentFailed'] as string);
-    }
-  };
-
-  // Handle set default payment method
-  const handleSetDefault = async (paymentMethodId: string) => {
-    try {
-      // TODO: Implement actual API call
-      // await billingApi.setDefaultPaymentMethod(orgId, paymentMethodId);
-
-      setPaymentMethods((prev) =>
-        prev.map((pm) => ({
-          ...pm,
-          isDefault: pm.id === paymentMethodId,
-        }))
-      );
-      success(t['billing.history.defaultUpdated'] as string);
-    } catch (err) {
-      showError(t['billing.history.updateDefaultFailed'] as string);
-    }
-  };
+  }, [currentPage, getPaymentHistory, paymentHistory.length]);
 
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${className}`} dir={direction}>
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t['billing.history.title']}</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          {t['billing.history.description']}
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <Receipt className="h-8 w-8" />
+          {t['billing.history.title'] || 'היסטוריית חיוב'}
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          {t['billing.history.description'] || 'צפה בהיסטוריית התשלומים והחשבוניות שלך'}
         </p>
       </div>
 
       {/* Error state */}
-      {error && !loading && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className={isRtl ? 'mr-3' : 'ml-3'}>
-              <h3 className="text-sm font-medium text-red-800">{t['billing.history.failedToLoad']}</h3>
-              <p className="mt-1 text-sm text-red-700">{error}</p>
-              <button
-                onClick={loadBillingHistory}
-                className="mt-2 text-sm font-medium text-red-800 hover:text-red-900"
-              >
-                {t['billing.history.tryAgain']}
-              </button>
-            </div>
-          </div>
-        </div>
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t['billing.history.error'] || 'שגיאה בטעינת היסטוריה'}</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearError();
+                loadPaymentHistory();
+              }}
+              className="gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {t['billing.history.tryAgain'] || 'נסה שוב'}
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
-      {/* Content */}
-      <div className="space-y-6">
-        {/* Payment methods */}
-        <PaymentMethodCard
-          paymentMethods={paymentMethods}
-          loading={loading}
-          onAddPaymentMethod={handleAddPaymentMethod}
-          onRemovePaymentMethod={handleRemovePaymentMethod}
-          onSetDefault={handleSetDefault}
-        />
+      {/* Current subscription info */}
+      {subscription && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CreditCard className="h-5 w-5" />
+              {t['billing.history.currentSubscription'] || 'מנוי נוכחי'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t['billing.history.plan'] || 'תוכנית'}
+                </p>
+                <p className="font-medium">{subscription.planName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t['billing.history.status'] || 'סטטוס'}
+                </p>
+                <p className="font-medium capitalize">{subscription.status}</p>
+              </div>
+              {subscription.currentPeriodEnd && (
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {t['billing.history.renewalDate'] || 'תאריך חידוש'}
+                  </p>
+                  <p className="font-medium">
+                    {new Date(subscription.currentPeriodEnd).toLocaleDateString(
+                      direction === 'rtl' ? 'he-IL' : 'en-US'
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Invoice history */}
-        <InvoiceTable
-          invoices={invoices}
-          loading={loading}
-          onDownload={handleDownloadInvoice}
-        />
-      </div>
+      {/* Payment history table */}
+      <PaymentHistoryTable
+        payments={paymentHistory}
+        loading={paymentHistoryLoading}
+        onLoadMore={handleLoadMore}
+        hasMore={hasMore && paymentHistory.length >= currentPage * PAGE_SIZE}
+      />
+
+      {/* Note about Grow payment */}
+      <p className="mt-4 text-sm text-muted-foreground text-center">
+        {t['billing.history.growNote'] ||
+          'התשלומים מעובדים באמצעות Grow Payment. חשבוניות מונפקות דרך iCount.'}
+      </p>
     </div>
   );
 };

@@ -4,8 +4,26 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { billingApi } from '../api/billingApi';
-import { Subscription, Plan, PlanName, DowngradeResult, CancellationResult } from '../api/types';
+import { Subscription, Plan, PlanName, DowngradeResult, CancellationResult, PaymentRecord, CheckoutOptions } from '../api/types';
 import { getUserFriendlyErrorMessage, logError } from '../api/utils/errorHandler';
+
+/**
+ * Credit days info for mid-period upgrades
+ */
+interface CreditDaysInfo {
+  creditDays: number;
+  previousPlanName: string;
+  previousBillingPeriod: string;
+}
+
+/**
+ * Checkout status response
+ */
+interface CheckoutStatus {
+  status: 'pending' | 'completed' | 'failed' | 'processing';
+  message?: string;
+  subscription?: Subscription;
+}
 
 /**
  * Billing context type definition
@@ -16,10 +34,18 @@ interface BillingContextType {
   plans: Plan[];
   loading: boolean;
   error: string | null;
+  creditDaysInfo: CreditDaysInfo | null;
+  paymentHistory: PaymentRecord[];
+  paymentHistoryLoading: boolean;
 
   // Actions
   refreshSubscription: () => Promise<void>;
   refreshPlans: () => Promise<void>;
+  startCheckout: (planId: string, billingPeriod: 'monthly' | 'yearly') => Promise<void>;
+  startCheckoutWithOptions: (options: CheckoutOptions) => Promise<{ processId: string; creditDays?: number }>;
+  calculateCreditDays: () => Promise<CreditDaysInfo | null>;
+  getCheckoutStatus: (processId: string) => Promise<CheckoutStatus>;
+  getPaymentHistory: (page?: number, pageSize?: number) => Promise<void>;
   upgradeSubscription: (targetPlan: PlanName) => Promise<void>;
   downgradeSubscription: (targetPlan: PlanName, confirmArchive?: boolean) => Promise<DowngradeResult>;
   cancelSubscription: () => Promise<CancellationResult>;
@@ -54,6 +80,9 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creditDaysInfo, setCreditDaysInfo] = useState<CreditDaysInfo | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentRecord[]>([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(false);
 
   /**
    * Load subscription data from API
@@ -97,7 +126,121 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({
   }, []);
 
   /**
+   * Start checkout process - redirects to Grow payment page (legacy)
+   */
+  const startCheckout = useCallback(
+    async (planId: string, billingPeriod: 'monthly' | 'yearly') => {
+      try {
+        setError(null);
+
+        // Get checkout URL from API
+        const { checkoutUrl } = await billingApi.createCheckout(planId, billingPeriod);
+
+        // Redirect to Grow payment page
+        window.location.href = checkoutUrl;
+      } catch (err) {
+        const errorMessage = getUserFriendlyErrorMessage(err);
+        setError(errorMessage);
+        logError(err, 'BillingContext.startCheckout');
+        throw err;
+      }
+    },
+    []
+  );
+
+  /**
+   * Start checkout with full options (installments support)
+   * Returns processId for status polling, then redirects
+   */
+  const startCheckoutWithOptions = useCallback(
+    async (options: CheckoutOptions): Promise<{ processId: string; creditDays?: number }> => {
+      try {
+        setError(null);
+
+        // Get checkout URL with full options from API
+        const result = await billingApi.createCheckoutWithOptions(options);
+
+        // Redirect to Grow payment page
+        window.location.href = result.checkoutUrl;
+
+        return {
+          processId: result.processId,
+          creditDays: result.creditDays,
+        };
+      } catch (err) {
+        const errorMessage = getUserFriendlyErrorMessage(err);
+        setError(errorMessage);
+        logError(err, 'BillingContext.startCheckoutWithOptions');
+        throw err;
+      }
+    },
+    []
+  );
+
+  /**
+   * Calculate credit days for mid-period upgrade
+   */
+  const calculateCreditDays = useCallback(async (): Promise<CreditDaysInfo | null> => {
+    try {
+      setError(null);
+      const result = await billingApi.calculateCreditDays();
+      if (result) {
+        setCreditDaysInfo(result);
+      }
+      return result;
+    } catch (err) {
+      logError(err, 'BillingContext.calculateCreditDays');
+      return null;
+    }
+  }, []);
+
+  /**
+   * Get checkout status (for polling after redirect)
+   */
+  const getCheckoutStatus = useCallback(
+    async (processId: string): Promise<CheckoutStatus> => {
+      try {
+        const status = await billingApi.getCheckoutStatus(processId);
+
+        // Update subscription if completed
+        if (status.status === 'completed' && status.subscription) {
+          setSubscription(status.subscription);
+        }
+
+        return status;
+      } catch (err) {
+        logError(err, 'BillingContext.getCheckoutStatus');
+        return { status: 'processing', message: 'התשלום בעיבוד' };
+      }
+    },
+    []
+  );
+
+  /**
+   * Get payment history
+   */
+  const getPaymentHistory = useCallback(
+    async (page: number = 1, pageSize: number = 10): Promise<void> => {
+      try {
+        setPaymentHistoryLoading(true);
+        setError(null);
+
+        const result = await billingApi.getPaymentHistory(page, pageSize);
+        setPaymentHistory(result.payments);
+      } catch (err) {
+        const errorMessage = getUserFriendlyErrorMessage(err);
+        setError(errorMessage);
+        logError(err, 'BillingContext.getPaymentHistory');
+      } finally {
+        setPaymentHistoryLoading(false);
+      }
+    },
+    []
+  );
+
+  /**
    * Upgrade subscription to higher plan
+   * Note: For paid plans, use startCheckout instead
    */
   const upgradeSubscription = useCallback(
     async (targetPlan: PlanName) => {
@@ -202,8 +345,16 @@ export const BillingProvider: React.FC<BillingProviderProps> = ({
     plans,
     loading,
     error,
+    creditDaysInfo,
+    paymentHistory,
+    paymentHistoryLoading,
     refreshSubscription,
     refreshPlans,
+    startCheckout,
+    startCheckoutWithOptions,
+    calculateCreditDays,
+    getCheckoutStatus,
+    getPaymentHistory,
     upgradeSubscription,
     downgradeSubscription,
     cancelSubscription,

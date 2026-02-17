@@ -14,6 +14,7 @@ import {
   QuotaCheckResult,
   UsageDetails,
   ApiResponse,
+  PaymentRecord,
 } from './types';
 
 const BILLING_API_BASE = '/api/v1/billing';
@@ -57,6 +58,141 @@ export const billingApi = {
     }
 
     return response.data;
+  },
+
+  /**
+   * Create checkout session for payment (legacy - simple)
+   * Redirects user to Grow payment page
+   * @param planId - Plan ID to subscribe to
+   * @param billingPeriod - 'monthly' or 'yearly'
+   * @returns Checkout URL to redirect user to
+   */
+  async createCheckout(planId: string, billingPeriod: 'monthly' | 'yearly'): Promise<{ checkoutUrl: string }> {
+    // Use Vercel API route directly (not Express backend)
+    const response = await apiClient.post<{ checkoutUrl: string }>(
+      '/api/billing',
+      { action: 'checkout', planId, billingPeriod }
+    );
+
+    if (!response.checkoutUrl) {
+      throw new Error('Failed to create checkout session');
+    }
+
+    return response;
+  },
+
+  /**
+   * Create checkout session with full options (installments, payment method)
+   * @param options - Checkout options including installments
+   * @returns Checkout result with URL and credit days info
+   */
+  async createCheckoutWithOptions(options: {
+    planId: string;
+    billingPeriod: 'monthly' | 'yearly';
+    installments?: number;
+    paymentMethod?: string;
+  }): Promise<{ checkoutUrl: string; processId: string; creditDays?: number }> {
+    const response = await apiClient.post<{
+      checkoutUrl: string;
+      processId: string;
+      creditDays?: number;
+      error?: string;
+    }>('/api/billing', {
+      action: 'checkout-v2',
+      ...options,
+    });
+
+    if (!response.checkoutUrl) {
+      throw new Error(response.error || 'Failed to create checkout session');
+    }
+
+    return response;
+  },
+
+  /**
+   * Calculate credit days for mid-period upgrade
+   * @returns Credit days info if user has active subscription
+   */
+  async calculateCreditDays(): Promise<{
+    creditDays: number;
+    previousPlanName: string;
+    previousBillingPeriod: string;
+  } | null> {
+    const response = await apiClient.get<ApiResponse<{
+      creditDays: number;
+      previousPlanName: string;
+      previousBillingPeriod: string;
+    } | null>>('/api/billing?action=credit-days');
+
+    if (!response.success) {
+      return null;
+    }
+
+    return response.data || null;
+  },
+
+  /**
+   * Get checkout status (for polling after redirect)
+   * @param processId - Checkout process ID
+   * @returns Checkout status
+   */
+  async getCheckoutStatus(processId: string): Promise<{
+    status: 'pending' | 'completed' | 'failed' | 'processing';
+    message?: string;
+    subscription?: Subscription;
+  }> {
+    const response = await apiClient.get<{
+      status: 'pending' | 'completed' | 'failed' | 'processing';
+      message?: string;
+      subscription?: Subscription;
+    }>(`/api/billing/checkout-status/${processId}`);
+
+    return response;
+  },
+
+  /**
+   * Get payment history
+   * @param page - Page number (default 1)
+   * @param pageSize - Items per page (default 10)
+   * @returns Payment history with pagination
+   */
+  async getPaymentHistory(page: number = 1, pageSize: number = 10): Promise<{
+    payments: PaymentRecord[];
+    pagination: {
+      page: number;
+      pageSize: number;
+      total: number;
+    };
+  }> {
+    const response = await apiClient.get<{
+      payments: PaymentRecord[];
+      pagination: {
+        page: number;
+        pageSize: number;
+        total: number;
+      };
+    }>(`/api/billing/history?page=${page}&pageSize=${pageSize}`);
+
+    return response;
+  },
+
+  /**
+   * Create billing portal session
+   * Redirects user to Grow billing management portal
+   * @returns Portal URL to redirect user to
+   */
+  async createPortalSession(): Promise<{ portalUrl: string }> {
+    // Use Vercel API route directly (not Express backend)
+    const response = await apiClient.post<{ portalUrl: string }>(
+      '/api/billing',
+      { action: 'portal' }
+    );
+
+    if (!response.portalUrl) {
+      throw new Error('Failed to create portal session');
+    }
+
+    return response;
   },
 
   /**

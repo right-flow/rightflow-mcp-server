@@ -22,12 +22,12 @@ module.exports = {
       max: 10,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/app/src/db/migrations',
       extension: 'cjs',
       tableName: 'knex_migrations',
     },
     seeds: {
-      directory: './src/db/seeds',
+      directory: './packages/app/src/db/seeds',
     },
   },
 
@@ -39,7 +39,7 @@ module.exports = {
       max: 10,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/app/src/db/migrations',
       extension: 'cjs',
       tableName: 'knex_migrations',
     },
@@ -53,7 +53,7 @@ module.exports = {
       max: 20,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/app/src/db/migrations',
       extension: 'cjs',
       tableName: 'knex_migrations',
     },
@@ -73,7 +73,7 @@ module.exports = {
       max: 5,
     },
     migrations: {
-      directory: './src/db/migrations',
+      directory: './packages/app/src/db/migrations',
       extension: 'cjs',
       tableName: 'knex_migrations',
     },

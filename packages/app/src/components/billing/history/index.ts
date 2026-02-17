@@ -4,4 +4,5 @@
 
 export { InvoiceTable } from './InvoiceTable';
 export { PaymentMethodCard } from './PaymentMethodCard';
+export { PaymentHistoryTable } from './PaymentHistoryTable';
 export { BillingHistoryPage } from './BillingHistoryPage';
