@@ -9,6 +9,7 @@ import { heIL, arSA, enUS } from '@clerk/localizations';
 import { Router } from './Router';
 import { PWAInstallPrompt } from './pwa/PWAInstallPrompt';
 import { IOSInstallBanner } from './pwa/IOSInstallBanner';
+import { Toaster } from './components/ui/toaster';
 import { syncManager } from './sync/syncManager';
 import { db } from './db/indexedDB';
 import { useAppStore } from './store/appStore';
@@ -75,6 +76,9 @@ function App() {
       {/* PWA Install Prompts */}
       <PWAInstallPrompt />
       <IOSInstallBanner />
+
+      {/* Toast Notifications */}
+      <Toaster />
 
       {/* Main App Router */}
       <Router />

@@ -64,7 +64,12 @@
     "security:quick": "npx tsx scripts/security/scan.ts --quick",
     "security:full": "npx tsx scripts/security/scan.ts --threshold MEDIUM",
     "security:stage": "npx tsx scripts/security/scan.ts --stage",
-    "security:lint": "eslint . --config .eslintrc.security.js --ext ts,tsx --report-unused-disable-directives"
+    "security:lint": "eslint . --config .eslintrc.security.js --ext ts,tsx --report-unused-disable-directives",
+    "railway:check": "node scripts/railway/railway-check.js",
+    "railway:validate": "bash scripts/railway/railway-validate.sh",
+    "railway:deploy": "bash scripts/railway/deploy.sh",
+    "railway:logs": "railway logs --follow",
+    "typecheck": "tsc --noEmit --project tsconfig.build.json && cd packages/app/backend && tsc --noEmit"
   },
   "dependencies": {
     "@azure-rest/ai-document-intelligence": "^1.1.0",
@@ -114,6 +119,7 @@
     "react-router-dom": "^7.12.0",
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^2.13.3",
+    "sonner": "^2.0.7",
     "sql.js": "^1.13.0",
     "tailwind-merge": "^2.2.2",
     "tsx": "^4.21.0",
