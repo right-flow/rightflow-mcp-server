@@ -1,0 +1,27 @@
+{
+  "name": "hebrew-pdf",
+  "version": "1.0.0",
+  "description": "Generate Hebrew PDF documents with proper RTL support. Create employment contracts, invoices, rental agreements, and legal documents in Hebrew without text reversal issues.",
+  "author": {
+    "name": "RightFlow",
+    "url": "https://rightflow.io"
+  },
+  "homepage": "https://github.com/your-org/rightflow-mcp-server",
+  "license": "MIT",
+  "keywords": [
+    "hebrew",
+    "pdf",
+    "rtl",
+    "israel",
+    "documents",
+    "legal",
+    "accounting",
+    "hr",
+    "real-estate"
+  ],
+  "categories": [
+    "productivity",
+    "legal",
+    "finance"
+  ]
+}

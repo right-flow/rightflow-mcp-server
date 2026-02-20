@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "rightflow": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "RIGHTFLOW_API_URL": "http://localhost:3003/api/v1",
+        "RIGHTFLOW_API_KEY": "${RIGHTFLOW_API_KEY}"
+      }
+    }
+  }
+}

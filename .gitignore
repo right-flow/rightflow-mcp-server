@@ -43,6 +43,7 @@ Phase0-Testing
 
 # PDF output files (test outputs)
 Phase0-Testing/output/*.pdf
+packages/app/backend/output/
 
 # Markdown documentation files
 *.md

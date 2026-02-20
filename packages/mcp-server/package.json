@@ -1,0 +1,47 @@
+{
+  "name": "@rightflow/mcp-hebrew-pdf",
+  "version": "1.0.0",
+  "description": "RightFlow MCP Server - Hebrew PDF generation for Claude Code",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "rightflow-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "pdf",
+    "hebrew",
+    "rtl",
+    "israel",
+    "documents"
+  ],
+  "author": "RightFlow",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/rightflow-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/rightflow-mcp-server/issues"
+  },
+  "homepage": "https://github.com/your-org/rightflow-mcp-server#readme"
+}
