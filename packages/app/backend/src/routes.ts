@@ -27,6 +27,8 @@ import healthRouter from './routes/v1/health';
 import eventsRouter from './routes/v1/events';
 import metricsRouter from './routes/v1/metrics';
 import growWebhookRouter from './routes/v1/grow-webhook';
+import mcpRouter from './routes/v1/mcp';
+import apiKeysRouter from './routes/v1/api-keys';
 
 // Initialize workers (side effects)
 import './workers/webhookWorker';
@@ -57,6 +59,8 @@ apiV1Router.use('/triggers', triggersRouter);
 apiV1Router.use('/dlq', dlqRouter);
 apiV1Router.use('/health', healthRouter);
 apiV1Router.use('/events', eventsRouter);
+apiV1Router.use('/mcp', mcpRouter);
+apiV1Router.use('/api-keys', apiKeysRouter);
 apiV1Router.use('/', extractionRouter);
 
 // Prometheus metrics endpoint

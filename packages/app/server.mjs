@@ -290,6 +290,11 @@ server.listen(PORT, () => {
     console.log(`   ALL    /api/v1/whatsapp`);
     console.log(`   ALL    /api/v1/webhooks`);
     console.log(`   ALL    /api/v1/integrations/*`);
+    console.log(`   ALL    /api/v1/triggers`);
+    console.log(`   ALL    /api/v1/dlq`);
+    console.log(`   ALL    /api/v1/events`);
+    console.log(`   ALL    /api/v1/health`);
+    console.log(`   ALL    /api/v1/metrics`);
   }
   console.log('\n📁 Static Files:');
   console.log(`   Serving from: ${distPath}`);

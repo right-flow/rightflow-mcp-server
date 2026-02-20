@@ -27,6 +27,8 @@ import dlqRouter from './routes/v1/dlq';
 import healthRouter from './routes/v1/health';
 import eventsRouter from './routes/v1/events';
 import metricsRouter from './routes/v1/metrics'; // Prometheus metrics endpoint
+import mcpRouter from './routes/v1/mcp'; // MCP Cowork connector API
+import apiKeysRouter from './routes/v1/api-keys'; // API Keys management
 import './workers/webhookWorker'; // Initialize webhook worker
 import './workers/whatsappHealthWorker'; // Initialize WhatsApp health worker
 import './workers/eventWorker'; // Initialize event processing worker
@@ -94,6 +96,12 @@ app.use('/api/v1', extractionRouter);
 
 // 📊 Monitoring endpoints (Prometheus metrics)
 app.use('/api/v1/metrics', metricsRouter);
+
+// 📄 MCP Cowork connector API (Hebrew PDF generation)
+app.use('/api/v1/mcp', mcpRouter);
+
+// 🔑 API Keys management (MCP authentication)
+app.use('/api/v1/api-keys', apiKeysRouter);
 
 // 404 handler
 app.use((_req, res) => {

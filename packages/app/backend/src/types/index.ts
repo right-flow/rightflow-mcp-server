@@ -131,6 +131,13 @@ declare global {
         role: string;
         email?: string;
         name?: string;
+        // MCP API Key authentication data (when using API key instead of JWT)
+        mcpApiKey?: {
+          id: string;         // API key ID
+          keyPrefix: string;  // Key prefix (first 8 chars)
+          permissions: any;   // Permissions object
+          environment: string; // development | staging | production
+        };
       };
       id?: string;
     }

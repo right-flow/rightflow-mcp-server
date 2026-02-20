@@ -1,0 +1,2579 @@
+openapi: 3.1.0
+info:
+  title: RightFlow API
+  description: |
+    RightFlow is a Hebrew PDF form management platform with AI-powered field extraction,
+    workflow automation, and multi-channel delivery.
+
+    ## Authentication
+    Most endpoints require a **Clerk JWT** token passed as a Bearer token:
+    ```
+    Authorization: Bearer <your_clerk_token>
+    ```
+
+    ## Roles
+    - **worker** – Submit and view forms
+    - **manager** – Manage webhooks, analytics, connectors
+    - **admin** – Full access including user management
+
+    ## Multi-tenancy
+    All authenticated requests are scoped to the user's organization automatically.
+  version: 3.0.0
+  contact:
+    name: RightFlow Support
+    url: https://rightflow.railway.app
+
+servers:
+  - url: https://rightflow.railway.app
+    description: Production
+  - url: http://localhost:3003
+    description: Local development
+
+tags:
+  - name: Health
+    description: System health and status checks
+  - name: Forms
+    description: PDF form management
+  - name: Submissions
+    description: Form submission lifecycle
+  - name: Users
+    description: User management and invitations
+  - name: Webhooks
+    description: Outgoing webhook integrations
+  - name: Analytics
+    description: Dashboard statistics and reporting
+  - name: Activity
+    description: Recent activity feed
+  - name: Triggers
+    description: Automation trigger rules
+  - name: Events
+    description: Audit log and event tracking
+  - name: Integrations
+    description: CRM, ERP, and external system integrations
+  - name: Connectors
+    description: Low-code connector definitions
+  - name: WhatsApp
+    description: WhatsApp channel management and messaging
+  - name: DLQ
+    description: Dead-letter queue for failed jobs
+  - name: AI Extraction
+    description: AI-powered PDF field extraction
+  - name: Billing
+    description: Subscription and billing management (legacy)
+
+# ─────────────────────────────────────────────────────
+# Reusable components
+# ─────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    ClerkAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk session token obtained from the frontend SDK.
+
+  schemas:
+    # ── Generic ──────────────────────────────────────
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      example:
+        error: FORBIDDEN
+        message: Insufficient permissions
+
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+
+    # ── Forms ─────────────────────────────────────────
+    FormField:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [text, checkbox, radio, dropdown, signature, email, tel, date, number, textarea, select]
+        required:
+          type: boolean
+        pageNumber:
+          type: integer
+        x:
+          type: number
+        y:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+        options:
+          type: array
+          items:
+            type: string
+
+    Form:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FormField'
+        settings:
+          type: object
+        status:
+          type: string
+          enum: [draft, active, archived]
+        isActive:
+          type: boolean
+        organizationId:
+          type: string
+          format: uuid
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Submissions ───────────────────────────────────
+    Submission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        formId:
+          type: string
+          format: uuid
+        data:
+          type: object
+          description: Key-value pairs of field name → submitted value
+        status:
+          type: string
+          enum: [draft, submitted, approved, rejected]
+        metadata:
+          type: object
+        submittedById:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # ── Users ─────────────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clerkId:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, worker]
+        organizationId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Webhooks ──────────────────────────────────────
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+            enum:
+              - submission.created
+              - submission.updated
+              - submission.approved
+              - submission.rejected
+              - form.created
+              - form.updated
+              - form.deleted
+        enabled:
+          type: boolean
+        secret:
+          type: string
+          description: HMAC signing secret (only returned on creation)
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Triggers ──────────────────────────────────────
+    Trigger:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        eventType:
+          type: string
+        scope:
+          type: string
+          enum: [organization, form]
+        formIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        conditions:
+          type: object
+        priority:
+          type: integer
+        isActive:
+          type: boolean
+        errorHandling:
+          type: string
+          enum: [ignore, retry, dlq]
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerAction'
+        createdAt:
+          type: string
+          format: date-time
+
+    TriggerAction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        triggerId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        config:
+          type: object
+        order:
+          type: integer
+
+    # ── Integrations ──────────────────────────────────
+    Integration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [crm, erp, calendar, messaging]
+        provider:
+          type: string
+        name:
+          type: string
+        config:
+          type: object
+          description: Sensitive fields are masked
+        status:
+          type: string
+          enum: [active, inactive, error]
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── WhatsApp ──────────────────────────────────────
+    WhatsAppChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        status:
+          type: string
+          enum: [pending, connected, disconnected, error]
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── DLQ ───────────────────────────────────────────
+    DLQEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        triggerId:
+          type: string
+          format: uuid
+        payload:
+          type: object
+        error:
+          type: string
+        status:
+          type: string
+          enum: [pending, retrying, resolved, ignored]
+        retryCount:
+          type: integer
+        notes:
+          type: string
+        organizationId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+# ─────────────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────────────
+paths:
+
+  # ══════════════════ HEALTH ═══════════════════════════
+
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: System health
+      description: Returns overall health status including database, Redis, EventBus, and integrations.
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded, error]
+                  components:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      redis:
+                        type: string
+                      eventbus:
+                        type: string
+                      integrations:
+                        type: string
+
+  /api/v1/health/eventbus:
+    get:
+      tags: [Health]
+      summary: EventBus health
+      description: Detailed Redis / EventBus diagnostics including latency and circuit-breaker state.
+      responses:
+        '200':
+          description: EventBus details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  latencyMs:
+                    type: number
+                  fallbackMode:
+                    type: boolean
+                  circuitBreakerState:
+                    type: string
+
+  /api/v1/health/integrations:
+    get:
+      tags: [Health]
+      summary: Integrations health
+      description: Returns health status for all configured integrations.
+      responses:
+        '200':
+          description: Integration health summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  healthy:
+                    type: integer
+                  degraded:
+                    type: integer
+                  error:
+                    type: integer
+                  details:
+                    type: array
+                    items:
+                      type: object
+
+  # ══════════════════ FORMS ════════════════════════════
+
+  /api/v1/forms:
+    get:
+      tags: [Forms]
+      summary: List forms
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+          description: Filter by active status
+      responses:
+        '200':
+          description: List of forms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  forms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Form'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags: [Forms]
+      summary: Create form
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                fields:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FormField'
+                settings:
+                  type: object
+                status:
+                  type: string
+                  enum: [draft, active, archived]
+      responses:
+        '201':
+          description: Created form
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/forms/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Forms]
+      summary: Get form by ID
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Form details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags: [Forms]
+      summary: Update form
+      description: Requires **manager** role or higher.
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                fields:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FormField'
+                settings:
+                  type: object
+                status:
+                  type: string
+                  enum: [draft, active, archived]
+      responses:
+        '200':
+          description: Updated form
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+
+    delete:
+      tags: [Forms]
+      summary: Delete form
+      description: |
+        Requires **admin** role.
+        Will return 409 if the form has existing submissions.
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '409':
+          description: Form has submissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ══════════════════ SUBMISSIONS ══════════════════════
+
+  /api/v1/submissions:
+    get:
+      tags: [Submissions]
+      summary: List submissions
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: formId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, submitted, approved, rejected]
+        - name: submittedById
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated submissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submissions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Submission'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+    post:
+      tags: [Submissions]
+      summary: Submit a form
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formId, data]
+              properties:
+                formId:
+                  type: string
+                  format: uuid
+                data:
+                  type: object
+                  description: Field name → value pairs
+                metadata:
+                  type: object
+                status:
+                  type: string
+                  enum: [draft, submitted]
+                  default: submitted
+      responses:
+        '201':
+          description: Submission created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+  /api/v1/submissions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Submissions]
+      summary: Get submission
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Submission details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+    patch:
+      tags: [Submissions]
+      summary: Update submission status or data
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                status:
+                  type: string
+                  enum: [draft, submitted, approved, rejected]
+      responses:
+        '200':
+          description: Updated submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+    delete:
+      tags: [Submissions]
+      summary: Delete submission
+      description: Requires **manager** role or higher.
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+
+  # ══════════════════ USERS ════════════════════════════
+
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Current user profile
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Authenticated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/users/stats:
+    get:
+      tags: [Users]
+      summary: User statistics
+      description: Requires **manager** or **admin** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: User statistics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/users/invite:
+    post:
+      tags: [Users]
+      summary: Invite user
+      description: Requires **admin** role. Creates a pending user record.
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [admin, manager, worker]
+      responses:
+        '201':
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: List all organization users
+      description: Requires **admin** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+
+  /api/v1/users/{id}/role:
+    patch:
+      tags: [Users]
+      summary: Change user role
+      description: Requires **admin** role.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [admin, manager, worker]
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/v1/users/{id}:
+    delete:
+      tags: [Users]
+      summary: Deactivate user (soft delete)
+      description: Requires **admin** role.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deactivated
+
+  # ══════════════════ WEBHOOKS ═════════════════════════
+
+  /api/v1/webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhooks
+      description: Requires **manager** role. Includes delivery statistics.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Webhooks with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Webhook'
+
+    post:
+      tags: [Webhooks]
+      summary: Create webhook
+      description: Requires **manager** role. Returns the signing secret — store it securely.
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, events]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - submission.created
+                      - submission.updated
+                      - submission.approved
+                      - submission.rejected
+                      - form.created
+                      - form.updated
+                      - form.deleted
+                enabled:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: Webhook created with secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+  /api/v1/webhooks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Webhooks]
+      summary: Get webhook
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Webhook with signing secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+    patch:
+      tags: [Webhooks]
+      summary: Update webhook
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated webhook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+    delete:
+      tags: [Webhooks]
+      summary: Delete webhook
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/webhooks/{id}/events:
+    get:
+      tags: [Webhooks]
+      summary: Webhook delivery log
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+      responses:
+        '200':
+          description: Delivery event log
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+
+  # ══════════════════ ANALYTICS ════════════════════════
+
+  /api/v1/analytics/overview:
+    get:
+      tags: [Analytics]
+      summary: Dashboard overview
+      description: Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Aggregated statistics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/analytics/submissions:
+    get:
+      tags: [Analytics]
+      summary: Submissions analytics
+      description: Grouped by form, user, and day. Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Submission analytics data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/analytics/form-performance:
+    get:
+      tags: [Analytics]
+      summary: Form completion rates
+      description: Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Form performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/analytics/webhooks:
+    get:
+      tags: [Analytics]
+      summary: Webhook delivery statistics
+      description: Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Webhook delivery stats
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/analytics/team-performance:
+    get:
+      tags: [Analytics]
+      summary: Team member performance
+      description: Submission counts per team member for last 30 days. Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Team performance data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/analytics/dashboard-stats:
+    get:
+      tags: [Analytics]
+      summary: Dashboard stat cards
+      description: Quick trend statistics for dashboard cards. Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Dashboard stats with trends
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ══════════════════ ACTIVITY ═════════════════════════
+
+  /api/v1/activity/recent:
+    get:
+      tags: [Activity]
+      summary: Recent activity feed
+      description: Returns latest submissions as activity items. i18n handled on the frontend.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activity:
+                    type: array
+                    items:
+                      type: object
+
+  # ══════════════════ TRIGGERS ═════════════════════════
+
+  /api/v1/triggers:
+    get:
+      tags: [Triggers]
+      summary: List triggers
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: event_type
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Supports Hebrew search
+      responses:
+        '200':
+          description: List of triggers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  triggers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Trigger'
+
+    post:
+      tags: [Triggers]
+      summary: Create trigger
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, eventType]
+              properties:
+                name:
+                  type: string
+                eventType:
+                  type: string
+                scope:
+                  type: string
+                  enum: [organization, form]
+                  default: organization
+                formIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                conditions:
+                  type: object
+                priority:
+                  type: integer
+                  default: 0
+                errorHandling:
+                  type: string
+                  enum: [ignore, retry, dlq]
+                  default: retry
+      responses:
+        '201':
+          description: Created trigger
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+
+  /api/v1/triggers/templates:
+    get:
+      tags: [Triggers]
+      summary: Built-in trigger templates
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Available trigger templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      type: object
+
+  /api/v1/triggers/export:
+    get:
+      tags: [Triggers]
+      summary: Export triggers as JSON
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: ids
+          in: query
+          schema:
+            type: string
+          description: Comma-separated trigger UUIDs
+      responses:
+        '200':
+          description: Trigger export bundle
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/triggers/import:
+    post:
+      tags: [Triggers]
+      summary: Import triggers from JSON
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [triggers]
+              properties:
+                triggers:
+                  type: array
+                  items:
+                    type: object
+                mode:
+                  type: string
+                  enum: [merge, replace]
+                  default: merge
+      responses:
+        '200':
+          description: Import summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imported:
+                    type: integer
+                  skipped:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /api/v1/triggers/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Triggers]
+      summary: Get trigger with actions
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Trigger details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+
+    put:
+      tags: [Triggers]
+      summary: Update trigger
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                eventType:
+                  type: string
+                scope:
+                  type: string
+                formIds:
+                  type: array
+                  items:
+                    type: string
+                conditions:
+                  type: object
+                priority:
+                  type: integer
+                errorHandling:
+                  type: string
+      responses:
+        '200':
+          description: Updated trigger
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+
+    delete:
+      tags: [Triggers]
+      summary: Delete trigger
+      description: Cascades to associated actions.
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/triggers/{id}/toggle:
+    patch:
+      tags: [Triggers]
+      summary: Toggle trigger active/inactive
+      description: Validates that at least one action exists before activating.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated trigger status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isActive:
+                    type: boolean
+
+  /api/v1/triggers/{id}/test:
+    post:
+      tags: [Triggers]
+      summary: Test trigger conditions
+      description: Evaluates conditions and simulates action execution without side effects.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventData:
+                  type: object
+                  description: Simulated event payload to test against conditions
+      responses:
+        '200':
+          description: Test results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conditionsMet:
+                    type: boolean
+                  actionsSimulated:
+                    type: array
+                    items:
+                      type: object
+
+  /api/v1/triggers/{id}/history:
+    get:
+      tags: [Triggers]
+      summary: Trigger execution history
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated execution history
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/triggers/{id}/versions:
+    get:
+      tags: [Triggers]
+      summary: Trigger version history
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Version snapshots
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/triggers/{id}/restore:
+    post:
+      tags: [Triggers]
+      summary: Restore trigger version
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version]
+              properties:
+                version:
+                  type: integer
+      responses:
+        '200':
+          description: Restored trigger
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trigger'
+
+  # ══════════════════ EVENTS ═══════════════════════════
+
+  /api/v1/events/types:
+    get:
+      tags: [Events]
+      summary: Available event types
+      description: Returns event type metadata with bilingual descriptions (English + Hebrew).
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Event types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventTypes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        label:
+                          type: string
+                        description:
+                          type: string
+
+  /api/v1/events:
+    get:
+      tags: [Events]
+      summary: Audit log
+      description: Comprehensive event log with multi-field filtering.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [info, warning, error]
+        - name: eventType
+          in: query
+          schema:
+            type: string
+        - name: sourceType
+          in: query
+          schema:
+            type: string
+        - name: sourceId
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated event list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /api/v1/events/{id}:
+    get:
+      tags: [Events]
+      summary: Get event with matched triggers
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event with trigger execution status
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ══════════════════ INTEGRATIONS ═════════════════════
+
+  /api/v1/integrations:
+    get:
+      tags: [Integrations]
+      summary: List integrations
+      description: Sensitive config fields (API keys, secrets) are masked.
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [crm, erp, calendar, messaging]
+        - name: provider
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, error]
+      responses:
+        '200':
+          description: List of integrations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Integration'
+
+    post:
+      tags: [Integrations]
+      summary: Create integration
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, provider, name]
+              properties:
+                type:
+                  type: string
+                  enum: [crm, erp, calendar, messaging]
+                provider:
+                  type: string
+                name:
+                  type: string
+                config:
+                  type: object
+                oauthCode:
+                  type: string
+                  description: OAuth authorization code (for OAuth providers)
+      responses:
+        '201':
+          description: Created integration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+
+  /api/v1/integrations/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Integrations]
+      summary: Get integration
+      description: Returns masked config (API keys hidden).
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Integration details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+
+    put:
+      tags: [Integrations]
+      summary: Update integration
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                config:
+                  type: object
+                status:
+                  type: string
+                  enum: [active, inactive]
+      responses:
+        '200':
+          description: Updated integration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+
+    delete:
+      tags: [Integrations]
+      summary: Delete integration
+      description: Returns 409 if active triggers reference this integration.
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+        '409':
+          description: Integration in use by active triggers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/integrations/{id}/test:
+    post:
+      tags: [Integrations]
+      summary: Test integration connection
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Connection test result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  latencyMs:
+                    type: number
+                  error:
+                    type: string
+                    nullable: true
+
+  /api/v1/integrations/{id}/health:
+    get:
+      tags: [Integrations]
+      summary: Integration health diagnostics
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Health status with recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/integrations/{id}/schema:
+    get:
+      tags: [Integrations]
+      summary: Integration data schema
+      description: Returns entities and fields for the provider (e.g., CRM contacts schema).
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Provider schema
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/integrations/{id}/refresh:
+    post:
+      tags: [Integrations]
+      summary: Refresh OAuth tokens
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ══════════════════ CONNECTORS ═══════════════════════
+
+  /api/v1/integrations/connectors:
+    get:
+      tags: [Connectors]
+      summary: List connectors
+      description: Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: List of connectors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connectors:
+                    type: array
+                    items:
+                      type: object
+
+    post:
+      tags: [Connectors]
+      summary: Create connector
+      description: Requires **manager** role.
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [definitionSlug, name]
+              properties:
+                definitionSlug:
+                  type: string
+                name:
+                  type: string
+                config:
+                  type: object
+                rateLimitRequests:
+                  type: integer
+                rateLimitWindowSeconds:
+                  type: integer
+                timeoutMs:
+                  type: integer
+      responses:
+        '201':
+          description: Created connector
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/integrations/connectors/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [Connectors]
+      summary: Get connector
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Connector details
+          content:
+            application/json:
+              schema:
+                type: object
+
+    patch:
+      tags: [Connectors]
+      summary: Update connector
+      security:
+        - ClerkAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                config:
+                  type: object
+                isEnabled:
+                  type: boolean
+                rateLimitRequests:
+                  type: integer
+                timeoutMs:
+                  type: integer
+      responses:
+        '200':
+          description: Updated connector
+          content:
+            application/json:
+              schema:
+                type: object
+
+    delete:
+      tags: [Connectors]
+      summary: Delete connector (soft delete)
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Deleted
+
+  # ══════════════════ WHATSAPP ═════════════════════════
+
+  /api/v1/whatsapp/channels:
+    get:
+      tags: [WhatsApp]
+      summary: List WhatsApp channels
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WhatsAppChannel'
+
+    post:
+      tags: [WhatsApp]
+      summary: Create WhatsApp channel
+      description: Initializes QR scanning setup.
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [displayName]
+              properties:
+                displayName:
+                  type: string
+      responses:
+        '201':
+          description: Created channel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsAppChannel'
+
+  /api/v1/whatsapp/channels/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [WhatsApp]
+      summary: Get channel details
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: Channel details with status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsAppChannel'
+
+    delete:
+      tags: [WhatsApp]
+      summary: Disconnect WhatsApp channel
+      security:
+        - ClerkAuth: []
+      responses:
+        '204':
+          description: Disconnected
+
+  /api/v1/whatsapp/channels/{id}/qr:
+    post:
+      tags: [WhatsApp]
+      summary: Get QR code for pairing
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: QR code data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  qrCode:
+                    type: string
+                    description: Base64-encoded QR image
+
+  /api/v1/whatsapp/channels/{id}/refresh:
+    post:
+      tags: [WhatsApp]
+      summary: Refresh channel connection
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated channel status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsAppChannel'
+
+  /api/v1/whatsapp/send-link:
+    post:
+      tags: [WhatsApp]
+      summary: Send form link via WhatsApp
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [channelId, formId, recipientPhone, formUrl]
+              properties:
+                channelId:
+                  type: string
+                  format: uuid
+                formId:
+                  type: string
+                  format: uuid
+                recipientPhone:
+                  type: string
+                  description: International format, e.g. +972501234567
+                formUrl:
+                  type: string
+                  format: uri
+                caption:
+                  type: string
+      responses:
+        '200':
+          description: Message log entry
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/whatsapp/send-pdf:
+    post:
+      tags: [WhatsApp]
+      summary: Send PDF submission via WhatsApp
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [channelId, formId, submissionId, recipientPhone, pdfBase64, filename]
+              properties:
+                channelId:
+                  type: string
+                  format: uuid
+                formId:
+                  type: string
+                  format: uuid
+                submissionId:
+                  type: string
+                  format: uuid
+                recipientPhone:
+                  type: string
+                pdfBase64:
+                  type: string
+                  description: Base64-encoded PDF
+                filename:
+                  type: string
+                caption:
+                  type: string
+      responses:
+        '200':
+          description: Message log entry
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/v1/whatsapp/messages:
+    get:
+      tags: [WhatsApp]
+      summary: WhatsApp message history
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: channelId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: formId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated message history
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ══════════════════ DLQ ══════════════════════════════
+
+  /api/v1/dlq/stats:
+    get:
+      tags: [DLQ]
+      summary: DLQ statistics
+      description: Returns counts by status for the organization.
+      security:
+        - ClerkAuth: []
+      responses:
+        '200':
+          description: DLQ stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pending:
+                    type: integer
+                  retrying:
+                    type: integer
+                  resolved:
+                    type: integer
+                  ignored:
+                    type: integer
+
+  /api/v1/dlq:
+    get:
+      tags: [DLQ]
+      summary: List DLQ entries
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, retrying, resolved, ignored]
+      responses:
+        '200':
+          description: DLQ entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DLQEntry'
+
+  /api/v1/dlq/{id}:
+    get:
+      tags: [DLQ]
+      summary: Get DLQ entry
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: DLQ entry with full error context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQEntry'
+
+  /api/v1/dlq/{id}/retry:
+    post:
+      tags: [DLQ]
+      summary: Retry failed job
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Retry queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /api/v1/dlq/{id}/retry-edited:
+    post:
+      tags: [DLQ]
+      summary: Retry with modified payload
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modifiedPayload]
+              properties:
+                modifiedPayload:
+                  type: object
+      responses:
+        '200':
+          description: Updated and queued for retry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQEntry'
+
+  /api/v1/dlq/{id}/ignore:
+    post:
+      tags: [DLQ]
+      summary: Ignore DLQ entry
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Entry marked as ignored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQEntry'
+
+  /api/v1/dlq/{id}/resolve:
+    post:
+      tags: [DLQ]
+      summary: Resolve DLQ entry
+      security:
+        - ClerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notes]
+              properties:
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Entry resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DLQEntry'
+
+  /api/v1/dlq/bulk-retry:
+    post:
+      tags: [DLQ]
+      summary: Bulk retry DLQ entries
+      security:
+        - ClerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids]
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Bulk retry result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  succeeded:
+                    type: integer
+                  failed:
+                    type: integer
+
+  # ══════════════════ AI EXTRACTION ════════════════════
+
+  /api/v1/extract-fields-hybrid:
+    post:
+      tags: [AI Extraction]
+      summary: Extract PDF fields (Hybrid AI)
+      description: |
+        Combines Azure Form Recognizer + Google Gemini for best accuracy on Hebrew PDFs.
+        Does **not** require authentication.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pdfBase64]
+              properties:
+                pdfBase64:
+                  type: string
+                  description: Base64-encoded PDF content
+                pageCount:
+                  type: integer
+                  description: Number of pages (optional hint for AI)
+      responses:
+        '200':
+          description: Extracted fields and processing stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fields:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FormField'
+                  stats:
+                    type: object
+                    properties:
+                      azureFields:
+                        type: integer
+                      geminiFields:
+                        type: integer
+                      mergedFields:
+                        type: integer
+                      processingMs:
+                        type: integer
+
+  # ══════════════════ INCOMING WEBHOOKS ════════════════
+
+  /api/v1/webhooks/grow:
+    post:
+      tags: [Billing]
+      summary: Grow payment webhook (incoming)
+      description: |
+        Receives payment notifications from the Grow payment provider.
+        - Signature verified via HMAC
+        - Rate limited: 100 req/min per IP
+        - Idempotent: duplicate transaction IDs are ignored
+        - Optional IP whitelist via `GROW_IP_WHITELIST` env var
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Grow webhook payload (provider-defined schema)
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+
+  /api/v1/webhooks/grow/health:
+    get:
+      tags: [Billing]
+      summary: Grow webhook health check
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  service:
+                    type: string
