@@ -1,0 +1,104 @@
+{
+  "name": "@rightflow/mcp-server",
+  "version": "0.1.0",
+  "description": "Open-source MCP server for Hebrew PDF document generation with enterprise-grade security",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "rightflow-mcp": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:security": "vitest run tests/security/",
+    "test:hebrew": "vitest run tests/hebrew/",
+    "test:tdd": "vitest watch --coverage",
+
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+
+    "security:audit": "npm audit --audit-level=high && tsx scripts/security-audit.ts",
+    "validate:templates": "tsx scripts/validate-templates.ts",
+    "generate:checksums": "tsx scripts/generate-checksums.ts",
+    "generate:template-index": "tsx scripts/generate-template-index.ts",
+
+    "qa": "tsx scripts/qa-agent.ts 2",
+    "qa:stage1": "tsx scripts/qa-agent.ts 1",
+    "qa:stage2": "tsx scripts/qa-agent.ts 2",
+    "qa:stage3": "tsx scripts/qa-agent.ts 3",
+    "qa:stage4": "tsx scripts/qa-agent.ts 4",
+    "qa:stage5": "tsx scripts/qa-agent.ts 5",
+    "qa:stage6": "tsx scripts/qa-agent.ts 6",
+
+    "prepublishOnly": "npm run build && npm run qa:stage6",
+    "release": "np",
+    "clean": "rm -rf dist coverage .vitest"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "pdf",
+    "hebrew",
+    "rtl",
+    "israel",
+    "documents",
+    "templates",
+    "tdd",
+    "security"
+  ],
+  "author": "RightFlow Community",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/right-flow/rightflow-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/right-flow/rightflow-mcp-server/issues"
+  },
+  "homepage": "https://github.com/right-flow/rightflow-mcp-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "pdf-lib": "^1.17.1",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "zod": "^3.22.0",
+    "dotenv": "^16.4.0",
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-security": "^2.1.0",
+    "prettier": "^3.2.4",
+    "vitest": "^1.2.1",
+    "@vitest/ui": "^1.2.1",
+    "@vitest/coverage-v8": "^1.2.1",
+    "tsx": "^4.7.0",
+    "np": "^9.2.0"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "fonts",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    ".claude-plugin"
+  ]
+}

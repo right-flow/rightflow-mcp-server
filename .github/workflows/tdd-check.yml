@@ -1,0 +1,46 @@
+name: TDD Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tdd-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run QA Agent (Stage 3)
+        run: npm run qa:stage3
+
+      - name: Verify security coverage
+        run: |
+          SECURITY_COVERAGE=$(cat coverage/coverage-summary.json | jq '."src/security/".lines.pct // 0')
+          echo "Security coverage: $SECURITY_COVERAGE%"
+          if (( $(echo "$SECURITY_COVERAGE < 95" | bc -l) )); then
+            echo "❌ Security coverage $SECURITY_COVERAGE% is below 95%"
+            exit 1
+          fi
+          echo "✅ Security coverage meets 95% threshold"
+
+      - name: Verify validator coverage
+        run: |
+          VALIDATOR_COVERAGE=$(cat coverage/coverage-summary.json | jq '."src/validators/".lines.pct // 0')
+          echo "Validator coverage: $VALIDATOR_COVERAGE%"
+          if (( $(echo "$VALIDATOR_COVERAGE < 95" | bc -l) )); then
+            echo "❌ Validator coverage $VALIDATOR_COVERAGE% is below 95%"
+            exit 1
+          fi
+          echo "✅ Validator coverage meets 95% threshold"

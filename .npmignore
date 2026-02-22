@@ -1,0 +1,39 @@
+# Source files
+src/
+tests/
+scripts/
+
+# Development files
+.github/
+.vscode/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+tsconfig.json
+tsconfig.build.json
+.eslintrc.cjs
+.prettierrc
+
+# Documentation (keep README, LICENSE, SECURITY)
+docs/
+*.md
+!README.md
+!SECURITY.md
+
+# Development artifacts
+coverage/
+.vitest/
+node_modules/
+*.log
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# OS
+.DS_Store
+Thumbs.db
