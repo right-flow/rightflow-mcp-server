@@ -72,7 +72,7 @@ const STAGE_CONFIGS: StageConfig[] = [
       },
       { name: "TypeScript compiles", command: "npm run typecheck", required: true },
       { name: "ESLint passes", command: "npm run lint", required: true },
-      { name: "Security audit", command: "npm audit --audit-level=high", required: true },
+      { name: "Security audit", command: "npm audit --production --audit-level=high", required: true },
     ],
   },
   {
@@ -90,7 +90,7 @@ const STAGE_CONFIGS: StageConfig[] = [
       },
       { name: "TypeScript compiles", command: "npm run typecheck", required: true },
       { name: "ESLint passes", command: "npm run lint", required: true },
-      { name: "Security audit", command: "npm audit --audit-level=high", required: true },
+      { name: "Security audit", command: "npm audit --production --audit-level=high", required: true },
     ],
   },
   {
@@ -117,7 +117,7 @@ const STAGE_CONFIGS: StageConfig[] = [
       },
       { name: "TypeScript compiles", command: "npm run typecheck", required: true },
       { name: "ESLint passes", command: "npm run lint", required: true },
-      { name: "Security audit", command: "npm audit --audit-level=high", required: true },
+      { name: "Security audit", command: "npm audit --production --audit-level=high", required: true },
       { name: "Build succeeds", command: "npm run build", required: true },
     ],
   },
