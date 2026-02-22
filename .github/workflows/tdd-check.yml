@@ -27,7 +27,8 @@ jobs:
 
       - name: Verify security coverage
         run: |
-          SECURITY_COVERAGE=$(cat coverage/coverage-summary.json | jq '."src/security/".lines.pct // 0')
+          # Get coverage for all files in src/security/ directory
+          SECURITY_COVERAGE=$(cat coverage/coverage-summary.json | jq '[to_entries[] | select(.key | contains("/src/security/")) | .value.lines.pct] | if length > 0 then (add / length) else 0 end')
           echo "Security coverage: $SECURITY_COVERAGE%"
           if (( $(echo "$SECURITY_COVERAGE < 95" | bc -l) )); then
             echo "❌ Security coverage $SECURITY_COVERAGE% is below 95%"
@@ -37,7 +38,8 @@ jobs:
 
       - name: Verify validator coverage
         run: |
-          VALIDATOR_COVERAGE=$(cat coverage/coverage-summary.json | jq '."src/validators/".lines.pct // 0')
+          # Get coverage for all files in src/validators/ directory (skip if no files yet)
+          VALIDATOR_COVERAGE=$(cat coverage/coverage-summary.json | jq '[to_entries[] | select(.key | contains("/src/validators/")) | .value.lines.pct] | if length > 0 then (add / length) else 100 end')
           echo "Validator coverage: $VALIDATOR_COVERAGE%"
           if (( $(echo "$VALIDATOR_COVERAGE < 95" | bc -l) )); then
             echo "❌ Validator coverage $VALIDATOR_COVERAGE% is below 95%"
