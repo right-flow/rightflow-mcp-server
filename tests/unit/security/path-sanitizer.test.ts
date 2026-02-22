@@ -11,8 +11,9 @@
  * 4. QA: Run `npm run qa:stage2`
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it } from "vitest";
 // import { PathSanitizer } from "../../../src/security/path-sanitizer.js";
+// NOTE: expect will be available globally from vitest/globals when tests are uncommented
 
 describe("PathSanitizer", () => {
   describe("Path Traversal Prevention", () => {
