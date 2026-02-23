@@ -66,3 +66,5 @@ nul
 
 # Security audit reports (keep scripts, ignore outputs)
 security-reports/
+**/backend-logs.txt
+**/backend-logs*.txt
