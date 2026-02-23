@@ -39,6 +39,28 @@ export async function authenticateMcpApiKey(
 
     const apiKey = authHeader.substring(7); // Remove "Bearer "
 
+    // DEV MODE: Allow testing with placeholder API key
+    if (process.env.NODE_ENV === 'development' && apiKey.startsWith('rfc_sk_')) {
+      logger.info('DEV MODE: Using placeholder API key for MCP authentication');
+      req.user = {
+        id: 'dev-user',
+        organizationId: process.env.DEV_ORGANIZATION_ID || '00000000-0000-0000-0000-000000000000',
+        role: 'api_key',
+        mcpApiKey: {
+          id: 'dev-key',
+          keyPrefix: 'rfc_sk_',
+          permissions: {
+            fill: true,
+            batch: true,
+            audit: true,
+            templates: { read: true, write: true },
+          },
+          environment: 'development',
+        },
+      };
+      return next();
+    }
+
     // 2. Validate API key format (rfk_ + 64 hex chars)
     if (!apiKey.startsWith('rfk_') || apiKey.length !== 68) {
       throw new AuthenticationError('Invalid API key format');

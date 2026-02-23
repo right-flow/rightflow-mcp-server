@@ -49,9 +49,16 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
     const apiKey = user.apiKey || process.env.DEFAULT_MCP_API_KEY || 'rfc_sk_placeholder';
 
     // Determine backend URL based on environment
-    const backendUrl = process.env.RAILWAY_PUBLIC_DOMAIN
-      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : process.env.BACKEND_URL || 'https://rightflow.railway.app';
+    // Development: use localhost:3003
+    // Production: use RAILWAY_PUBLIC_DOMAIN or BACKEND_URL or fallback
+    let backendUrl: string;
+    if (process.env.NODE_ENV === 'development') {
+      backendUrl = 'http://localhost:3003';
+    } else if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+      backendUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+    } else {
+      backendUrl = process.env.BACKEND_URL || 'https://app.rightflow.co.il';
+    }
 
     logger.info('Generating MCP installer package', {
       organizationId,
@@ -95,6 +102,19 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
       }
     });
 
+    // Log archive events for debugging
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') {
+        logger.warn('Archive warning (file not found)', { error: err.message });
+      } else {
+        logger.error('Archive warning', { error: err.message });
+      }
+    });
+
+    archive.on('entry', (entry) => {
+      logger.info('Archive entry added', { name: entry.name, type: entry.type });
+    });
+
     // Pipe archive to response
     archive.pipe(res);
 
@@ -104,8 +124,9 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
 
     // Path to MCP server package
     // When running, __dirname is in dist/routes/v1/
-    // We need to go to the project root and then to packages/mcp-server
-    const projectRoot = path.join(__dirname, '../../../../..');
+    // dist/routes/v1 -> dist/routes -> dist -> backend -> app -> packages -> RightFlow
+    // So we need to go up 6 levels to reach RightFlow root
+    const projectRoot = path.join(__dirname, '../../../../../..');
     const mcpServerPath = path.join(projectRoot, 'packages', 'mcp-server');
 
     logger.info('MCP server path resolved', {
@@ -122,26 +143,55 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
       { src: path.join(mcpServerPath, 'package-lock.json'), dest: 'package-lock.json' },
     ];
 
+    logger.info('Starting to add MCP server files to archive', {
+      totalFiles: filesToInclude.length,
+    });
+
     for (const file of filesToInclude) {
-      if (fs.existsSync(file.src)) {
+      const exists = fs.existsSync(file.src);
+
+      logger.info('Checking MCP server file', {
+        src: file.src,
+        dest: file.dest,
+        exists,
+      });
+
+      if (exists) {
         const stats = fs.statSync(file.src);
-        if (stats.isDirectory()) {
+        const isDirectory = stats.isDirectory();
+
+        logger.info('Adding to archive', {
+          src: file.src,
+          dest: file.dest,
+          type: isDirectory ? 'directory' : 'file',
+          size: isDirectory ? 'N/A' : stats.size,
+        });
+
+        if (isDirectory) {
           archive.directory(file.src, file.dest);
         } else {
           archive.file(file.src, { name: file.dest });
         }
       } else {
-        logger.warn(`MCP server file not found: ${file.src}`);
+        logger.warn('MCP server file not found', {
+          src: file.src,
+          dest: file.dest,
+        });
       }
     }
+
+    logger.info('Finished adding MCP server files to archive');
 
     // Finalize the archive
     await archive.finalize();
 
-    logger.info('MCP installer package generated successfully', {
+    const archiveStats = {
+      totalBytes: archive.pointer(),
       organizationId,
       filename,
-    });
+    };
+
+    logger.info('MCP installer package generated successfully', archiveStats);
 
   } catch (error) {
     logger.error('Failed to generate MCP installer', {
@@ -358,18 +408,14 @@ Write-Host "  [OK] Uninstall script created" -ForegroundColor Green
 Write-Host "[8/8] Testing installation..." -ForegroundColor Yellow
 
 try {
-    $testProcess = Start-Process -FilePath "node" -ArgumentList "$InstallPath\\dist\\index.js" -PassThru -WindowStyle Hidden -RedirectStandardError "$env:TEMP\\mcp-test-error.txt"
+    $process = Start-Process -FilePath "node" -ArgumentList "$InstallPath\\dist\\index.js" -PassThru -WindowStyle Hidden
     Start-Sleep -Seconds 2
 
-    if (-not $testProcess.HasExited) {
-        Stop-Process -Id $testProcess.Id -Force -ErrorAction SilentlyContinue
+    if (-not $process.HasExited) {
+        Stop-Process -Id $process.Id -Force
         Write-Host "  [OK] MCP server starts successfully" -ForegroundColor Green
     } else {
-        $errorLog = Get-Content "$env:TEMP\\mcp-test-error.txt" -ErrorAction SilentlyContinue
-        Write-Host "  [!] MCP server exited - check configuration" -ForegroundColor Yellow
-        if ($errorLog) {
-            Write-Host "    Error: $errorLog" -ForegroundColor Yellow
-        }
+        Write-Host "  [!] MCP server exited immediately - check logs" -ForegroundColor Yellow
     }
 } catch {
     Write-Host "  [!] Could not test MCP server: $($_.Exception.Message)" -ForegroundColor Yellow
