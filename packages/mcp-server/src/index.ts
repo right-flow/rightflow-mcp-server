@@ -45,7 +45,7 @@ const apiClient: AxiosInstance = axios.create({
 const server = new Server(
   {
     name: 'rightflow-hebrew-pdf',
-    version: '1.0.0',
+    version: '2.0.0',
   },
   {
     capabilities: {
@@ -182,7 +182,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const language = (argsObj.language as string) || 'he';
 
         const response = await apiClient.get(
-          `/mcp/templates/${template_id}/fields?language=${language}`
+          `/mcp/templates/${template_id}?language=${language}`
         );
 
         return {

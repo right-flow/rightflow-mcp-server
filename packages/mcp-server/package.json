@@ -1,35 +1,76 @@
 {
   "name": "@rightflow/mcp-hebrew-pdf",
-  "version": "1.0.0",
-  "description": "RightFlow MCP Server - Hebrew PDF generation for Claude Code",
+  "version": "2.0.0",
+  "description": "Model Context Protocol (MCP) server for Hebrew PDF generation in Claude Desktop - Professional RTL document creation with proper BiDi text handling",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "rightflow-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "API_REFERENCE.md",
+    "EXAMPLES.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run build && npm run test",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'Linting not configured yet'"
+    "lint": "echo 'Linting not configured yet'",
+    "clean": "rm -rf dist coverage",
+    "prepack": "npm run clean && npm run build"
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "claude",
+    "claude-desktop",
+    "anthropic",
     "pdf",
+    "pdf-generation",
     "hebrew",
+    "hebrew-pdf",
     "rtl",
+    "right-to-left",
+    "bidi",
+    "bidirectional",
     "israel",
-    "documents"
+    "israeli",
+    "documents",
+    "forms",
+    "contracts",
+    "invoices",
+    "employment",
+    "accounting",
+    "legal",
+    "templates",
+    "nikud",
+    "vowel-marks",
+    "i18n",
+    "internationalization"
   ],
-  "author": "RightFlow",
+  "author": {
+    "name": "RightFlow Team",
+    "email": "support@rightflow.com",
+    "url": "https://rightflow.com"
+  },
+  "contributors": [
+    {
+      "name": "Claude Sonnet 4.5",
+      "url": "https://anthropic.com"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
@@ -42,15 +83,32 @@
     "typescript": "^5.3.0",
     "vitest": "^1.6.1"
   },
+  "peerDependencies": {},
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/rightflow-mcp-server.git"
+    "url": "https://github.com/rightflow/mcp-hebrew-pdf.git",
+    "directory": "packages/mcp-server"
   },
   "bugs": {
-    "url": "https://github.com/your-org/rightflow-mcp-server/issues"
+    "url": "https://github.com/rightflow/mcp-hebrew-pdf/issues",
+    "email": "support@rightflow.com"
   },
-  "homepage": "https://github.com/your-org/rightflow-mcp-server#readme"
+  "homepage": "https://github.com/rightflow/mcp-hebrew-pdf#readme",
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/rightflow"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
