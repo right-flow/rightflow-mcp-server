@@ -29,6 +29,7 @@ import eventsRouter from './routes/v1/events';
 import metricsRouter from './routes/v1/metrics'; // Prometheus metrics endpoint
 import mcpRouter from './routes/v1/mcp'; // MCP Cowork connector API
 import apiKeysRouter from './routes/v1/api-keys'; // API Keys management
+import organizationRouter from './routes/v1/organization'; // Organization management
 import './workers/webhookWorker'; // Initialize webhook worker
 import './workers/whatsappHealthWorker'; // Initialize WhatsApp health worker
 import './workers/eventWorker'; // Initialize event processing worker
@@ -102,6 +103,9 @@ app.use('/api/v1/mcp', mcpRouter);
 
 // 🔑 API Keys management (MCP authentication)
 app.use('/api/v1/api-keys', apiKeysRouter);
+
+// 🏢 Organization management (MCP installer download)
+app.use('/api/v1/organization', organizationRouter);
 
 // 404 handler
 app.use((_req, res) => {
