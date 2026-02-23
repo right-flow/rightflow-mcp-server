@@ -103,7 +103,15 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
     archive.append(readme, { name: 'README.md' });
 
     // Path to MCP server package
-    const mcpServerPath = path.join(__dirname, '../../../../mcp-server');
+    // When running, __dirname is in dist/routes/v1/
+    // We need to go to the project root and then to packages/mcp-server
+    const projectRoot = path.join(__dirname, '../../../../..');
+    const mcpServerPath = path.join(projectRoot, 'packages', 'mcp-server');
+
+    logger.info('MCP server path resolved', {
+      mcpServerPath,
+      exists: fs.existsSync(mcpServerPath),
+    });
 
     // Add MCP server files to archive
     const filesToInclude = [
