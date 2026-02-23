@@ -31,6 +31,9 @@ if (!API_KEY) {
   process.exit(1);
 }
 
+// Configuration constants
+const API_TIMEOUT_MS = 60000; // 60 seconds - PDF generation can take time
+
 // API Client
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -38,8 +41,72 @@ const apiClient: AxiosInstance = axios.create({
     'Authorization': `Bearer ${API_KEY}`,
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 seconds
+  timeout: API_TIMEOUT_MS,
 });
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Parse and validate MCP tool arguments
+ */
+function parseArgs(args: unknown): Record<string, unknown> {
+  if (!args || typeof args !== 'object') {
+    throw new Error('Missing required arguments');
+  }
+  return args as Record<string, unknown>;
+}
+
+/**
+ * Get optional argument with default value
+ */
+function getOptionalArg<T>(args: Record<string, unknown>, key: string, defaultValue?: T): T | undefined {
+  return (args[key] as T) || defaultValue;
+}
+
+/**
+ * Get required argument or throw error
+ */
+function getRequiredArg<T>(args: Record<string, unknown>, key: string): T {
+  const value = args[key];
+  if (value === undefined || value === null) {
+    throw new Error(`Missing required argument: ${key}`);
+  }
+  return value as T;
+}
+
+/**
+ * Format JSON response for MCP
+ */
+function formatJsonResponse(data: unknown): { content: Array<{ type: string; text: string }> } {
+  return {
+    content: [
+      {
+        type: 'text',
+        text: JSON.stringify(data, null, 2),
+      },
+    ],
+  };
+}
+
+/**
+ * Format error response for MCP
+ */
+function formatError(error: any): { content: Array<{ type: string; text: string }>; isError: boolean } {
+  const errorMessage = error.response?.data?.error?.message || error.message;
+  const errorDetails = error.response?.data?.error?.details || '';
+
+  return {
+    content: [
+      {
+        type: 'text',
+        text: `❌ Error: ${errorMessage}\n${errorDetails ? `\nDetails: ${JSON.stringify(errorDetails, null, 2)}` : ''}`,
+      },
+    ],
+    isError: true,
+  };
+}
 
 // MCP Server
 const server = new Server(
@@ -153,57 +220,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'list_templates': {
+        const argsObj = args && typeof args === 'object' ? (args as Record<string, unknown>) : {};
         const params = new URLSearchParams();
-        if (args && typeof args === 'object') {
-          const argsObj = args as Record<string, unknown>;
-          if (argsObj.category) params.append('category', argsObj.category as string);
-          if (argsObj.search) params.append('search', argsObj.search as string);
-          if (argsObj.language) params.append('language', argsObj.language as string);
-        }
+
+        if (argsObj.category) params.append('category', argsObj.category as string);
+        if (argsObj.search) params.append('search', argsObj.search as string);
+        if (argsObj.language) params.append('language', argsObj.language as string);
 
         const response = await apiClient.get(`/mcp/templates?${params.toString()}`);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(response.data, null, 2),
-            },
-          ],
-        };
+        return formatJsonResponse(response.data);
       }
 
       case 'get_template_fields': {
-        if (!args || typeof args !== 'object') {
-          throw new Error('Missing required arguments');
-        }
-        const argsObj = args as Record<string, unknown>;
-        const template_id = argsObj.template_id as string;
-        const language = (argsObj.language as string) || 'he';
+        const argsObj = parseArgs(args);
+        const template_id = getRequiredArg<string>(argsObj, 'template_id');
+        const language = getOptionalArg<string>(argsObj, 'language', 'he');
 
         const response = await apiClient.get(
           `/mcp/templates/${template_id}?language=${language}`
         );
 
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(response.data, null, 2),
-            },
-          ],
-        };
+        return formatJsonResponse(response.data);
       }
 
       case 'fill_pdf': {
-        if (!args || typeof args !== 'object') {
-          throw new Error('Missing required arguments');
-        }
-        const argsObj = args as Record<string, unknown>;
-        const template_id = argsObj.template_id as string;
-        const data = argsObj.data as Record<string, unknown>;
-        const file_name = argsObj.file_name as string | undefined;
-        const language = (argsObj.language as string) || 'he';
+        const argsObj = parseArgs(args);
+        const template_id = getRequiredArg<string>(argsObj, 'template_id');
+        const data = getRequiredArg<Record<string, unknown>>(argsObj, 'data');
+        const file_name = getOptionalArg<string>(argsObj, 'file_name');
+        const language = getOptionalArg<string>(argsObj, 'language', 'he');
 
         const response = await apiClient.post('/mcp/fill', {
           template_id,
@@ -242,33 +287,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'list_categories': {
         const response = await apiClient.get('/mcp/categories');
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(response.data, null, 2),
-            },
-          ],
-        };
+        return formatJsonResponse(response.data);
       }
 
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
   } catch (error: any) {
-    const errorMessage = error.response?.data?.error?.message || error.message;
-    const errorDetails = error.response?.data?.error?.details || '';
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `❌ Error: ${errorMessage}\n${errorDetails ? `\nDetails: ${JSON.stringify(errorDetails, null, 2)}` : ''}`,
-        },
-      ],
-      isError: true,
-    };
+    return formatError(error);
   }
 });
 
@@ -339,8 +365,10 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
+  // Log startup without exposing sensitive API URL details
+  const apiType = API_BASE_URL.includes('localhost') ? 'localhost' : 'remote';
   console.error('RightFlow MCP Server running');
-  console.error(`API URL: ${API_BASE_URL}`);
+  console.error(`API configured: ${apiType}`);
 }
 
 main().catch((error) => {
