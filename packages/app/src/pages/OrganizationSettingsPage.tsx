@@ -2,6 +2,7 @@ import { OrganizationProfile } from '@clerk/clerk-react';
 import { useDirection, useTranslation } from '@/i18n';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { McpInstallerDownload } from '@/components/organization/McpInstallerDownload';
 
 export function OrganizationSettingsPage() {
   const direction = useDirection();
@@ -42,6 +43,11 @@ export function OrganizationSettingsPage() {
           </div>
           <ArrowLeft className={`w-5 h-5 text-muted-foreground ${direction === 'rtl' ? '' : 'rotate-180'}`} />
         </button>
+
+        {/* MCP Installer Download */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <McpInstallerDownload />
+        </div>
 
         {/* Organization Profile */}
         <OrganizationProfile
