@@ -511,22 +511,21 @@ router.post('/fill', requireMcpPermission('fill'), async (req: Request, res: Res
       });
     }
 
-    const storedFile = await localStorage.save(
+    const storedFilePath = await localStorage.save(
       organizationId,
-      fileName,
       pdfResult.pdfBuffer,
-      'application/pdf',
-      24 * 60 * 60 // 24 hours TTL
+      fileName
     );
 
     const generationTime = Date.now() - startTime;
+    const fileSize = pdfResult.pdfBuffer.length;
 
     // Log the fill operation
     logger.info('MCP PDF generated successfully', {
       template_id,
       field_count: Object.keys(validation.sanitizedData).length,
       language,
-      file_size: storedFile.size,
+      file_size: fileSize,
       generation_time_ms: generationTime,
     });
 
@@ -536,6 +535,10 @@ router.post('/fill', requireMcpPermission('fill'), async (req: Request, res: Res
       [template_id]
     );
 
+    // Build file URL
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:3003';
+    const fileUrl = `${baseUrl}/api/v1/mcp/files/${storedFilePath}`;
+
     // Return response based on output format
     const responseData: Record<string, unknown> = {
       template_id,
@@ -543,10 +546,9 @@ router.post('/fill', requireMcpPermission('fill'), async (req: Request, res: Res
       fields_filled: Object.keys(validation.sanitizedData).length,
       output_format,
       generation_time_ms: generationTime,
-      file_url: storedFile.url,
-      file_path: storedFile.path,
-      file_size: storedFile.size,
-      expires_at: storedFile.expiresAt?.toISOString(),
+      file_url: fileUrl,
+      file_path: storedFilePath,
+      file_size: fileSize,
     };
 
     // Include base64 if requested

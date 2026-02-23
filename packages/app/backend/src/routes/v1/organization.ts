@@ -46,7 +46,7 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
 
     // Get or generate API key for this organization
     // For now, we'll use a placeholder - this should fetch from database
-    const apiKey = user.apiKey || process.env.DEFAULT_MCP_API_KEY || 'rfc_sk_placeholder';
+    const apiKey = process.env.DEFAULT_MCP_API_KEY || 'rfc_sk_placeholder';
 
     // Determine backend URL based on environment
     // Development: use localhost:3003
@@ -112,7 +112,7 @@ router.get('/mcp-download', async (req: Request, res: Response, next: NextFuncti
     });
 
     archive.on('entry', (entry) => {
-      logger.info('Archive entry added', { name: entry.name, type: entry.type });
+      logger.info('Archive entry added', { name: entry.name });
     });
 
     // Pipe archive to response
