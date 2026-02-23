@@ -1,8 +1,8 @@
 # RightFlow MCP Server - סטטוס פרויקט
 
-**עדכון אחרון**: 2026-02-23 15:00
+**עדכון אחרון**: 2026-02-23 17:00
 **גרסה נוכחית**: 2.0.0
-**סטטוס**: Stages 1-7 הושלמו ✅ | Stage 8 בהמתנה ⏳
+**סטטוס**: Stages 1-7 הושלמו ✅ | Stage 8.1 מוכן לבדיקה 🧪
 
 ---
 
@@ -14,7 +14,9 @@
 | **Stage 5**: Documentation + QA | ✅ הושלם | 100% |
 | **Stage 6**: Pre-Release | ✅ הושלם | 100% |
 | **Stage 7**: Pre-Deployment | ✅ הושלם | 100% |
-| **Stage 8**: Deployment | ⏳ בהמתנה | 0% |
+| **Stage 8.0**: Installer Endpoint | ✅ הושלם | 100% |
+| **Stage 8.1**: Claude Desktop Testing | 🧪 מוכן לבדיקה | 90% |
+| **Stage 8.2**: NPM Publication | ⏳ ממתין | 0% |
 
 ---
 
@@ -502,3 +504,98 @@
 **עודכן**: 2026-02-23 10:30
 **Stage נוכחי**: 5 (Documentation ✅) → 6 (Pre-Release ⏳)
 **הבא**: Security Audit או Claude Desktop Integration Testing
+
+
+---
+
+### 🚀 Stage 8.0: Installer Endpoint (COMPLETED ✅)
+
+**תאריך**: 2026-02-23
+
+#### 1. Backend Endpoint Created
+- ✅ **Route**: `/api/v1/organization/mcp-download`
+- ✅ **Location**: `packages/app/backend/src/routes/v1/organization.ts`
+- ✅ **Authentication**: JWT required (Clerk)
+- ✅ **Output**: ZIP file with pre-configured installer
+
+#### 2. PowerShell Installation Script
+- ✅ **Generated per-user** with organization ID and API key
+- ✅ **Fixed environment variables**:
+  - Uses `RIGHTFLOW_API_URL` (not BACKEND_URL)
+  - Uses `RIGHTFLOW_API_KEY` (not BACKEND_API_KEY)
+- ✅ **Features**:
+  - Pre-flight checks (Node.js, Claude Desktop)
+  - Automatic dependency installation
+  - Claude Desktop config auto-update
+  - Backend connectivity test
+  - Uninstall script generation
+
+#### 3. Frontend UI Component
+- ✅ **Component**: `McpInstallerDownload.tsx`
+- ✅ **Location**: `packages/app/src/components/organization/`
+- ✅ **Integrated into**: Organization Settings page
+- ✅ **Features**:
+  - Full Hebrew/RTL support
+  - System requirements display
+  - Installation instructions
+  - Download button with auth
+  - Error handling
+
+#### 4. ZIP Package Contents
+- `setup-mcp.ps1` - Pre-configured installation script
+- `README.md` - Installation guide
+- `dist/` - Compiled MCP server (34KB)
+- `package.json`, `package-lock.json`
+- `fonts/` - Hebrew fonts (if available)
+- `templates/` - PDF templates (if available)
+
+#### 5. Git Commits
+```
+feat(backend): Add organization MCP installer download endpoint
+feat(frontend): Add MCP installer download UI
+```
+
+---
+
+### 🧪 Stage 8.1: Claude Desktop Testing (READY FOR TESTING)
+
+**מה צריך לבדוק:**
+
+#### תרחיש בדיקה מלא:
+
+1. **הורדת המתקין** ✅ (Backend + Frontend מוכנים)
+   - התחבר לאפליקציה: http://localhost:5173
+   - גש להגדרות ארגון: /organization/settings
+   - לחץ "הורד חבילת התקנה מותאמת אישית"
+   - ודא שהZIP הורד בהצלחה
+
+2. **התקנה** ⏳ (צריך בדיקה ידנית)
+   - פרוש את rightflow-mcp-installer-XXXXXX.zip
+   - הרץ setup-mcp.ps1 (Run with PowerShell)
+   - ודא שההתקנה עוברת בהצלחה
+   - בדוק שהקבצים נוצרו ב-`C:\Program Files\RightFlow-MCP`
+
+3. **אימות Claude Desktop** ⏳ (צריך בדיקה ידנית)
+   - הפעל מחדש את Claude Desktop (סגירה מלאה + פתיחה)
+   - וודא שלא נראות שגיאות בעת הפתיחה
+   - בדוק ש-rightflow-cowork מופיע ברשימת MCP servers
+
+4. **בדיקת כלים** ⏳ (צריך בדיקה ידנית)
+   - שאל Claude: "List available PDF templates"
+   - צפוי: רשימת תבניות בעברית
+   - שאל Claude: "Show me template fields for employment contract"
+   - צפוי: רשימת שדות עם תוויות בעברית
+   - שאל Claude: "Create an employment contract PDF"
+   - צפוי: PDF עם טקסט עברי תקין
+
+#### בדיקות קריטיות:
+- ✅ Backend endpoint works (401 without auth)
+- ✅ MCP server builds successfully (34KB)
+- ✅ Frontend UI displays correctly
+- ⏳ ZIP download works with real auth
+- ⏳ Setup script runs without errors
+- ⏳ Claude Desktop recognizes MCP server
+- ⏳ All 4 MCP tools work correctly
+- ⏳ Hebrew text displays properly in PDFs
+
+---
