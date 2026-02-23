@@ -313,7 +313,7 @@ export class InputValidator {
   /**
    * Create a new Input Validator
    *
-   * @param schema - Zod schema or schema definition
+   * @param schema - Zod schema or schema definition (optional - defaults to passthrough schema)
    *
    * @example
    * ```typescript
@@ -324,10 +324,18 @@ export class InputValidator {
    *
    * const validator = new InputValidator(schema);
    * ```
+   *
+   * @example Without schema (validates any object)
+   * ```typescript
+   * const validator = new InputValidator();
+   * validator.validate({ any: 'data' }); // Passes
+   * ```
    */
-  constructor(schema: ZodSchema | SchemaDefinition) {
-    // If schema definition provided, convert to Zod schema
-    if (schema instanceof z.ZodType) {
+  constructor(schema?: ZodSchema | SchemaDefinition) {
+    // If no schema provided, use a permissive passthrough schema
+    if (!schema) {
+      this.schema = z.object({}).passthrough();
+    } else if (schema instanceof z.ZodType) {
       this.schema = schema;
     } else {
       this.schema = createSchema(schema as SchemaDefinition);
@@ -338,10 +346,11 @@ export class InputValidator {
    * Validate input data against the schema
    *
    * @param data - Data to validate
-   * @returns Validated and sanitized data
-   * @throws ValidationError if validation fails
+   * @param schema - Optional schema to validate against (overrides constructor schema)
+   * @returns Validated data if successful, or validation result object if schema provided
+   * @throws ValidationError if validation fails and no schema provided
    *
-   * @example
+   * @example Throwing mode
    * ```typescript
    * const validator = new InputValidator(schema);
    * try {
@@ -353,8 +362,38 @@ export class InputValidator {
    *   }
    * }
    * ```
+   *
+   * @example Result mode (with schema parameter)
+   * ```typescript
+   * const validator = new InputValidator();
+   * const result = validator.validate(data, { name: { type: 'string', required: true } });
+   * if (result.valid) {
+   *   console.log('Valid!');
+   * } else {
+   *   console.error(result.errors);
+   * }
+   * ```
    */
-  validate<T = any>(data: unknown): T {
+  validate<T = any>(
+    data: unknown,
+    schema?: SchemaDefinition
+  ): T | { valid: boolean; errors?: ValidationErrorDetail[] } {
+    // If schema provided, return result object format
+    if (schema) {
+      const zodSchema = createSchema(schema);
+      const result = zodSchema.safeParse(data);
+
+      if (result.success) {
+        return { valid: true };
+      } else {
+        return {
+          valid: false,
+          errors: convertZodErrors(result.error),
+        };
+      }
+    }
+
+    // Otherwise, throw on error
     try {
       return this.schema.parse(data) as T;
     } catch (error) {

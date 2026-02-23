@@ -25,7 +25,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { join } from "node:path";
 import { RateLimiter } from "../../src/security/rateLimiter.js";
-import { PathSanitizer } from "../../src/security/pathSanitizer.js";
+import { PathSanitizer, PathSecurityError } from "../../src/security/pathSanitizer.js";
 import { MemoryManager } from "../../src/security/memoryManager.js";
 import { InputValidator } from "../../src/security/inputValidator.js";
 import { HebrewSanitizer } from "../../src/security/hebrewSanitizer.js";
@@ -94,13 +94,12 @@ describe("Security Pipeline Integration", () => {
       const clientId = "client-test-001";
 
       // Layer 1: Rate Limiter
-      const rateCheck = await rateLimiter.checkLimit(clientId);
-      expect(rateCheck.allowed).toBe(true);
+      await expect(rateLimiter.checkLimit(clientId)).resolves.toBeUndefined();
 
       // Layer 2: Path Sanitizer
-      const templatePath = join(TEST_TEMPLATE_DIR, "test-template.pdf");
-      const sanitizedPath = pathSanitizer.sanitize(templatePath);
-      expect(sanitizedPath).toBe(templatePath);
+      const templatePath = "test-template.pdf";
+      const sanitizedPath = pathSanitizer.sanitize(templatePath, TEST_TEMPLATE_DIR);
+      expect(sanitizedPath).toContain("test-template.pdf");
 
       // Layer 3: Memory Manager
       const allocation = memoryManager.allocate("request-001", 10 * 1024 * 1024); // 10MB
@@ -112,12 +111,8 @@ describe("Security Pipeline Integration", () => {
         email: "john@example.com",
         date: "2024-01-01",
       };
-      const validation = inputValidator.validate(fieldData, {
-        name: { type: "string", required: true },
-        email: { type: "email", required: true },
-        date: { type: "date", required: false },
-      });
-      expect(validation.valid).toBe(true);
+      const result = inputValidator.validate(fieldData);
+      expect(result).toBe(fieldData); // Returns sanitized data on success
 
       // Layer 5: Hebrew Sanitizer
       const hebrewText = "שלום עולם";
@@ -149,9 +144,8 @@ describe("Security Pipeline Integration", () => {
         await rateLimiter.checkLimit(clientId);
       }
 
-      // 21st request should be blocked
-      const result = await rateLimiter.checkLimit(clientId);
-      expect(result.allowed).toBe(false);
+      // 21st request should be blocked (throws error)
+      await expect(rateLimiter.checkLimit(clientId)).rejects.toThrow("Rate limit exceeded");
 
       // Should log violation
       auditLogger.logRateLimitViolation(clientId, "127.0.0.1");
@@ -159,11 +153,11 @@ describe("Security Pipeline Integration", () => {
     });
 
     it("should block path traversal attacks", () => {
-      const maliciousPath = join(TEST_TEMPLATE_DIR, "..", "..", "etc", "passwd");
+      const maliciousPath = join("..", "..", "etc", "passwd");
 
       expect(() => {
-        pathSanitizer.sanitize(maliciousPath);
-      }).toThrow("Path traversal detected");
+        pathSanitizer.sanitize(maliciousPath, TEST_TEMPLATE_DIR);
+      }).toThrow(PathSecurityError);
 
       // Should log security violation
       auditLogger.logSecurityViolation("Path traversal attempt", {

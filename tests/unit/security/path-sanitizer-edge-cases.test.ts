@@ -34,19 +34,19 @@ describe("PathSanitizer Edge Cases", () => {
 
   describe("checkSymlink with real files", () => {
     it("should pass for regular files", async () => {
-      const sanitizer = new PathSanitizer([tempDir]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: [tempDir], allowSymlinks: false });
       // Should not throw for regular files
       await expect(sanitizer.checkSymlink(testFile)).resolves.toBeUndefined();
     });
 
     it("should handle non-existent files without throwing", async () => {
-      const sanitizer = new PathSanitizer([tempDir]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: [tempDir], allowSymlinks: false });
       const nonExistent = path.join(tempDir, "does-not-exist.txt");
       await expect(sanitizer.checkSymlink(nonExistent)).resolves.toBeUndefined();
     });
 
     it("should reject symlinks", async () => {
-      const sanitizer = new PathSanitizer([tempDir]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: [tempDir], allowSymlinks: false });
       const symlink = path.join(tempDir, "link.txt");
 
       // Mock lstat to return a symlink
@@ -70,7 +70,7 @@ describe("PathSanitizer Edge Cases", () => {
     });
 
     it("should handle lstat errors other than ENOENT", async () => {
-      const sanitizer = new PathSanitizer([tempDir]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: [tempDir], allowSymlinks: false });
       const testPath = path.join(tempDir, "error-file.txt");
 
       // Mock lstat to throw a permission error

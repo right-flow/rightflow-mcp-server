@@ -64,6 +64,16 @@ export class PathSecurityError extends Error {
 }
 
 /**
+ * Path sanitizer configuration options
+ */
+export interface PathSanitizerConfig {
+  /** Whitelist of allowed base directories */
+  allowedBasePaths: string[];
+  /** Whether to allow symlinks (default: false) */
+  allowSymlinks?: boolean;
+}
+
+/**
  * Regular expressions for security checks
  */
 const SECURITY_PATTERNS = {
@@ -90,23 +100,29 @@ const SECURITY_PATTERNS = {
  * 5. Absolute path blocking
  * 6. Path traversal detection (multiple strategies)
  * 7. Final boundary check after resolution
- * 8. Symlink detection (optional, async)
+ * 8. Symlink detection (optional, configurable)
  */
 export class PathSanitizer {
   private readonly allowedBasePaths: Set<string>;
+  private readonly allowSymlinks: boolean;
 
   /**
    * Create a new PathSanitizer
    *
-   * @param allowedBasePaths - Whitelist of allowed base directories
+   * @param config - Path sanitizer configuration
    * @throws Error if no base paths provided
    *
    * @example
    * ```typescript
-   * const sanitizer = new PathSanitizer(['/templates', '/data']);
+   * const sanitizer = new PathSanitizer({
+   *   allowedBasePaths: ['/templates', '/data'],
+   *   allowSymlinks: false
+   * });
    * ```
    */
-  constructor(allowedBasePaths: string[]) {
+  constructor(config: PathSanitizerConfig) {
+    const { allowedBasePaths, allowSymlinks = false } = config;
+
     if (!allowedBasePaths || allowedBasePaths.length === 0) {
       throw new Error("At least one base path must be provided");
     }
@@ -115,6 +131,8 @@ export class PathSanitizer {
     this.allowedBasePaths = new Set(
       allowedBasePaths.map((p) => path.normalize(p))
     );
+
+    this.allowSymlinks = allowSymlinks;
   }
 
   /**
@@ -181,16 +199,24 @@ export class PathSanitizer {
    * be detected and blocked in security-sensitive contexts.
    *
    * @param fullPath - Full path to check
-   * @throws PathSecurityError if path is a symlink
+   * @throws PathSecurityError if path is a symlink and symlinks are not allowed
    *
    * @example
    * ```typescript
-   * const sanitizer = new PathSanitizer(['/templates']);
+   * const sanitizer = new PathSanitizer({
+   *   allowedBasePaths: ['/templates'],
+   *   allowSymlinks: false
+   * });
    * await sanitizer.checkSymlink('/templates/contract.pdf'); // OK
    * await sanitizer.checkSymlink('/templates/link-to-etc'); // Throws
    * ```
    */
   async checkSymlink(fullPath: string): Promise<void> {
+    // If symlinks are allowed, skip the check
+    if (this.allowSymlinks) {
+      return;
+    }
+
     try {
       const stats = await fs.promises.lstat(fullPath);
       if (stats.isSymbolicLink()) {

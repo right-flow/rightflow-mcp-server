@@ -14,7 +14,7 @@ import {
 describe("Path Traversal Attack Scenarios", () => {
   describe("Classic Directory Traversal Attacks", () => {
     it("should block ../etc/passwd attack", () => {
-      const sanitizer = new PathSanitizer(["/var/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/var/templates"], allowSymlinks: false });
 
       expect(() => sanitizer.sanitize("../../../etc/passwd", "/var/templates")).toThrow(
         PathSecurityError
@@ -22,7 +22,7 @@ describe("Path Traversal Attack Scenarios", () => {
     });
 
     it("should block Windows system32 attack", () => {
-      const sanitizer = new PathSanitizer(["/var/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/var/templates"], allowSymlinks: false });
 
       expect(() =>
         sanitizer.sanitize("..\\..\\..\\Windows\\System32\\config\\SAM", "/var/templates")
@@ -30,7 +30,7 @@ describe("Path Traversal Attack Scenarios", () => {
     });
 
     it("should block null byte injection attack", () => {
-      const sanitizer = new PathSanitizer(["/var/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/var/templates"], allowSymlinks: false });
 
       // Attempt to bypass extension check with null byte
       expect(() =>
@@ -41,7 +41,7 @@ describe("Path Traversal Attack Scenarios", () => {
 
   describe("Advanced Traversal Techniques", () => {
     it("should block URL-encoded traversal (..%2F)", () => {
-      const sanitizer = new PathSanitizer(["/var/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/var/templates"], allowSymlinks: false });
 
       // Note: This test documents expected behavior - URL decoding should happen before sanitization
       const decodedPath = decodeURIComponent("..%2F..%2Fetc%2Fpasswd");
@@ -51,7 +51,7 @@ describe("Path Traversal Attack Scenarios", () => {
     });
 
     it("should block Unicode normalization attacks", () => {
-      const sanitizer = new PathSanitizer(["/var/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/var/templates"], allowSymlinks: false });
 
       // Unicode variations of ".."
       const unicodePath = "\u002e\u002e/etc/passwd"; // Unicode dots

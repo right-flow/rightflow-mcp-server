@@ -20,20 +20,20 @@ import {
 describe("PathSanitizer", () => {
   describe("Constructor", () => {
     it("should throw error when constructed with empty array", () => {
-      expect(() => new PathSanitizer([])).toThrow(
+      expect(() => new PathSanitizer({ allowedBasePaths: [] })).toThrow(
         "At least one base path must be provided"
       );
     });
 
     it("should accept valid base paths", () => {
-      const sanitizer = new PathSanitizer(["/templates", "/data"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates", "/data"], allowSymlinks: false });
       expect(sanitizer).toBeDefined();
     });
   });
 
   describe("Path Traversal Prevention", () => {
     it("should reject ../ paths", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       expect(() => sanitizer.sanitize("../etc/passwd", "/templates")).toThrow(
         PathSecurityError
       );
@@ -45,7 +45,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject multiple ../ sequences", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("../../etc/passwd", "/templates");
       } catch (error) {
@@ -54,7 +54,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject ../ in middle of path", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("legal/../../../etc/passwd", "/templates");
       } catch (error) {
@@ -63,7 +63,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject absolute paths", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("/etc/passwd", "/templates");
       } catch (error) {
@@ -72,7 +72,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject Windows absolute paths", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("C:\\Windows\\System32", "/templates");
       } catch (error) {
@@ -81,7 +81,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject Windows absolute paths with different drives", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("D:\\data\\file.pdf", "/templates");
       } catch (error) {
@@ -90,7 +90,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject path segments that are exactly ..", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       // This tests a different code path than "../" string check
       try {
         sanitizer.sanitize("foo/..", "/templates");
@@ -100,7 +100,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should allow valid relative paths", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize(
         "employment/contract.pdf",
         "/templates"
@@ -112,7 +112,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should allow subdirectory paths", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize(
         "legal/nda/standard.pdf",
         "/templates"
@@ -124,7 +124,7 @@ describe("PathSanitizer", () => {
 
   describe("Null Byte Prevention", () => {
     it("should reject paths with null bytes", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("contract.pdf\x00.txt", "/templates");
       } catch (error) {
@@ -133,7 +133,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject paths with Unicode null", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("contract.pdf\u0000.txt", "/templates");
       } catch (error) {
@@ -144,12 +144,12 @@ describe("PathSanitizer", () => {
 
   describe("Symlink Protection", () => {
     it("should have checkSymlink method", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       expect(typeof sanitizer.checkSymlink).toBe("function");
     });
 
     it("should handle non-existent files gracefully", async () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       // Should not throw for non-existent files (ENOENT)
       await expect(
         sanitizer.checkSymlink("/nonexistent/file.pdf")
@@ -157,7 +157,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should handle permission errors gracefully", async () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       // Test with a path that might have permission issues
       // On most systems, this will either work or log a warning but not throw
       await expect(
@@ -168,7 +168,7 @@ describe("PathSanitizer", () => {
 
   describe("Base Directory Enforcement", () => {
     it("should enforce base directory bounds", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("../../../home/user", "/templates");
       } catch (error) {
@@ -177,7 +177,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should only allow whitelisted base directories", () => {
-      const sanitizer = new PathSanitizer(["/templates", "/data"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates", "/data"], allowSymlinks: false });
 
       // Should work with whitelisted bases
       const result1 = sanitizer.sanitize("contract.pdf", "/templates");
@@ -197,7 +197,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject empty base directory", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("contract.pdf", "");
       } catch (error) {
@@ -208,14 +208,14 @@ describe("PathSanitizer", () => {
 
   describe("Special Characters", () => {
     it("should handle Hebrew filenames", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize("חוזה-עבודה.pdf", "/templates");
       const normalized = result.replace(/\\/g, "/");
       expect(normalized).toContain("חוזה-עבודה.pdf");
     });
 
     it("should handle spaces in filenames", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize(
         "employment contract.pdf",
         "/templates"
@@ -225,7 +225,7 @@ describe("PathSanitizer", () => {
     });
 
     it("should reject paths with control characters", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("contract\n.pdf", "/templates");
       } catch (error) {
@@ -236,7 +236,7 @@ describe("PathSanitizer", () => {
 
   describe("Edge Cases", () => {
     it("should reject empty path", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       try {
         sanitizer.sanitize("", "/templates");
       } catch (error) {
@@ -245,14 +245,14 @@ describe("PathSanitizer", () => {
     });
 
     it("should handle single file name", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize("contract.pdf", "/templates");
       const normalized = result.replace(/\\/g, "/");
       expect(normalized).toContain("contract.pdf");
     });
 
     it("should normalize path separators", () => {
-      const sanitizer = new PathSanitizer(["/templates"]);
+      const sanitizer = new PathSanitizer({ allowedBasePaths: ["/templates"], allowSymlinks: false });
       const result = sanitizer.sanitize("legal\\nda.pdf", "/templates");
       // Result should have normalized separators
       const normalized = result.replace(/\\/g, "/");
